@@ -1,0 +1,20 @@
+{
+  "name": "@flystorage/local-file-storage",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": "./dist/mjs/index.js"
+  },
+  "scripts": {
+    "compile": "concurrently npm:compile:*",
+    "compile:cjs": "tsc -p tsconfig.pkg.json --outDir dist/cjs --module commonjs --moduleResolution node",
+    "compile:mjs": "tsc -p tsconfig.pkg.json --outDir dist/mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@flystorage/file-storage": "^0.1.0"
+  }
+}

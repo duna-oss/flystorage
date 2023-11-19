@@ -1,0 +1,22 @@
+{
+  "name": "@flystorage/aws-s3-file-storage",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": "./dist/mjs/index.js"
+  },
+  "scripts": {
+    "compile": "concurrently npm:compile:*",
+    "compile:cjs": "tsc -p tsconfig.pkg.json --outDir dist/cjs --module commonjs --moduleResolution node",
+    "compile:mjs": "tsc -p tsconfig.pkg.json --outDir dist/mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.454.0",
+    "@aws-sdk/lib-storage": "^3.454.0",
+    "@flystorage/file-storage": "^0.1.0"
+  }
+}

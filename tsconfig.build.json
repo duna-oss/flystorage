@@ -1,0 +1,12 @@
+{
+  "extends": "@tsconfig/node20/tsconfig.json",
+  "exclude": [
+    "**/*.test.ts",
+    "node_modules",
+    "dist"
+  ],
+  "compilerOptions": {
+    "esModuleInterop": false,
+    "declaration": true
+  }
+}

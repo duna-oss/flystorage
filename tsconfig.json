@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.build.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/dist"
+  ],
+  "include": [
+    "**/*.ts"
+  ],
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "paths": {
+      "@filestorage/*": ["./packages/*/src/"]
+    }
+  }
+}
