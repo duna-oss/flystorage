@@ -2,7 +2,7 @@ import {Readable} from 'node:stream';
 import {fileTypeFromBuffer} from 'file-type';
 import {parse} from 'node:path';
 import {lookup as mimeTimeForExt} from 'mime-types';
-import {PassThrough} from 'stream';
+import {PassThrough} from 'node:stream';
 
 function concatUint8Arrays(input: Uint8Array[]): Uint8Array {
     const length = input.reduce((l, a) => l + a.byteLength, 0);

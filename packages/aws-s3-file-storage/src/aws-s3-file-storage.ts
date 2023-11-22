@@ -6,8 +6,8 @@ import {
     StorageAdapter, Visibility,
     WriteOptions
 } from '@flystorage/file-storage';
+import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {Readable} from 'stream';
-import {resolveMimeType} from './stream-mime-type.js';
 
 type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
 

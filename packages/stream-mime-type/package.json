@@ -1,0 +1,17 @@
+{
+  "name": "@flystorage/stream-mime-type",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "exports": {
+    ".": "./dist/stream-mime-type.js"
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "compile": "tsc -p tsconfig.pkg.json",
+    "watch": "tsc -p tsconfig.pkg.json --watch --excludeFiles **/*.test.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
