@@ -4,6 +4,7 @@ import {PathNormalizer, PathNormalizerV1} from './path-normalizer.js';
 export interface StorageAdapter {
     write(path: string, contents: Readable, options: WriteOptions): Promise<void>;
     deleteFile(path: string): Promise<void>;
+    createDirectory(path: string, options: CreateDirectoryOptions): Promise<void>;
 }
 
 export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable;
@@ -12,7 +13,10 @@ export type VisibilityOptions = {
     visibility?: string,
     directoryVisibility?: string,
 }
-export type WriteOptions = VisibilityOptions & {};
+export type WriteOptions = VisibilityOptions & {
+    mimeType?: string,
+};
+export type CreateDirectoryOptions = Pick<VisibilityOptions, 'directoryVisibility'> & {};
 
 export type ConfigurationOptions = {
     defaults?: VisibilityOptions,
@@ -27,7 +31,6 @@ function toReadable(contents: FileContents): Readable {
     return Readable.from(contents);
 }
 
-
 export class FileStorage {
     constructor(
         private readonly adapter: StorageAdapter,
@@ -37,26 +40,33 @@ export class FileStorage {
     }
 
     public async write(path: string, contents: FileContents, options: WriteOptions = {}): Promise<void> {
-        let body = toReadable(contents);
-
+        const body = toReadable(contents);
         await this.adapter.write(
             this.pathNormalizer.normalizePath(path),
             body,
             Object.assign({}, this.options.writes || {}, options),
         );
-
-        if (!body.closed) {
-            const close = new Promise<void>((resolve, reject) => {
-                body.on('close', (err: any) => {
-                    err ? reject(err) : resolve();
-                })
-            });
-            body.destroy();
-            await close;
-        }
+        await closeReadable(body);
     }
 
     public async deleteFile(path: string): Promise<void> {
         await this.adapter.deleteFile(this.pathNormalizer.normalizePath(path));
     }
+
+    public async createDirectory(path: string, options: CreateDirectoryOptions = {}): Promise<void> {
+        await this.adapter.createDirectory(path, options);
+    }
+}
+
+async function closeReadable(body: Readable) {
+    if (body.closed) {
+        return;
+    }
+
+    await new Promise<void>((resolve, reject) => {
+        body.on('close', (err: any) => {
+            err ? reject(err) : resolve();
+        });
+        body.destroy();
+    });
 }

@@ -4,15 +4,14 @@
   "version": "0.1.0",
   "description": "File-storage abstraction: multiple filesystems, one API.",
   "exports": {
-    ".": "./dist/mjs/index.js",
-    "./path-normalizer.js": "./dist/mjs/path-normalizer.js",
-    "./file-storage.js": "./dist/mjs/file-storage.js"
+    ".": "./dist/index.js",
+    "./path-normalizer.js": "./dist/path-normalizer.js",
+    "./file-storage.js": "./dist/file-storage.js"
   },
-  "types": "./dist/mjs/index.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "compile": "concurrently npm:compile:*",
-    "compile:cjs": "tsc -p tsconfig.pkg.json --outDir dist/cjs --module commonjs --moduleResolution node",
-    "compile:mjs": "tsc -p tsconfig.pkg.json --outDir dist/mjs"
+    "compile": "tsc -p tsconfig.pkg.json",
+    "watch": "tsc -p tsconfig.pkg.json --watch --excludeFiles **/*.test.ts"
   },
   "keywords": ["fs", "file", "files", "filesystem", "filesystems", "storage"],
   "author": "Frank de Jonge (https://frankdejonge.nl)",

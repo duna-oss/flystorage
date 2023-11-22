@@ -7,6 +7,10 @@
   ],
   "compilerOptions": {
     "esModuleInterop": false,
-    "declaration": true
+    "declaration": true,
+    "skipLibCheck": true,
+    "paths": {
+      "@filestorage/*": ["./packages/*/src/index.ts", "./packages/*/src/"]
+    }
   }
 }

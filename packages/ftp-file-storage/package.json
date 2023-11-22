@@ -1,5 +1,5 @@
 {
-  "name": "@flystorage/local-file-storage",
+  "name": "@flystorage/ftp-file-storage",
   "version": "0.1.0",
   "description": "",
   "type": "module",
@@ -7,13 +7,13 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "compile": "tsc -p tsconfig.pkg.json",
-    "watch": "tsc -p tsconfig.pkg.json --watch --excludeFiles **/*.test.ts"
+    "compile": "tsc -p tsconfig.pkg.json"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "basic-ftp": "^5.0.3",
     "@flystorage/file-storage": "^0.1.0"
   }
 }

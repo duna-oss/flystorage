@@ -1,6 +1,6 @@
 import {createWriteStream} from 'node:fs';
-import {unlink} from 'node:fs/promises';
-import {PathPrefixer, StorageAdapter, WriteOptions} from '@flystorage/file-storage';
+import {unlink, mkdir} from 'node:fs/promises';
+import {CreateDirectoryOptions, PathPrefixer, StorageAdapter, WriteOptions} from '@flystorage/file-storage';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -37,5 +37,14 @@ export class LocalFileStorage implements StorageAdapter {
                 throw err;
             }
         }
+    }
+
+    async createDirectory(path: string, options: CreateDirectoryOptions): Promise<void> {
+        await mkdir(this.prefixer.prefixDirectoryPath(path), {
+            recursive: true,
+            mode: options.directoryVisibility
+                ? this.visibility.visibilityToDirectoryPermissions(options.directoryVisibility)
+                : undefined,
+        });
     }
 }

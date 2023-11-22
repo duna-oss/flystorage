@@ -4,12 +4,12 @@
   "description": "",
   "type": "module",
   "exports": {
-    ".": "./dist/mjs/index.js"
+    ".": "./dist/index.js"
   },
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "compile": "concurrently npm:compile:*",
-    "compile:cjs": "tsc -p tsconfig.pkg.json --outDir dist/cjs --module commonjs --moduleResolution node",
-    "compile:mjs": "tsc -p tsconfig.pkg.json --outDir dist/mjs"
+    "compile": "tsc -p tsconfig.pkg.json",
+    "watch": "tsc -p tsconfig.pkg.json --watch --excludeFiles **/*.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.454.0",
     "@aws-sdk/lib-storage": "^3.454.0",
-    "@flystorage/file-storage": "^0.1.0"
+    "@flystorage/file-storage": "^0.1.0",
+    "file-type": "^18.7.0",
+    "mime-types": "^2.1.35"
   }
 }

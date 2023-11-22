@@ -9,9 +9,6 @@
     "**/*.ts"
   ],
   "compilerOptions": {
-    "esModuleInterop": true,
-    "paths": {
-      "@filestorage/*": ["./packages/*/src/"]
-    }
+    "esModuleInterop": true
   }
 }
