@@ -1,12 +1,8 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
 
-import { dirname } from 'path';
 import {Readable} from 'stream';
-import { fileURLToPath } from 'url';
 import {resolveMimeType} from './stream-mime-type.js';
-
-const dir = dirname(fileURLToPath(import.meta.url));
 
 describe('resolveMimeType', () => {
     let stream: Readable;
@@ -18,7 +14,7 @@ describe('resolveMimeType', () => {
     });
 
     test('resolving the mime-type of a file', async () => {
-        stream = fs.createReadStream(path.resolve(dir, 'fixtures/screenshot.png'));
+        stream = fs.createReadStream(path.resolve(process.cwd(), 'fixtures/screenshot.png'));
 
         [mime, stream] = await resolveMimeType('screenshot.png', stream);
 
