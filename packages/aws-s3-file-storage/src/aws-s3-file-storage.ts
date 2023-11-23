@@ -1,7 +1,8 @@
 import {
     _Object,
     CommonPrefix,
-    DeleteObjectCommand, DeleteObjectsCommand,
+    DeleteObjectCommand,
+    DeleteObjectsCommand,
     GetObjectAclCommand,
     GetObjectAclOutput,
     GetObjectCommand,
@@ -11,7 +12,8 @@ import {
     ObjectCannedACL,
     PutObjectAclCommand,
     PutObjectCommandInput,
-    S3Client
+    S3Client,
+    S3ServiceException
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {
@@ -53,13 +55,13 @@ export class AwsS3FileStorage implements StorageAdapter {
 
         const publicRead = response.Grants?.some(grant =>
             grant.Grantee?.URI === 'http://acs.amazonaws.com/groups/global/AllUsers'
-                && grant.Permission === 'READ'
+            && grant.Permission === 'READ'
         ) ?? false;
 
         return publicRead ? Visibility.PUBLIC : Visibility.PRIVATE;
     }
 
-    async *list(path: string, deep: boolean): AsyncGenerator<StatEntry, any, unknown> {
+    async* list(path: string, deep: boolean): AsyncGenerator<StatEntry, any, unknown> {
         const listing = this.listObjects(path, {
             deep,
             includePrefixes: true,
@@ -98,19 +100,19 @@ export class AwsS3FileStorage implements StorageAdapter {
         }
     }
 
-    async *listObjects(
+    async* listObjects(
         path: string,
         options: {
             deep: boolean,
             includePrefixes: boolean,
             includeSelf: boolean,
         },
-    ): AsyncGenerator<{type: 'prefix', item: CommonPrefix} | {type: 'object', item: _Object}, any, unknown> {
+    ): AsyncGenerator<{ type: 'prefix', item: CommonPrefix } | { type: 'object', item: _Object }, any, unknown> {
         let shouldContinue = true;
         let continuationToken: string | undefined = undefined;
         const prefix = this.prefixer.prefixDirectoryPath(path);
 
-        while(shouldContinue) {
+        while (shouldContinue) {
             const response: ListObjectsV2Output = await this.client.send(new ListObjectsV2Command({
                 Bucket: this.options.bucket,
                 Prefix: prefix,
@@ -124,8 +126,6 @@ export class AwsS3FileStorage implements StorageAdapter {
 
             for (const item of prefixes) {
                 if ((!options.includeSelf && item.Prefix === prefix) || item.Prefix === undefined) {
-                    // not interested in itself
-                    // not interested in empty prefixes
                     continue;
                 }
 
@@ -177,12 +177,12 @@ export class AwsS3FileStorage implements StorageAdapter {
     async createDirectory(path: string, options: CreateDirectoryOptions): Promise<void> {
         await this.upload(this.prefixer.prefixDirectoryPath(path), '', {
             ACL: options.directoryVisibility ? this.visibilityToAcl(options.directoryVisibility) : undefined,
-        })
+        });
     }
 
     async deleteDirectory(path: string): Promise<void> {
         // @ts-ignore because we know it will only be objects
-        let itemsToDelete: AsyncGenerator<{item: _Object}> = this.listObjects(path, {
+        let itemsToDelete: AsyncGenerator<{ item: _Object }> = this.listObjects(path, {
             deep: true,
             includeSelf: true,
             includePrefixes: false,
@@ -195,7 +195,7 @@ export class AwsS3FileStorage implements StorageAdapter {
             },
         }));
 
-        let bucket: {Key: string}[] = [];
+        let bucket: { Key: string }[] = [];
         let promises: Promise<any>[] = [];
 
         for await (const {item} of itemsToDelete) {
@@ -267,5 +267,22 @@ export class AwsS3FileStorage implements StorageAdapter {
             Key: this.prefixer.prefixFilePath(path),
             ACL: this.visibilityToAcl(visibility),
         }));
+    }
+
+    async fileExists(path: string): Promise<boolean> {
+        try {
+            await this.client.send(new HeadObjectCommand({
+                Bucket: this.options.bucket,
+                Key: this.prefixer.prefixFilePath(path),
+            }));
+
+            return true;
+        } catch (e) {
+            if (e instanceof S3ServiceException && e.$metadata.httpStatusCode === 404) {
+                return false;
+            }
+
+            throw e;
+        }
     }
 }

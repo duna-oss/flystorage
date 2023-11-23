@@ -7,7 +7,8 @@ import {
     WriteOptions
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
-import {chmod, mkdir, opendir, stat, unlink, rm} from 'node:fs/promises';
+import {chmod, mkdir, opendir, stat, rm} from 'node:fs/promises';
+import {join} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -28,11 +29,12 @@ export class LocalFileStorage implements StorageAdapter {
         });
 
         for await (const item of entries) {
+            const itemPath = join(item.path, item.name);
             yield this.mapStatToFileInfo(
                 item,
                 item.isFile()
-                    ? this.prefixer.stripFilePath(item.path)
-                    : this.prefixer.stripDirectoryPath(item.path)
+                    ? this.prefixer.stripFilePath(itemPath)
+                    : this.prefixer.stripDirectoryPath(itemPath)
             );
         }
     }
@@ -75,6 +77,20 @@ export class LocalFileStorage implements StorageAdapter {
             await stat(this.prefixer.prefixFilePath(path)),
             path,
         );
+    }
+
+    async fileExists(path: string): Promise<boolean> {
+        try {
+            const stat = await this.stat(path);
+
+            return stat.isFile;
+        } catch (e) {
+            if (typeof e === 'object' && (e as any).code === 'ENOENT') {
+                return false;
+            }
+
+            throw e;
+        }
     }
 
     async deleteDirectory(path: string): Promise<void> {

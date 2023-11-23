@@ -11,7 +11,7 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "compile": "tsc",
-    "watch": "tsc --watch --excludeFiles **/*.test.ts"
+    "watch": "tsc --watch"
   },
   "keywords": ["fs", "file", "files", "filesystem", "filesystems", "storage"],
   "author": "Frank de Jonge (https://frankdejonge.nl)",

@@ -53,7 +53,11 @@ describe('LocalFileStorage', () => {
         await storage.write('file-1.txt', 'contents');
         await storage.write('file-2.txt', 'contents');
 
-        // const listing = await storage.list('/');
+        const listing = await storage.list('/').toArray();
+
+        expect(listing).toHaveLength(2);
+        expect(listing.map(l => l.type)).toEqual(['file', 'file']);
+        expect(listing.map(l => l.path)).toEqual(['file-1.txt', 'file-2.txt']);
     });
 
     test('file file visibility can be changes', async () => {
@@ -66,5 +70,15 @@ describe('LocalFileStorage', () => {
         await storage.setVisibility('file.txt', Visibility.PRIVATE);
 
         expect((await storage.statFile('file.txt')).visibility).toEqual(Visibility.PRIVATE);
+    });
+
+    test('checking if a non-existing file exists', async () => {
+        expect(await storage.fileExists('non-existing-file.txt')).toEqual(false);
+    });
+
+    test('checking if an existing file exists', async () => {
+        await storage.write('existing-file.txt', 'contents');
+
+        expect(await storage.fileExists('existing-file.txt')).toEqual(true);
     });
 });

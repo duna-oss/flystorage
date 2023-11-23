@@ -3,7 +3,11 @@
   "type": "module",
   "scripts": {
     "build": "npm run compile -ws --if-present",
-    "watch": "npm run ts -- bin/watch.ts",
+    "watch": "concurrently npm:watch:*",
+    "watch:file-storage": "npm run watch -w ./packages/file-storage",
+    "watch:stream-mime-type": "npm run watch -w ./packages/stream-mime-type",
+    "watch:local": "npm run watch -w ./packages/local-file-storage",
+    "watch:aws-s3": "npm run watch -w ./packages/aws-s3-file-storage",
     "clean": "rm -rf ./packages/*/dist/",
     "ts": "node --loader ts-node/esm",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"

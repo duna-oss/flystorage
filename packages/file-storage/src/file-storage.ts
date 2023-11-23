@@ -41,12 +41,12 @@ export interface StorageAdapter {
     changeVisibility(path: string, visibility: string): Promise<void>;
     visibility(path: string): Promise<string>;
     deleteDirectory(path: string): Promise<void>;
-    // fileExists(path: string): Promise<boolean>;
+    fileExists(path: string): Promise<boolean>;
     // directoryExists(path: string): Promise<boolean>;
 }
 
 export interface DirectoryListing extends AsyncIterable<StatEntry> {
-    toArray(): Promise<StatEntry[]>;
+    toArray(sorted?: boolean): Promise<StatEntry[]>;
 }
 
 export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable;
@@ -73,6 +73,11 @@ function toReadable(contents: FileContents): Readable {
 
     return Readable.from(contents);
 }
+
+const naturalSorting = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base'
+});
 
 export class FileStorage {
     constructor(
@@ -130,17 +135,21 @@ export class FileStorage {
         return this.adapter.visibility(this.pathNormalizer.normalizePath(path));
     }
 
+    public fileExists(path: string): Promise<boolean> {
+        return this.adapter.fileExists(this.pathNormalizer.normalizePath(path));
+    }
+
     public list(path: string, deep: boolean = false): DirectoryListing {
         const listing = this.adapter.list(this.pathNormalizer.normalizePath(path), deep);
 
         return {
-            async toArray(): Promise<StatEntry[]> {
+            async toArray(sorted: boolean = true): Promise<StatEntry[]> {
                 const items = [];
                 for await (const item of listing) {
                     items.push(item);
                 }
 
-                return items;
+                return sorted ? items.sort((a, b) => naturalSorting.compare(a.path, b.path)) : items;
             },
             async *[Symbol.asyncIterator]() {
                 for await (const item of listing) {
