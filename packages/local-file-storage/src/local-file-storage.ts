@@ -1,6 +1,13 @@
-import {createWriteStream} from 'node:fs';
-import {unlink, mkdir} from 'node:fs/promises';
-import {CreateDirectoryOptions, PathPrefixer, StorageAdapter, WriteOptions} from '@flystorage/file-storage';
+import {
+    CreateDirectoryOptions, FileContents,
+    PathPrefixer,
+    StatEntry,
+    StorageAdapter,
+    WriteOptions
+} from '@flystorage/file-storage';
+import {Dirent, Stats} from 'fs';
+import {createWriteStream, createReadStream} from 'node:fs';
+import {mkdir, stat, unlink, opendir} from 'node:fs/promises';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -13,6 +20,25 @@ export class LocalFileStorage implements StorageAdapter {
         private readonly visibility: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
     ) {
         this.prefixer = new PathPrefixer(this.rootDir);
+    }
+
+    async *list(path: string, deep: boolean): AsyncGenerator<StatEntry, any, unknown> {
+        let entries = await opendir(this.prefixer.prefixDirectoryPath(path), {
+            recursive: deep,
+        });
+
+        for await (const item of entries) {
+            yield this.mapStatToFileInfo(
+                item,
+                item.isFile()
+                    ? this.prefixer.stripFilePath(item.path)
+                    : this.prefixer.stripDirectoryPath(item.path)
+            );
+        }
+    }
+
+    async read(path: string): Promise<FileContents> {
+        return createReadStream(this.prefixer.prefixFilePath(path));
     }
 
     async write(path: string, contents: Readable, options: WriteOptions): Promise<void> {
@@ -46,5 +72,36 @@ export class LocalFileStorage implements StorageAdapter {
                 ? this.visibility.visibilityToDirectoryPermissions(options.directoryVisibility)
                 : undefined,
         });
+    }
+
+    async stat(path: string): Promise<StatEntry> {
+        let info = await stat(this.prefixer.prefixFilePath(path));
+
+        return this.mapStatToFileInfo(info, path);
+    }
+
+    private mapStatToFileInfo(info: Stats | Dirent, path: string): StatEntry {
+        if (!info.isFile() && !info.isDirectory()) {
+            throw new Error('Unsupported file entry encountered...');
+        }
+
+        const isDirent = info instanceof Dirent;
+
+        return info.isFile() ? {
+            path,
+            type: 'file',
+            isFile: true,
+            isDirectory: false,
+            visibility: isDirent ? undefined : this.visibility.directoryPermissionsToVisibility(info.mode),
+            lastModifiedMs: isDirent ? undefined : info.mtimeMs,
+            size: isDirent ? undefined : info.size,
+        } : {
+            path,
+            type: 'directory',
+            isFile: false,
+            isDirectory: true,
+            visibility: isDirent ? undefined :this.visibility.filePermissionsToVisibility(info.mode),
+            lastModifiedMs: isDirent ? undefined : info.mtimeMs,
+        };
     }
 }

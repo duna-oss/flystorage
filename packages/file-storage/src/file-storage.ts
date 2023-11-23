@@ -9,7 +9,7 @@ export type CommonStatInfo = Readonly<{
 
 export type FileInfo = Readonly<{
     type: 'file',
-    size: number,
+    size?: number,
     isFile: true,
     isDirectory: false,
     mimeType?: string,
@@ -41,6 +41,10 @@ export interface StorageAdapter {
     // setVisibility(path: string, visibility: string): Promise<void>;
     // fileExists(path: string): Promise<boolean>;
     // directoryExists(path: string): Promise<boolean>;
+}
+
+export interface DirectoryListing extends AsyncIterable<StatEntry> {
+    toArray(): Promise<StatEntry[]>;
 }
 
 export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable;
@@ -110,6 +114,26 @@ export class FileStorage {
 
     public stat(path: string): Promise<StatEntry> {
         return this.adapter.stat(this.pathNormalizer.normalizePath(path));
+    }
+
+    public list(path: string, deep: boolean = false): DirectoryListing {
+        const listing = this.adapter.list(this.pathNormalizer.normalizePath(path), deep);
+
+        return {
+            async toArray(): Promise<StatEntry[]> {
+                const items = [];
+                for await (const item of listing) {
+                    items.push(item);
+                }
+
+                return items;
+            },
+            async *[Symbol.asyncIterator]() {
+                for await (const item of listing) {
+                    yield item;
+                }
+            }
+        }
     }
 
     public async statFile(path: string): Promise<FileInfo> {

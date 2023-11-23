@@ -10,8 +10,8 @@
   },
   "types": "./dist/index.d.ts",
   "scripts": {
-    "compile": "tsc -p tsconfig.pkg.json",
-    "watch": "tsc -p tsconfig.pkg.json --watch --excludeFiles **/*.test.ts"
+    "compile": "tsc",
+    "watch": "tsc --watch --excludeFiles **/*.test.ts"
   },
   "keywords": ["fs", "file", "files", "filesystem", "filesystems", "storage"],
   "author": "Frank de Jonge (https://frankdejonge.nl)",
