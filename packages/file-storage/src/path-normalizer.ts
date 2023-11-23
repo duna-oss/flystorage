@@ -1,3 +1,5 @@
+import {join} from 'node:path';
+
 export interface PathNormalizer {
     normalizePath(path: string): string
 }
@@ -10,26 +12,13 @@ export class PathNormalizerV1 implements PathNormalizer {
             throw CorruptedPathDetected.unexpectedWhitespace(path);
         }
 
-        const parts: string[] = [];
-        const segments = path.split('/');
+        const normalized = join(...(path.split('/')));
 
-        for (const segment of segments) {
-            if (segment === '' || segment == '.') {
-                continue;
-            }
-
-            if (segment === '..') {
-                if (parts.length === 0) {
-                    throw PathTraversalDetected.forPath(path);
-                }
-
-                parts.pop();
-            } else {
-                parts.push(segment);
-            }
+        if (normalized.indexOf('../') !== -1 || normalized == '..') {
+            throw PathTraversalDetected.forPath(path);
         }
 
-        return parts.join('/');
+        return normalized === '.' ? '' : normalized;
     }
 }
 
