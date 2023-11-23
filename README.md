@@ -1,4 +1,4 @@
-# Flystorage
+# \[WIP\] Flystorage
 
 Flystorage is a file storage abstraction for NodeJS and TypeScript. It is an 80/20 solution
 that is built around a set of goals:
@@ -7,6 +7,7 @@ that is built around a set of goals:
 - Pragmatically smooth over underlying storage differences.
 - Provide an async/await based API, promises all the way.
 - Maximise cross-implementation portability.
+- Abstract over file permissions using "visibility".
 
 ## Author
 
@@ -31,7 +32,31 @@ npm i -S @flystorage/local-file-storage
 ## Local Usage
 
 ```typescript
-import {FileStorage} from '@flystorage/file-storage';
+import {resolve} from 'node:path';
+import {createReadStream} from 'node:fs';
+import {FileStorage, Visibility} from '@flystorage/file-storage';
 import {LocalFileStorage} from '@flystorage/local-file-storage';
 
+// SETUP
+
+const rootDirectory = resolve(process.cwd(), 'my-files');
+const storage = new FileStorage(new LocalFileStorage(rootDirectory));
+
+// USAGE
+
+# Write using a string
+await storage.write('write-from-a-string.txt', 'file contents');
+
+# Write using a stream
+const stream = createReadStream(resolve('process.cwd(), 'test-files/picture.png'));
+await storage.write('picture.png', stream);
+
+# Write with visibility (permissions).
+await storage.write('public.txt', 'debug', {
+    visibility: Visibility.PUBLIC, // mode: 0o644
+});
+
+await storage.write('private.txt', 'debug', {
+    visibility: Visibility.PRIVATE, // mode: 0o644
+});
 ```
