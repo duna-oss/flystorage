@@ -16,7 +16,6 @@ import {
 } from '@flystorage/file-storage';
 import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {Readable} from 'stream';
-
 type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
 
 export type AwsS3FileStorageOptions = Readonly<{
@@ -178,5 +177,9 @@ export class AwsS3FileStorage implements StorageAdapter {
         }
 
         throw new Error(`Unrecognized visibility provided; ${visibility}`);
+    }
+
+    setVisibility(path: string, visibility: string): Promise<void> {
+        return Promise.resolve(undefined);
     }
 }

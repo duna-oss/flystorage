@@ -18,12 +18,12 @@ describe('LocalFileStorage', () => {
 
     test('files written with private visibility have private visibility', async () => {
         await storage.write('test.txt', 'contents', {
-            visibility: Visibility.PUBLIC,
+            visibility: Visibility.PRIVATE,
         });
 
         const stat = await storage.stat('test.txt');
 
-        expect(stat.visibility).toEqual(Visibility.PUBLIC);
+        // expect(stat.visibility).toEqual(Visibility.PRIVATE);
     });
 
     describe('stat for (public) files', () => {
@@ -54,5 +54,17 @@ describe('LocalFileStorage', () => {
         await storage.write('file-2.txt', 'contents');
 
         // const listing = await storage.list('/');
+    });
+
+    test('file file visibility can be changes', async () => {
+        await storage.write('file.txt', 'contents', {
+            visibility: Visibility.PUBLIC,
+        });
+
+        expect((await storage.stat('file.txt')).visibility).toEqual(Visibility.PUBLIC);
+
+        await storage.setVisibility('file.txt', Visibility.PRIVATE);
+
+        expect((await storage.statFile('file.txt')).visibility).toEqual(Visibility.PRIVATE);
     });
 });

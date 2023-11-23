@@ -2,12 +2,15 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm run compile -w ./packages/file-storage && npm run compile -ws --if-present",
+    "build": "npm run compile -ws --if-present",
     "watch": "npm run ts -- bin/watch.ts",
+    "clean": "rm -rf ./packages/*/dist/",
     "ts": "node --loader ts-node/esm",
     "test": "NODE_OPTIONS=--experimental-vm-modules jest"
   },
   "workspaces": [
+    "./packages/stream-mime-type",
+    "./packages/file-storage",
     "./packages/*"
   ],
   "devDependencies": {
@@ -22,5 +25,8 @@
     "ts-jest-resolver": "^2.0.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1"
   }
 }

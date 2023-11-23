@@ -1,5 +1,4 @@
 import {Readable} from 'node:stream';
-import {fileTypeFromBuffer} from 'file-type';
 import {parse} from 'node:path';
 import {lookup as mimeTimeForExt} from 'mime-types';
 import {PassThrough} from 'node:stream';
@@ -53,6 +52,7 @@ export async function resolveMimeType(
     fallback: string | undefined = undefined
 ): Promise<[string|undefined, Readable]> {
     const [head, readable] = await streamHead(stream, 4100);
+    const {fileTypeFromBuffer} = await import('file-type');
     const lookup = await fileTypeFromBuffer(head);
 
     if (lookup) {

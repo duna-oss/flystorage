@@ -1,13 +1,13 @@
 import {
-    CreateDirectoryOptions, FileContents,
+    CreateDirectoryOptions,
+    FileContents,
     PathPrefixer,
     StatEntry,
     StorageAdapter,
     WriteOptions
 } from '@flystorage/file-storage';
-import {Dirent, Stats} from 'fs';
-import {createWriteStream, createReadStream} from 'node:fs';
-import {mkdir, stat, unlink, opendir} from 'node:fs/promises';
+import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
+import {chmod, mkdir, opendir, stat, unlink} from 'node:fs/promises';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -75,9 +75,10 @@ export class LocalFileStorage implements StorageAdapter {
     }
 
     async stat(path: string): Promise<StatEntry> {
-        let info = await stat(this.prefixer.prefixFilePath(path));
-
-        return this.mapStatToFileInfo(info, path);
+        return this.mapStatToFileInfo(
+            await stat(this.prefixer.prefixFilePath(path)),
+            path,
+        );
     }
 
     private mapStatToFileInfo(info: Stats | Dirent, path: string): StatEntry {
@@ -92,7 +93,7 @@ export class LocalFileStorage implements StorageAdapter {
             type: 'file',
             isFile: true,
             isDirectory: false,
-            visibility: isDirent ? undefined : this.visibility.directoryPermissionsToVisibility(info.mode),
+            visibility: isDirent ? undefined : this.visibility.filePermissionsToVisibility(info.mode & 0o777),
             lastModifiedMs: isDirent ? undefined : info.mtimeMs,
             size: isDirent ? undefined : info.size,
         } : {
@@ -100,8 +101,15 @@ export class LocalFileStorage implements StorageAdapter {
             type: 'directory',
             isFile: false,
             isDirectory: true,
-            visibility: isDirent ? undefined :this.visibility.filePermissionsToVisibility(info.mode),
+            visibility: isDirent ? undefined :this.visibility.directoryPermissionsToVisibility(info.mode & 0o777),
             lastModifiedMs: isDirent ? undefined : info.mtimeMs,
         };
+    }
+
+    async setVisibility(path: string, visibility: string): Promise<void> {
+        await chmod(
+            this.prefixer.prefixFilePath(path),
+            this.visibility.visibilityToFilePermissions(visibility),
+        );
     }
 }

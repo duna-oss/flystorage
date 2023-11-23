@@ -7,7 +7,8 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "compile": "tsc -p tsconfig.pkg.json"
+    "compile": "tsc",
+    "watch": "tsc --watch --excludeFiles **/*.test.ts"
   },
   "keywords": [],
   "author": "",
