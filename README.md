@@ -60,7 +60,7 @@ await storage.write('private.txt', 'debug', {
 });
 
 # List directory contents
-const contentsAsAsyncGenerator = storage.listContents('', {deep: true});
+const contentsAsAsyncGenerator = storage.list('', {deep: true});
 
 for await (const item of contentsAsAsyncGenerator) {
     console.log(item.path);
