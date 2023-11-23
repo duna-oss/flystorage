@@ -1,9 +1,15 @@
 import {
-    PutObjectCommandInput,
-    S3Client,
     DeleteObjectCommand,
+    GetObjectAclCommand,
+    GetObjectAclOutput,
+    GetObjectCommand,
+    HeadObjectCommand,
+    ListObjectsV2Command,
+    ListObjectsV2Output,
     ObjectCannedACL,
-    GetObjectCommand, HeadObjectCommand, ListObjectsV2Command
+    PutObjectAclCommand,
+    PutObjectCommandInput,
+    S3Client
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {
@@ -11,11 +17,13 @@ import {
     FileContents,
     PathPrefixer,
     StatEntry,
-    StorageAdapter, Visibility,
+    StorageAdapter,
+    Visibility,
     WriteOptions
 } from '@flystorage/file-storage';
 import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {Readable} from 'stream';
+
 type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
 
 export type AwsS3FileStorageOptions = Readonly<{
@@ -35,13 +43,27 @@ export class AwsS3FileStorage implements StorageAdapter {
         this.prefixer = new PathPrefixer(options.prefix || '');
     }
 
+    async visibility(path: string): Promise<string> {
+        const response: GetObjectAclOutput = await this.client.send(new GetObjectAclCommand({
+            Bucket: this.options.bucket,
+            Key: this.prefixer.prefixFilePath(path),
+        }));
+
+        const publicRead = response.Grants?.some(grant =>
+            grant.Grantee?.URI === 'http://acs.amazonaws.com/groups/global/AllUsers'
+                && grant.Permission === 'READ'
+        ) ?? false;
+
+        return publicRead ? Visibility.PUBLIC : Visibility.PRIVATE;
+    }
+
     async *list(path: string, deep: boolean): AsyncGenerator<StatEntry, any, unknown> {
         let shouldContinue = true;
-        let continuationToken: string | undefined;
+        let continuationToken: string | undefined = undefined;
         const prefix = this.prefixer.prefixDirectoryPath(path);
 
         while(shouldContinue) {
-            const response = await this.client.send(new ListObjectsV2Command({
+            const response: ListObjectsV2Output = await this.client.send(new ListObjectsV2Command({
                 Bucket: this.options.bucket,
                 Prefix: prefix,
                 Delimiter: deep ? '/' : undefined,
@@ -179,7 +201,11 @@ export class AwsS3FileStorage implements StorageAdapter {
         throw new Error(`Unrecognized visibility provided; ${visibility}`);
     }
 
-    setVisibility(path: string, visibility: string): Promise<void> {
-        return Promise.resolve(undefined);
+    async changeVisibility(path: string, visibility: string): Promise<void> {
+        await this.client.send(new PutObjectAclCommand({
+            Bucket: this.options.bucket,
+            Key: this.prefixer.prefixFilePath(path),
+            ACL: this.visibilityToAcl(visibility),
+        }));
     }
 }

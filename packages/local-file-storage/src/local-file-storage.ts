@@ -17,7 +17,7 @@ export class LocalFileStorage implements StorageAdapter {
 
     constructor(
         readonly rootDir: string,
-        private readonly visibility: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
+        private readonly visibilityConversion: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
     ) {
         this.prefixer = new PathPrefixer(this.rootDir);
     }
@@ -47,7 +47,7 @@ export class LocalFileStorage implements StorageAdapter {
             {
                 flags: 'w+',
                 mode: options.visibility
-                    ? this.visibility.visibilityToFilePermissions(options.visibility)
+                    ? this.visibilityConversion.visibilityToFilePermissions(options.visibility)
                     : undefined,
             },
         );
@@ -69,7 +69,7 @@ export class LocalFileStorage implements StorageAdapter {
         await mkdir(this.prefixer.prefixDirectoryPath(path), {
             recursive: true,
             mode: options.directoryVisibility
-                ? this.visibility.visibilityToDirectoryPermissions(options.directoryVisibility)
+                ? this.visibilityConversion.visibilityToDirectoryPermissions(options.directoryVisibility)
                 : undefined,
         });
     }
@@ -93,7 +93,7 @@ export class LocalFileStorage implements StorageAdapter {
             type: 'file',
             isFile: true,
             isDirectory: false,
-            visibility: isDirent ? undefined : this.visibility.filePermissionsToVisibility(info.mode & 0o777),
+            visibility: isDirent ? undefined : this.visibilityConversion.filePermissionsToVisibility(info.mode & 0o777),
             lastModifiedMs: isDirent ? undefined : info.mtimeMs,
             size: isDirent ? undefined : info.size,
         } : {
@@ -101,15 +101,25 @@ export class LocalFileStorage implements StorageAdapter {
             type: 'directory',
             isFile: false,
             isDirectory: true,
-            visibility: isDirent ? undefined :this.visibility.directoryPermissionsToVisibility(info.mode & 0o777),
+            visibility: isDirent ? undefined :this.visibilityConversion.directoryPermissionsToVisibility(info.mode & 0o777),
             lastModifiedMs: isDirent ? undefined : info.mtimeMs,
         };
     }
 
-    async setVisibility(path: string, visibility: string): Promise<void> {
+    async changeVisibility(path: string, visibility: string): Promise<void> {
         await chmod(
             this.prefixer.prefixFilePath(path),
-            this.visibility.visibilityToFilePermissions(visibility),
+            this.visibilityConversion.visibilityToFilePermissions(visibility),
         );
+    }
+
+    async visibility(path: string): Promise<string> {
+        const stat = await this.stat(path);
+
+        if (!stat.visibility) {
+            throw new Error('Unable to determine visibility');
+        }
+
+        return stat.visibility;
     }
 }
