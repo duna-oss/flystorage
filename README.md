@@ -55,8 +55,26 @@ await storage.write('picture.png', stream);
 await storage.write('public.txt', 'debug', {
     visibility: Visibility.PUBLIC, // mode: 0o644
 });
-
 await storage.write('private.txt', 'debug', {
     visibility: Visibility.PRIVATE, // mode: 0o644
 });
+
+# List directory contents
+const contentsAsAsyncGenerator = storage.listContents('', {deep: true});
+
+for await (const item of contentsAsAsyncGenerator) {
+    console.log(item.path);
+
+    if (item.isFile) {
+        // do something with the file
+    } else if (item.isDirectory) {
+        // do something with the directory
+    }
+}
+
+# Delete a file
+await storage.deleteDile('some-file.txt');
+
+# Delete a directory (with all contents)
+await storage.deleteDirectory('some-directory');
 ```

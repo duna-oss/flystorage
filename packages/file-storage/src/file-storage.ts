@@ -37,7 +37,7 @@ export interface StorageAdapter {
     deleteFile(path: string): Promise<void>;
     createDirectory(path: string, options: CreateDirectoryOptions): Promise<void>;
     stat(path: string): Promise<StatEntry>;
-    list(path: string, deep: boolean): AsyncGenerator<StatEntry>;
+    list(path: string, options: {deep: boolean}): AsyncGenerator<StatEntry>;
     changeVisibility(path: string, visibility: string): Promise<void>;
     visibility(path: string): Promise<string>;
     deleteDirectory(path: string): Promise<void>;
@@ -139,8 +139,8 @@ export class FileStorage {
         return this.adapter.fileExists(this.pathNormalizer.normalizePath(path));
     }
 
-    public list(path: string, deep: boolean = false): DirectoryListing {
-        const listing = this.adapter.list(this.pathNormalizer.normalizePath(path), deep);
+    public list(path: string, {deep = false}: {deep?: boolean} = {}): DirectoryListing {
+        const listing = this.adapter.list(this.pathNormalizer.normalizePath(path), {deep});
 
         return {
             async toArray(sorted: boolean = true): Promise<StatEntry[]> {

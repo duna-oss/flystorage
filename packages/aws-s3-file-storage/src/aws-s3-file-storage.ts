@@ -61,7 +61,7 @@ export class AwsS3FileStorage implements StorageAdapter {
         return publicRead ? Visibility.PUBLIC : Visibility.PRIVATE;
     }
 
-    async* list(path: string, deep: boolean): AsyncGenerator<StatEntry, any, unknown> {
+    async* list(path: string, {deep}: {deep: boolean}): AsyncGenerator<StatEntry, any, unknown> {
         const listing = this.listObjects(path, {
             deep,
             includePrefixes: true,

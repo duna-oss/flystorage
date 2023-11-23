@@ -23,7 +23,7 @@ export class LocalFileStorage implements StorageAdapter {
         this.prefixer = new PathPrefixer(this.rootDir);
     }
 
-    async *list(path: string, deep: boolean): AsyncGenerator<StatEntry, any, unknown> {
+    async *list(path: string, {deep}: {deep: boolean}): AsyncGenerator<StatEntry, any, unknown> {
         let entries = await opendir(this.prefixer.prefixDirectoryPath(path), {
             recursive: deep,
         });
