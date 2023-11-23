@@ -7,7 +7,7 @@ import {
     WriteOptions
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
-import {chmod, mkdir, opendir, stat, unlink} from 'node:fs/promises';
+import {chmod, mkdir, opendir, stat, unlink, rm} from 'node:fs/promises';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -56,13 +56,9 @@ export class LocalFileStorage implements StorageAdapter {
     }
 
     async deleteFile(path: string): Promise<void> {
-        try {
-            await unlink(this.prefixer.prefixFilePath(path));
-        } catch (err) {
-            if ((err as any).code !== 'ENOENT') {
-                throw err;
-            }
-        }
+        await rm(this.prefixer.prefixFilePath(path), {
+            force: true,
+        });
     }
 
     async createDirectory(path: string, options: CreateDirectoryOptions): Promise<void> {
@@ -79,6 +75,13 @@ export class LocalFileStorage implements StorageAdapter {
             await stat(this.prefixer.prefixFilePath(path)),
             path,
         );
+    }
+
+    async deleteDirectory(path: string): Promise<void> {
+        await rm(this.prefixer.prefixDirectoryPath(path), {
+            recursive: true,
+            force: true,
+        });
     }
 
     private mapStatToFileInfo(info: Stats | Dirent, path: string): StatEntry {

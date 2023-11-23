@@ -1,5 +1,7 @@
 import {
-    DeleteObjectCommand,
+    _Object,
+    CommonPrefix,
+    DeleteObjectCommand, DeleteObjectsCommand,
     GetObjectAclCommand,
     GetObjectAclOutput,
     GetObjectCommand,
@@ -58,43 +60,21 @@ export class AwsS3FileStorage implements StorageAdapter {
     }
 
     async *list(path: string, deep: boolean): AsyncGenerator<StatEntry, any, unknown> {
-        let shouldContinue = true;
-        let continuationToken: string | undefined = undefined;
-        const prefix = this.prefixer.prefixDirectoryPath(path);
+        const listing = this.listObjects(path, {
+            deep,
+            includePrefixes: true,
+            includeSelf: false,
+        });
 
-        while(shouldContinue) {
-            const response: ListObjectsV2Output = await this.client.send(new ListObjectsV2Command({
-                Bucket: this.options.bucket,
-                Prefix: prefix,
-                Delimiter: deep ? '/' : undefined,
-                ContinuationToken: continuationToken,
-            }));
-
-            continuationToken = response.NextContinuationToken;
-            shouldContinue = response.IsTruncated ?? false;
-
-            for (const item of response.CommonPrefixes ?? []) {
-                if (item.Prefix === prefix || item.Prefix === undefined) {
-                    // not interested in itself
-                    // not interested in empty prefixes
-                    continue;
-                }
-
+        for await (const {type, item} of listing) {
+            if (type === 'prefix') {
                 yield {
                     type: 'directory',
                     isFile: false,
                     isDirectory: true,
-                    path: this.prefixer.stripDirectoryPath(item.Prefix),
+                    path: this.prefixer.stripDirectoryPath(item.Prefix!),
                 };
-            }
-
-            for (const item of response.Contents ?? []) {
-                if (item.Key === prefix || item.Key === undefined) {
-                    // not interested in itself
-                    // not interested in empty prefixes
-                    continue;
-                }
-
+            } else {
                 const path = item.Key!;
 
                 if (path.endsWith('/')) {
@@ -114,6 +94,52 @@ export class AwsS3FileStorage implements StorageAdapter {
                         lastModifiedMs: item.LastModified?.getMilliseconds(),
                     };
                 }
+            }
+        }
+    }
+
+    async *listObjects(
+        path: string,
+        options: {
+            deep: boolean,
+            includePrefixes: boolean,
+            includeSelf: boolean,
+        },
+    ): AsyncGenerator<{type: 'prefix', item: CommonPrefix} | {type: 'object', item: _Object}, any, unknown> {
+        let shouldContinue = true;
+        let continuationToken: string | undefined = undefined;
+        const prefix = this.prefixer.prefixDirectoryPath(path);
+
+        while(shouldContinue) {
+            const response: ListObjectsV2Output = await this.client.send(new ListObjectsV2Command({
+                Bucket: this.options.bucket,
+                Prefix: prefix,
+                Delimiter: options.deep ? undefined : '/',
+                ContinuationToken: continuationToken,
+            }));
+
+            continuationToken = response.NextContinuationToken;
+            shouldContinue = response.IsTruncated ?? false;
+            const prefixes = options.includePrefixes ? response.CommonPrefixes ?? [] : [];
+
+            for (const item of prefixes) {
+                if ((!options.includeSelf && item.Prefix === prefix) || item.Prefix === undefined) {
+                    // not interested in itself
+                    // not interested in empty prefixes
+                    continue;
+                }
+
+                yield {type: 'prefix', item};
+            }
+
+            for (const item of response.Contents ?? []) {
+                if ((!options.includeSelf && item.Key === prefix) || item.Key === undefined) {
+                    // not interested in itself
+                    // not interested in empty prefixes
+                    continue;
+                }
+
+                yield {type: 'object', item};
             }
         }
     }
@@ -152,6 +178,40 @@ export class AwsS3FileStorage implements StorageAdapter {
         await this.upload(this.prefixer.prefixDirectoryPath(path), '', {
             ACL: options.directoryVisibility ? this.visibilityToAcl(options.directoryVisibility) : undefined,
         })
+    }
+
+    async deleteDirectory(path: string): Promise<void> {
+        // @ts-ignore because we know it will only be objects
+        let itemsToDelete: AsyncGenerator<{item: _Object}> = this.listObjects(path, {
+            deep: true,
+            includeSelf: true,
+            includePrefixes: false,
+        });
+
+        const flush = async (keys: { Key: string }[]) => this.client.send(new DeleteObjectsCommand({
+            Bucket: this.options.bucket,
+            Delete: {
+                Objects: keys,
+            },
+        }));
+
+        let bucket: {Key: string}[] = [];
+        let promises: Promise<any>[] = [];
+
+        for await (const {item} of itemsToDelete) {
+            bucket.push({Key: item.Key!});
+
+            if (bucket.length > 1000) {
+                promises.push(flush(bucket));
+                bucket = [];
+            }
+        }
+
+        if (bucket.length > 0) {
+            promises.push(flush(bucket));
+        }
+
+        await Promise.all(promises);
     }
 
     async write(path: string, contents: Readable, options: WriteOptions): Promise<void> {

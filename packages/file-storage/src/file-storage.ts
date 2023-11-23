@@ -40,6 +40,7 @@ export interface StorageAdapter {
     list(path: string, deep: boolean): AsyncGenerator<StatEntry>;
     changeVisibility(path: string, visibility: string): Promise<void>;
     visibility(path: string): Promise<string>;
+    deleteDirectory(path: string): Promise<void>;
     // fileExists(path: string): Promise<boolean>;
     // directoryExists(path: string): Promise<boolean>;
 }
@@ -109,8 +110,12 @@ export class FileStorage {
         await this.adapter.deleteFile(this.pathNormalizer.normalizePath(path));
     }
 
-    public async createDirectory(path: string, options: CreateDirectoryOptions = {}): Promise<void> {
-        await this.adapter.createDirectory(path, options);
+    public createDirectory(path: string, options: CreateDirectoryOptions = {}): Promise<void> {
+        return this.adapter.createDirectory(this.pathNormalizer.normalizePath(path), options);
+    }
+
+    public deleteDirectory(path: string): Promise<void> {
+        return this.adapter.deleteDirectory(this.pathNormalizer.normalizePath(path));
     }
 
     public stat(path: string): Promise<StatEntry> {
@@ -118,7 +123,7 @@ export class FileStorage {
     }
 
     public setVisibility(path: string, visibility: string): Promise<void> {
-        return this.adapter.changeVisibility(path, visibility);
+        return this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility);
     }
 
     public visibility(path: string): Promise<string> {

@@ -7,6 +7,7 @@ export default {
     moduleNameMapper: {
         '^@flystorage/(.*)$': '<rootDir>/packages/$1/src/',
     },
+    setupFiles: ['dotenv/config'],
     extensionsToTreatAsEsm: ['.ts'],
     transform: {
         '\\.[jt]sx?$': [
