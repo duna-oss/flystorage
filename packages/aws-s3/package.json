@@ -1,5 +1,5 @@
 {
-  "name": "@flystorage/aws-s3-file-storage",
+  "name": "@flystorage/aws-s3",
   "version": "0.1.0",
   "description": "",
   "type": "module",

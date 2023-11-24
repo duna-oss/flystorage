@@ -1,5 +1,5 @@
 {
-  "name": "@flystorage/local-file-storage",
+  "name": "@flystorage/local-fs",
   "version": "0.1.0",
   "description": "",
   "type": "module",

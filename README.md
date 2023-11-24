@@ -35,7 +35,7 @@ npm i -S @flystorage/local-file-storage
 import {resolve} from 'node:path';
 import {createReadStream} from 'node:fs';
 import {FileStorage, Visibility} from '@flystorage/file-storage';
-import {LocalFileStorage} from '@flystorage/local-file-storage';
+import {LocalFileStorage} from '@flystorage/local-fs';
 
 // SETUP
 
