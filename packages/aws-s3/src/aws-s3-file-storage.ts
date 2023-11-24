@@ -106,6 +106,7 @@ export class AwsS3FileStorage implements StorageAdapter {
             deep: boolean,
             includePrefixes: boolean,
             includeSelf: boolean,
+            maxKeys?: number,
         },
     ): AsyncGenerator<{ type: 'prefix', item: CommonPrefix } | { type: 'object', item: _Object }, any, unknown> {
         let shouldContinue = true;
@@ -118,6 +119,7 @@ export class AwsS3FileStorage implements StorageAdapter {
                 Prefix: prefix,
                 Delimiter: options.deep ? undefined : '/',
                 ContinuationToken: continuationToken,
+                MaxKeys: options.maxKeys,
             }));
 
             continuationToken = response.NextContinuationToken;
@@ -284,5 +286,20 @@ export class AwsS3FileStorage implements StorageAdapter {
 
             throw e;
         }
+    }
+
+    async directoryExists(path: string): Promise<boolean> {
+        const listing = this.listObjects(path, {
+            deep: true,
+            includePrefixes: true,
+            includeSelf: true,
+            maxKeys: 1,
+        });
+
+        for await (const _item of listing) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -42,7 +42,7 @@ export interface StorageAdapter {
     visibility(path: string): Promise<string>;
     deleteDirectory(path: string): Promise<void>;
     fileExists(path: string): Promise<boolean>;
-    // directoryExists(path: string): Promise<boolean>;
+    directoryExists(path: string): Promise<boolean>;
 }
 
 export interface DirectoryListing extends AsyncIterable<StatEntry> {
@@ -167,6 +167,10 @@ export class FileStorage {
         }
 
         throw new Error('Stat entry is not a file');
+    }
+
+    public directoryExists(path: string): Promise<boolean> {
+        return this.adapter.directoryExists(this.pathNormalizer.normalizePath(path));
     }
 }
 

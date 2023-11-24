@@ -30,7 +30,7 @@ export class LocalFileStorage implements StorageAdapter {
 
         for await (const item of entries) {
             const itemPath = join(item.path, item.name);
-            yield this.mapStatToFileInfo(
+            yield this.mapStatToEntry(
                 item,
                 item.isFile()
                     ? this.prefixer.stripFilePath(itemPath)
@@ -72,9 +72,11 @@ export class LocalFileStorage implements StorageAdapter {
         });
     }
 
-    async stat(path: string): Promise<StatEntry> {
-        return this.mapStatToFileInfo(
-            await stat(this.prefixer.prefixFilePath(path)),
+    async stat(path: string, type: 'file' | 'directory' = 'file'): Promise<StatEntry> {
+        return this.mapStatToEntry(
+            await stat(type === 'file'
+                ? this.prefixer.prefixFilePath(path)
+                : this.prefixer.prefixDirectoryPath(path)),
             path,
         );
     }
@@ -100,7 +102,7 @@ export class LocalFileStorage implements StorageAdapter {
         });
     }
 
-    private mapStatToFileInfo(info: Stats | Dirent, path: string): StatEntry {
+    private mapStatToEntry(info: Stats | Dirent, path: string): StatEntry {
         if (!info.isFile() && !info.isDirectory()) {
             throw new Error('Unsupported file entry encountered...');
         }
@@ -140,5 +142,19 @@ export class LocalFileStorage implements StorageAdapter {
         }
 
         return stat.visibility;
+    }
+
+    async directoryExists(path: string): Promise<boolean> {
+        try {
+            const stat = await this.stat(path, 'directory');
+
+            return stat.isDirectory;
+        } catch (e) {
+            if (typeof e === 'object' && ['ENOTDIR', 'ENOENT'].includes((e as any).code)) {
+                return false;
+            }
+
+            throw e;
+        }
     }
 }

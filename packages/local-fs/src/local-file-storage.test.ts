@@ -81,4 +81,26 @@ describe('LocalFileStorage', () => {
 
         expect(await storage.fileExists('existing-file.txt')).toEqual(true);
     });
+
+    test('checking if a directory is an existing file', async () => {
+        await storage.createDirectory('existing-file.txt');
+
+        expect(await storage.fileExists('existing-file.txt')).toEqual(false);
+    });
+
+    test('checking if a non-existing directory exists', async () => {
+        expect(await storage.directoryExists('does-not-exist')).toEqual(false);
+    });
+
+    test('checking if a file is a directory', async () => {
+        await storage.write('location', 'nothing');
+
+        expect(await storage.directoryExists('location')).toEqual(false);
+    });
+
+    test('checking if an existing directory exists', async () => {
+        await storage.createDirectory('location');
+
+        expect(await storage.directoryExists('location')).toEqual(true);
+    });
 });
