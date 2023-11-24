@@ -226,6 +226,7 @@ export class AwsS3FileStorage implements StorageAdapter {
         await this.upload(this.prefixer.prefixFilePath(path), contents, {
             ACL: options.visibility ? this.visibilityToAcl(options.visibility) : undefined,
             ContentType: mimeType,
+            ContentLength: options.size,
         });
     }
 
