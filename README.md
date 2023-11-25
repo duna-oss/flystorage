@@ -9,11 +9,22 @@ that is built around a set of goals:
 - Maximise cross-implementation portability.
 - Abstract over file permissions using "visibility".
 
-## Author
+## Capabilities
 
-Flystorage is built by the maintainer of Flysystem, a filesystem abstract for PHP. This brings
-along more than a decade of smoothing over filesystem implementation differences and weighing
-trade-offs to make a usable API.
+### Implemented
+
+- [x] Write files using string | buffer | readable/stream
+- [x] Read files as stream, string, or Uint8Array
+- [x] Set permissions using abstracted visibility
+- [x] List the contents of a directory/prefix, (shallow and deep).
+- [x] Delete files without failing when they don't exist.
+- [x] Delete directories (and any files it contains)
+
+### Planned
+
+- [ ] Generate public URLs.
+- [ ] Generate temporary (signed) URLs.
+- [ ] Expose or calculate checksums for files.
 
 ## Usage
 
@@ -78,3 +89,9 @@ await storage.deleteDile('some-file.txt');
 # Delete a directory (with all contents)
 await storage.deleteDirectory('some-directory');
 ```
+
+## Author
+
+Flystorage is built by the maintainer of [Flysystem](https://flysystem.thephpleague.com), a
+filesystem abstract for PHP. This brings along more than a decade of smoothing over filesystem
+implementation differences and weighing trade-offs to make a usable API.
