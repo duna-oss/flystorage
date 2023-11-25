@@ -5,7 +5,8 @@ export interface UnixVisibilityConversion {
     visibilityToDirectoryPermissions(visibility: string): number;
     filePermissionsToVisibility(permissions: number): string;
     directoryPermissionsToVisibility(permissions: number): string;
-    defaultDirectoryPermissions(): number;
+    defaultDirectoryPermissions: number;
+    defaultDirectoryVisibility: string;
 }
 
 export class PortableUnixVisibilityConversion implements UnixVisibilityConversion {
@@ -14,11 +15,12 @@ export class PortableUnixVisibilityConversion implements UnixVisibilityConversio
         private readonly filePrivate: number = 0o600,
         private readonly directoryPublic: number = 0o755,
         private readonly directoryPrivate: number = 0o700,
-        private readonly defaultVisibilityForDirectories: Visibility = Visibility.PUBLIC,
+        public readonly defaultDirectoryVisibility: Visibility = Visibility.PUBLIC,
     ) {
     }
-    defaultDirectoryPermissions(): number {
-        return this.visibilityToDirectoryPermissions(this.defaultVisibilityForDirectories);
+
+    get defaultDirectoryPermissions(): number {
+        return this.visibilityToDirectoryPermissions(this.defaultDirectoryVisibility);
     }
 
     directoryPermissionsToVisibility(permissions: number): string {

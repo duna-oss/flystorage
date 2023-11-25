@@ -103,4 +103,13 @@ describe('LocalFileStorage', () => {
 
         expect(await storage.directoryExists('location')).toEqual(true);
     });
+
+    test('writing a file implicitly creates parent directories', async () => {
+        await storage.write('deeply/nested/directory.txt', 'contents');
+
+        const listing = await storage.list('/', {deep: true}).toArray();
+
+        expect(listing).toHaveLength(3);
+        expect(listing.map(l => l.type)).toEqual(['directory', 'directory', 'file']);
+    })
 });

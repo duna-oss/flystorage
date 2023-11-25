@@ -8,10 +8,14 @@ import {
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
 import {chmod, mkdir, opendir, stat, rm} from 'node:fs/promises';
-import {join} from 'node:path';
+import {join, dirname} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
+
+export type LocalFileStorageOptions = {
+    rootDirectoryVisibility?: string,
+};
 
 export class LocalFileStorage implements StorageAdapter {
     private prefixer: PathPrefixer;
@@ -19,7 +23,9 @@ export class LocalFileStorage implements StorageAdapter {
     constructor(
         readonly rootDir: string,
         private readonly visibilityConversion: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
+        private readonly options: LocalFileStorageOptions = {},
     ) {
+        this.rootDir = join(this.rootDir, '/');
         this.prefixer = new PathPrefixer(this.rootDir);
     }
 
@@ -30,6 +36,7 @@ export class LocalFileStorage implements StorageAdapter {
 
         for await (const item of entries) {
             const itemPath = join(item.path, item.name);
+
             yield this.mapStatToEntry(
                 item,
                 item.isFile()
@@ -44,6 +51,9 @@ export class LocalFileStorage implements StorageAdapter {
     }
 
     async write(path: string, contents: Readable, options: WriteOptions): Promise<void> {
+        await this.ensureRootDirectoryExists();
+        await this.ensureParentDirectoryExists(path, options);
+
         const writeStream = createWriteStream(
             this.prefixer.prefixFilePath(path),
             {
@@ -155,6 +165,28 @@ export class LocalFileStorage implements StorageAdapter {
             }
 
             throw e;
+        }
+    }
+
+    private rootDirectoryCreation: Promise<void> | undefined = undefined;
+
+    private async ensureRootDirectoryExists(): Promise<void> {
+        if (this.rootDirectoryCreation === undefined) {
+            this.rootDirectoryCreation = this.createDirectory('', {
+                directoryVisibility: this.options.rootDirectoryVisibility ?? this.visibilityConversion.defaultDirectoryVisibility,
+            });
+        }
+
+        return this.rootDirectoryCreation;
+    }
+
+    private async ensureParentDirectoryExists(path: string, options: WriteOptions) {
+        const directoryName = dirname(path);
+
+        if (directoryName !== '.' && directoryName !== '/') {
+            await this.createDirectory(directoryName, {
+                directoryVisibility: options.directoryVisibility,
+            });
         }
     }
 }
