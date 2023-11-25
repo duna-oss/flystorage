@@ -33,11 +33,11 @@ Install the main package and any adapters you might need:
 ```bash
 npm i -S @flystorage/file-storage
 
-# for AWS S3
-npm i -S @flystorage/aws-s3-file-storage
+# for using AWS S3
+npm i -S @flystorage/aws-s3
 
-# for the local filesystem
-npm i -S @flystorage/local-file-storage
+# for using the local filesystem
+npm i -S @flystorage/local-fs
 ```
 
 ## Local Usage
