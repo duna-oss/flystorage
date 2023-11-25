@@ -9,6 +9,13 @@ that is built around a set of goals:
 - Maximise cross-implementation portability.
 - Abstract over file permissions using "visibility".
 
+### What is Flystorage NOT:
+
+Flystorage is meant to be used in cases for generic file storage use-cases. It's not an API for
+any  specific filesystem. It's a generalised solution and will not implement feature only
+specific to one particular storage implementation. There will be use-cases that are not catered
+to, simply because they cannot be abstracted over in a reasonable manner.
+
 ## Capabilities
 
 ### Implemented
