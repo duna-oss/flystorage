@@ -84,7 +84,7 @@ for await (const item of contentsAsAsyncGenerator) {
 }
 
 # Delete a file
-await storage.deleteDile('some-file.txt');
+await storage.deleteFile('some-file.txt');
 
 # Delete a directory (with all contents)
 await storage.deleteDirectory('some-directory');
