@@ -1,5 +1,4 @@
 # \[WIP\] Flystorage
-
 Flystorage is a file storage abstraction for NodeJS and TypeScript. It is an 80/20 solution
 that is built around a set of goals:
 
@@ -10,7 +9,6 @@ that is built around a set of goals:
 - Abstract over file permissions using "visibility".
 
 ### What is Flystorage NOT:
-
 Flystorage is meant to be used in cases for generic file storage use-cases. It's not an API for
 any  specific filesystem. It's a generalised solution and will not implement feature only
 specific to one particular storage implementation. There will be use-cases that are not catered
@@ -19,7 +17,6 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 ## Capabilities
 
 ### Implemented
-
 - [x] Write files using string | buffer | readable/stream
 - [x] Read files as stream, string, or Uint8Array
 - [x] Set permissions using abstracted visibility
@@ -28,13 +25,27 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] Delete directories (and any files it contains)
 
 ### Planned
-
 - [ ] Generate public URLs.
 - [ ] Generate temporary (signed) URLs.
 - [ ] Expose or calculate checksums for files.
 
-## Usage
+## Implementations / Adapters
 
+### Implemented
+- [x] Local Filesystem
+- [x] AWS S3 (using the V3 SDK)
+
+### Planned
+
+#### Prio 1
+- [ ] Google Cloud Storage
+- [ ] Azure Blob Storage
+
+### Prio 2
+- [ ] FTP (using `basic-ftp`)
+- [ ] SFTP (?)
+
+## Usage
 Install the main package and any adapters you might need:
 
 ```bash
@@ -48,7 +59,6 @@ npm i -S @flystorage/local-fs
 ```
 
 ## Local Usage
-
 ```typescript
 import {resolve} from 'node:path';
 import {createReadStream} from 'node:fs';
@@ -98,7 +108,6 @@ await storage.deleteDirectory('some-directory');
 ```
 
 ## Author
-
 Flystorage is built by the maintainer of [Flysystem](https://flysystem.thephpleague.com), a
 filesystem abstract for PHP. This brings along more than a decade of smoothing over filesystem
 implementation differences and weighing trade-offs to make a usable API.
