@@ -16,13 +16,15 @@ import {
     S3ServiceException,
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
+import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
 import {
     CreateDirectoryOptions,
     FileContents,
+    MiscellaneousOptions, normalizeExpiryToMilliseconds,
     PathPrefixer,
     PublicUrlOptions,
     StatEntry,
-    StorageAdapter,
+    StorageAdapter, TemporaryUrlOptions,
     Visibility,
     WriteOptions
 } from '@flystorage/file-storage';
@@ -53,6 +55,8 @@ export class HostStyleAwsPublicUrlGenerator implements AwsPublicUrlGenerator {
     }
 }
 
+export type TimestampResolver = () => number;
+
 export class AwsS3FileStorage implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
 
@@ -60,8 +64,21 @@ export class AwsS3FileStorage implements StorageAdapter {
         private readonly client: S3Client,
         private readonly options: AwsS3FileStorageOptions,
         private readonly publicUrlGenerator: AwsPublicUrlGenerator = new HostStyleAwsPublicUrlGenerator(),
+        private readonly timestampResolver: TimestampResolver = () => Date.now(),
     ) {
         this.prefixer = new PathPrefixer(options.prefix || '');
+    }
+
+    async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
+        const expiry = normalizeExpiryToMilliseconds(options.expiresAt);
+        const now = (this.timestampResolver)();
+
+        return getSignedUrl(this.client, new GetObjectCommand({
+            Bucket: this.options.bucket,
+            Key: this.prefixer.prefixFilePath(path),
+        }), {
+            expiresIn: Math.floor((expiry - now) / 1000),
+        });
     }
 
     async visibility(path: string): Promise<string> {

@@ -31,7 +31,7 @@ describe('aws-s3 file storage', () => {
         expect(await storage.readToString('path.txt')).toEqual('this is the contents');
     });
 
-    test('you can download public files', async () => {
+    test('you can download public files using a public URL', async () => {
         await storage.write('path.txt', 'contents of the public file', {
             visibility: Visibility.PUBLIC,
         });
@@ -40,6 +40,18 @@ describe('aws-s3 file storage', () => {
         const contents = await naivelyDownloadFile(url);
 
         expect(contents).toEqual('contents of the public file');
+    });
+
+    test('private files can only be downloaded using a temporary URL', async () => {
+        await storage.write('private.txt', 'contents of the private file', {
+            visibility: Visibility.PRIVATE,
+        });
+
+        await expect(naivelyDownloadFile(await storage.publicUrl('private.txt'))).rejects.toThrow();
+
+        await expect(naivelyDownloadFile(
+            await storage.temporaryUrl('private.txt', {expiresAt: Date.now() + 60 * 1000})
+        )).resolves.toEqual('contents of the private file');
     });
 });
 

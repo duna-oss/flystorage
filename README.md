@@ -24,9 +24,9 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] Delete files without failing when they don't exist.
 - [x] Delete directories (and any files it contains)
 - [x] Generate public URLs.
+- [x] Generate temporary (signed) URLs.
 
 ### Planned
-- [ ] Generate temporary (signed) URLs.
 - [ ] Expose or calculate checksums for files.
 
 ## Implementations / Adapters

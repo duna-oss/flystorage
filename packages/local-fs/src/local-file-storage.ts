@@ -3,7 +3,7 @@ import {
     FileContents,
     PathPrefixer, PublicUrlOptions,
     StatEntry,
-    StorageAdapter,
+    StorageAdapter, TemporaryUrlOptions,
     WriteOptions
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
@@ -16,6 +16,7 @@ import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix
 export type LocalFileStorageOptions = {
     rootDirectoryVisibility?: string,
     publicUrlOptions?: LocalPublicUrlOptions,
+    temporaryUrlOptions?: Omit<LocalTemporaryUrlOptions, 'expiresAt'>,
 };
 
 export type LocalPublicUrlOptions = PublicUrlOptions & {
@@ -38,6 +39,20 @@ export class BaseUrlLocalPublicUrlGenerator implements LocalPublicUrlGenerator {
     }
 }
 
+export type LocalTemporaryUrlOptions = TemporaryUrlOptions & {
+    baseUrl?: string,
+}
+
+export type LocalTemporaryUrlGenerator = {
+    temporaryUrl(path: string, options: LocalTemporaryUrlOptions): Promise<string>;
+}
+
+export class FailingLocalTemporaryUrlGenerator implements LocalTemporaryUrlGenerator {
+    async temporaryUrl(): Promise<string> {
+        throw new Error('No temporary URL generator provided');
+    }
+}
+
 export class LocalFileStorage implements StorageAdapter {
     private prefixer: PathPrefixer;
 
@@ -46,9 +61,14 @@ export class LocalFileStorage implements StorageAdapter {
         private readonly options: LocalFileStorageOptions = {},
         private readonly visibilityConversion: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
         private readonly publicUrlGenerator: LocalPublicUrlGenerator = new BaseUrlLocalPublicUrlGenerator(),
+        private readonly temporaryUrlGenerator: LocalTemporaryUrlGenerator = new FailingLocalTemporaryUrlGenerator(),
     ) {
         this.rootDir = join(this.rootDir, '/');
         this.prefixer = new PathPrefixer(this.rootDir);
+    }
+
+    temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
+        return this.temporaryUrlGenerator.temporaryUrl(path, {...this.options.temporaryUrlOptions, ...options})
     }
 
     publicUrl(path: string, options: PublicUrlOptions): Promise<string> {

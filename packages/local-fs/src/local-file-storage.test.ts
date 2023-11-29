@@ -1,7 +1,12 @@
-import {FileInfo, FileStorage, Visibility} from '@flystorage/file-storage';
+import {
+    FileInfo,
+    FileStorage,
+    normalizeExpiryToMilliseconds,
+    Visibility
+} from '@flystorage/file-storage';
 import {mkdirSync} from 'fs';
 import path from 'node:path';
-import {LocalFileStorage} from './local-file-storage.js';
+import {LocalFileStorage, LocalTemporaryUrlGenerator, LocalTemporaryUrlOptions} from './local-file-storage.js';
 import {execSync} from 'child_process';
 
 const rootDirectory = path.resolve(process.cwd(), 'fixtures/test-files');
@@ -32,7 +37,7 @@ describe('LocalFileStorage', () => {
 
         const stat = await storage.stat('test.txt');
 
-        // expect(stat.visibility).toEqual(Visibility.PRIVATE);
+        expect(stat.visibility).toEqual(Visibility.PRIVATE);
     });
 
     describe('stat for (public) files', () => {
@@ -135,4 +140,49 @@ describe('LocalFileStorage', () => {
 
         expect(url).toEqual('https://example.org/with-prefix/some/path.txt');
     });
+
+    test('generating a public urls failed when the base URL is undefined', async () => {
+        const url = storage.publicUrl('/some/path.txt', {
+            baseUrl: undefined
+        });
+
+        await expect(url).rejects.toThrow();
+    });
+
+    test('generating a temporary URL fails when no generator is configured', async () => {
+        await expect(storage.temporaryUrl('path.txt', {
+            expiresAt: new Date(),
+        })).rejects.toThrow();
+    });
+
+    test('generating a temporary URL works when the generator is configured', async () => {
+        const storage = new FileStorage(
+            new LocalFileStorage(
+                rootDirectory,
+                {
+                    publicUrlOptions: {
+                        baseUrl: 'https://default.com/',
+                    },
+                    temporaryUrlOptions: {
+                        baseUrl: 'https://secret.com/'
+                    }
+                },
+                undefined,
+                undefined,
+                new FakeTemporaryUrlGenerator(),
+            ),
+        );
+
+        const now = Date.now();
+
+        await expect(storage.temporaryUrl('fake.txt', {
+            expiresAt: now,
+        })).resolves.toEqual(`https://secret.com/fake.txt?ts=${now}`);
+    });
 });
+
+class FakeTemporaryUrlGenerator implements LocalTemporaryUrlGenerator {
+    async temporaryUrl(path: string, options: LocalTemporaryUrlOptions): Promise<string> {
+        return `${options.baseUrl}${path}?ts=${normalizeExpiryToMilliseconds(options.expiresAt)}`;
+    }
+}

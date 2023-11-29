@@ -44,6 +44,7 @@ export interface StorageAdapter {
     fileExists(path: string): Promise<boolean>;
     directoryExists(path: string): Promise<boolean>;
     publicUrl(path: string, options: PublicUrlOptions): Promise<string>;
+    temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string>;
 }
 
 export interface DirectoryListing extends AsyncIterable<StatEntry> {
@@ -53,7 +54,7 @@ export interface DirectoryListing extends AsyncIterable<StatEntry> {
 export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable;
 
 export type MiscellaneousOptions = {
-    [option: string]: string | boolean | number | undefined
+    [option: string]: any,
 }
 
 export type VisibilityOptions = {
@@ -66,6 +67,9 @@ export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
 };
 export type CreateDirectoryOptions = MiscellaneousOptions & Pick<VisibilityOptions, 'directoryVisibility'> & {};
 export type PublicUrlOptions = MiscellaneousOptions & {};
+export type TemporaryUrlOptions = MiscellaneousOptions & {
+    expiresAt: ExpiresAt,
+};
 
 export type ConfigurationOptions = {
     defaults?: VisibilityOptions,
@@ -183,6 +187,23 @@ export class FileStorage {
             options,
         );
     }
+
+    public temporaryUrl(path: string,options: TemporaryUrlOptions): Promise<string> {
+        return this.adapter.temporaryUrl(
+            this.pathNormalizer.normalizePath(path),
+            options,
+        );
+    }
+}
+
+export type TimestampMs = number;
+export type ExpiresAt = Date | TimestampMs;
+
+export function normalizeExpiryToDate(expiresAt: ExpiresAt): Date {
+    return expiresAt instanceof Date ? expiresAt : new Date(expiresAt);
+}
+export function normalizeExpiryToMilliseconds(expiresAt: ExpiresAt): number {
+    return expiresAt instanceof Date ? expiresAt.getTime() : expiresAt;
 }
 
 export async function closeReadable(body: Readable) {
