@@ -7,7 +7,16 @@ import {execSync} from 'child_process';
 const rootDirectory = path.resolve(process.cwd(), 'fixtures/test-files');
 
 describe('LocalFileStorage', () => {
-    const storage = new FileStorage(new LocalFileStorage(rootDirectory));
+    const storage = new FileStorage(
+        new LocalFileStorage(
+            rootDirectory,
+            {
+                publicUrlOptions: {
+                    baseUrl: 'https://default.com/',
+                }
+            }
+        ),
+    );
 
     beforeEach(() => {
         mkdirSync(rootDirectory);
@@ -111,5 +120,19 @@ describe('LocalFileStorage', () => {
 
         expect(listing).toHaveLength(3);
         expect(listing.map(l => l.type)).toEqual(['directory', 'directory', 'file']);
-    })
+    });
+
+    test('generating a public urls works when the base URL is provided in the constructor', async () => {
+        const url = await storage.publicUrl('some/path.txt');
+
+        expect(url).toEqual('https://default.com/some/path.txt');
+    });
+
+    test('generating a public urls works when the base URL is provided as an option', async () => {
+        const url = await storage.publicUrl('/some/path.txt', {
+            baseUrl: 'https://example.org/with-prefix/',
+        });
+
+        expect(url).toEqual('https://example.org/with-prefix/some/path.txt');
+    });
 });

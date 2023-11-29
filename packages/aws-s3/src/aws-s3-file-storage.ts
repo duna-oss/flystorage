@@ -13,13 +13,14 @@ import {
     PutObjectAclCommand,
     PutObjectCommandInput,
     S3Client,
-    S3ServiceException
+    S3ServiceException,
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {
     CreateDirectoryOptions,
     FileContents,
     PathPrefixer,
+    PublicUrlOptions,
     StatEntry,
     StorageAdapter,
     Visibility,
@@ -33,9 +34,24 @@ type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
 export type AwsS3FileStorageOptions = Readonly<{
     bucket: string,
     prefix?: string,
+    publicUrlOptions?: PublicUrlOptions,
     putObjectOptions?: PutObjectOptions,
     uploadConfiguration?: Partial<Configuration>,
 }>;
+
+export type AwsPublicUrlOptions = PublicUrlOptions & {
+    bucket: string,
+}
+
+export type AwsPublicUrlGenerator = {
+    publicUrl(path: string, options: AwsPublicUrlOptions): Promise<string>;
+};
+
+export class HostStyleAwsPublicUrlGenerator implements AwsPublicUrlGenerator {
+    async publicUrl(path: string, options: AwsPublicUrlOptions): Promise<string> {
+        return `https://${options.bucket}.s3.amazonaws.com/${path}`;
+    }
+}
 
 export class AwsS3FileStorage implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
@@ -43,6 +59,7 @@ export class AwsS3FileStorage implements StorageAdapter {
     constructor(
         private readonly client: S3Client,
         private readonly options: AwsS3FileStorageOptions,
+        private readonly publicUrlGenerator: AwsPublicUrlGenerator = new HostStyleAwsPublicUrlGenerator(),
     ) {
         this.prefixer = new PathPrefixer(options.prefix || '');
     }
@@ -109,11 +126,12 @@ export class AwsS3FileStorage implements StorageAdapter {
             maxKeys?: number,
         },
     ): AsyncGenerator<{ type: 'prefix', item: CommonPrefix } | { type: 'object', item: _Object }, any, unknown> {
+        const prefix = this.prefixer.prefixDirectoryPath(path);
+        let collectedKeys = 0;
         let shouldContinue = true;
         let continuationToken: string | undefined = undefined;
-        const prefix = this.prefixer.prefixDirectoryPath(path);
 
-        while (shouldContinue) {
+        while (shouldContinue && (options.maxKeys === undefined || collectedKeys < options.maxKeys)) {
             const response: ListObjectsV2Output = await this.client.send(new ListObjectsV2Command({
                 Bucket: this.options.bucket,
                 Prefix: prefix,
@@ -131,6 +149,7 @@ export class AwsS3FileStorage implements StorageAdapter {
                     continue;
                 }
 
+                collectedKeys++;
                 yield {type: 'prefix', item};
             }
 
@@ -141,6 +160,7 @@ export class AwsS3FileStorage implements StorageAdapter {
                     continue;
                 }
 
+                collectedKeys++;
                 yield {type: 'object', item};
             }
         }
@@ -302,5 +322,13 @@ export class AwsS3FileStorage implements StorageAdapter {
         }
 
         return false;
+    }
+
+    async publicUrl(path: string, options: PublicUrlOptions): Promise<string> {
+        return this.publicUrlGenerator.publicUrl(this.prefixer.prefixFilePath(path), {
+            bucket: this.options.bucket,
+            ...options,
+            ...this.options.publicUrlOptions,
+        });
     }
 }

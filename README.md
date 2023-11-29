@@ -23,9 +23,9 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] List the contents of a directory/prefix, (shallow and deep).
 - [x] Delete files without failing when they don't exist.
 - [x] Delete directories (and any files it contains)
+- [x] Generate public URLs.
 
 ### Planned
-- [ ] Generate public URLs.
 - [ ] Generate temporary (signed) URLs.
 - [ ] Expose or calculate checksums for files.
 

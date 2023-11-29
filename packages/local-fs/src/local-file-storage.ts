@@ -1,7 +1,7 @@
 import {
     CreateDirectoryOptions,
     FileContents,
-    PathPrefixer,
+    PathPrefixer, PublicUrlOptions,
     StatEntry,
     StorageAdapter,
     WriteOptions
@@ -15,18 +15,44 @@ import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix
 
 export type LocalFileStorageOptions = {
     rootDirectoryVisibility?: string,
+    publicUrlOptions?: LocalPublicUrlOptions,
 };
+
+export type LocalPublicUrlOptions = PublicUrlOptions & {
+    baseUrl?: string,
+}
+
+export type LocalPublicUrlGenerator = {
+    publicUrl(path: string, options: LocalPublicUrlOptions): Promise<string>;
+}
+
+export class BaseUrlLocalPublicUrlGenerator implements LocalPublicUrlGenerator {
+    async publicUrl(path: string, options: LocalPublicUrlOptions): Promise<string> {
+        if (options.baseUrl === undefined) {
+            throw new Error('No base URL defined for public URL generation');
+        }
+
+        const base = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`;
+
+        return `${base}${path}`;
+    }
+}
 
 export class LocalFileStorage implements StorageAdapter {
     private prefixer: PathPrefixer;
 
     constructor(
         readonly rootDir: string,
-        private readonly visibilityConversion: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
         private readonly options: LocalFileStorageOptions = {},
+        private readonly visibilityConversion: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
+        private readonly publicUrlGenerator: LocalPublicUrlGenerator = new BaseUrlLocalPublicUrlGenerator(),
     ) {
         this.rootDir = join(this.rootDir, '/');
         this.prefixer = new PathPrefixer(this.rootDir);
+    }
+
+    publicUrl(path: string, options: PublicUrlOptions): Promise<string> {
+        return this.publicUrlGenerator.publicUrl(path, {...this.options.publicUrlOptions, ...options});
     }
 
     async *list(path: string, {deep}: {deep: boolean}): AsyncGenerator<StatEntry, any, unknown> {

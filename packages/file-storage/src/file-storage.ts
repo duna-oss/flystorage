@@ -43,6 +43,7 @@ export interface StorageAdapter {
     deleteDirectory(path: string): Promise<void>;
     fileExists(path: string): Promise<boolean>;
     directoryExists(path: string): Promise<boolean>;
+    publicUrl(path: string, options: PublicUrlOptions): Promise<string>;
 }
 
 export interface DirectoryListing extends AsyncIterable<StatEntry> {
@@ -51,15 +52,20 @@ export interface DirectoryListing extends AsyncIterable<StatEntry> {
 
 export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable;
 
+export type MiscellaneousOptions = {
+    [option: string]: string | boolean | number | undefined
+}
+
 export type VisibilityOptions = {
     visibility?: string,
     directoryVisibility?: string,
 }
-export type WriteOptions = VisibilityOptions & {
+export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
     mimeType?: string,
     size?: number,
 };
-export type CreateDirectoryOptions = Pick<VisibilityOptions, 'directoryVisibility'> & {};
+export type CreateDirectoryOptions = MiscellaneousOptions & Pick<VisibilityOptions, 'directoryVisibility'> & {};
+export type PublicUrlOptions = MiscellaneousOptions & {};
 
 export type ConfigurationOptions = {
     defaults?: VisibilityOptions,
@@ -102,9 +108,7 @@ export class FileStorage {
     }
 
     public async readToString(path: string): Promise<string> {
-        const decoder = new TextDecoder();
-
-        return decoder.decode(await readableToUint8Array(await this.read(path)));
+        return readableToString(await this.read(path));
     }
 
     public async readToUint8Array(path: string): Promise<Uint8Array> {
@@ -172,9 +176,16 @@ export class FileStorage {
     public directoryExists(path: string): Promise<boolean> {
         return this.adapter.directoryExists(this.pathNormalizer.normalizePath(path));
     }
+
+    public publicUrl(path: string, options: PublicUrlOptions = {}): Promise<string> {
+        return this.adapter.publicUrl(
+            this.pathNormalizer.normalizePath(path),
+            options,
+        );
+    }
 }
 
-async function closeReadable(body: Readable) {
+export async function closeReadable(body: Readable) {
     if (body.closed) {
         return;
     }
@@ -187,7 +198,13 @@ async function closeReadable(body: Readable) {
     });
 }
 
-function readableToUint8Array(stream: Readable): Promise<Uint8Array> {
+const decoder = new TextDecoder();
+
+export async function readableToString(stream: Readable): Promise<string> {
+    return decoder.decode(await readableToUint8Array(stream));
+}
+
+export function readableToUint8Array(stream: Readable): Promise<Uint8Array> {
     return new Promise((resolve, reject) => {
         const parts: Uint8Array[] = [];
         stream.on('data', (chunk: Uint8Array) => {
