@@ -4,6 +4,7 @@ import {
     normalizeExpiryToMilliseconds,
     Visibility
 } from '@flystorage/file-storage';
+import {BinaryToTextEncoding, createHash} from 'crypto';
 import {mkdirSync} from 'fs';
 import path from 'node:path';
 import {LocalFileStorage, LocalTemporaryUrlGenerator, LocalTemporaryUrlOptions} from './local-file-storage.js';
@@ -28,6 +29,25 @@ describe('LocalFileStorage', () => {
     });
     afterEach(() => {
         execSync(`rm -rf ${rootDirectory}`);
+    });
+
+    test('deleting a file', async () => {
+        await storage.write('text.txt', 'contents');
+
+        expect(await storage.fileExists('text.txt')).toEqual(true);
+
+        await storage.deleteFile('text.txt');
+
+        expect(await storage.fileExists('text.txt')).toEqual(false);
+    });
+
+    test('deleting a directory', async () => {
+        await storage.write('directory/text.txt', 'contents');
+
+        await storage.deleteDirectory('directory');
+
+        expect(await storage.fileExists('directory/text.txt')).toEqual(false);
+        expect(await storage.directoryExists('directory')).toEqual(false);
     });
 
     test('files written with private visibility have private visibility', async () => {
@@ -178,6 +198,22 @@ describe('LocalFileStorage', () => {
         await expect(storage.temporaryUrl('fake.txt', {
             expiresAt: now,
         })).resolves.toEqual(`https://secret.com/fake.txt?ts=${now}`);
+    });
+
+    test('it can calculate checksums', async () => {
+        function hashString(input: string, algo: string, encoding: BinaryToTextEncoding = 'hex'): string {
+            return createHash(algo).update(input).digest(encoding);
+        }
+
+        const contents = 'this is for the checksum';
+        await storage.write('path.txt', contents);
+        const expectedChecksum = hashString(contents, 'md5');
+
+        const checksum = await storage.checksum('path.txt', {
+            algo: 'md5',
+        });
+
+        expect(checksum).toEqual(expectedChecksum);
     });
 });
 

@@ -25,9 +25,7 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] Delete directories (and any files it contains)
 - [x] Generate public URLs.
 - [x] Generate temporary (signed) URLs.
-
-### Planned
-- [ ] Expose or calculate checksums for files.
+- [x] Expose or calculate checksums for files.
 
 ## Implementations / Adapters
 
@@ -38,6 +36,7 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 ### Planned
 
 #### Prio 1
+- [ ] Test implementation (in-memory, with staged errors)
 - [ ] Google Cloud Storage
 - [ ] Azure Blob Storage
 

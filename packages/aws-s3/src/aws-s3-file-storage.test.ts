@@ -1,5 +1,6 @@
 import {S3Client} from '@aws-sdk/client-s3';
 import {FileStorage, readableToString, Visibility} from '@flystorage/file-storage';
+import {BinaryToTextEncoding, createHash} from 'crypto';
 import * as https from 'https';
 import {AwsS3FileStorage} from './aws-s3-file-storage.js';
 
@@ -52,6 +53,22 @@ describe('aws-s3 file storage', () => {
         await expect(naivelyDownloadFile(
             await storage.temporaryUrl('private.txt', {expiresAt: Date.now() + 60 * 1000})
         )).resolves.toEqual('contents of the private file');
+    });
+
+    test('it can request checksums', async () => {
+        function hashString(input: string, algo: string, encoding: BinaryToTextEncoding = 'hex'): string {
+            return createHash(algo).update(input).digest(encoding);
+        }
+
+        const contents = 'this is for the checksum';
+        await storage.write('path.txt', contents);
+        const expectedChecksum = hashString(contents, 'md5');
+
+        const checksum = await storage.checksum('path.txt', {
+            algo: 'etag',
+        });
+
+        expect(checksum).toEqual(expectedChecksum);
     });
 });
 

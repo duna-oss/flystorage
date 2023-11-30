@@ -1,14 +1,17 @@
 import {
+    checksumFromStream,
+    ChecksumOptions,
     CreateDirectoryOptions,
-    FileContents,
-    PathPrefixer, PublicUrlOptions,
+    PathPrefixer,
+    PublicUrlOptions,
     StatEntry,
-    StorageAdapter, TemporaryUrlOptions,
-    WriteOptions
+    StorageAdapter,
+    TemporaryUrlOptions,
+    WriteOptions,
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
-import {chmod, mkdir, opendir, stat, rm} from 'node:fs/promises';
-import {join, dirname} from 'node:path';
+import {chmod, mkdir, opendir, rm, stat} from 'node:fs/promises';
+import {dirname, join} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -68,14 +71,14 @@ export class LocalFileStorage implements StorageAdapter {
     }
 
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
-        return this.temporaryUrlGenerator.temporaryUrl(path, {...this.options.temporaryUrlOptions, ...options})
+        return this.temporaryUrlGenerator.temporaryUrl(path, {...this.options.temporaryUrlOptions, ...options});
     }
 
     publicUrl(path: string, options: PublicUrlOptions): Promise<string> {
         return this.publicUrlGenerator.publicUrl(path, {...this.options.publicUrlOptions, ...options});
     }
 
-    async *list(path: string, {deep}: {deep: boolean}): AsyncGenerator<StatEntry, any, unknown> {
+    async* list(path: string, {deep}: { deep: boolean }): AsyncGenerator<StatEntry, any, unknown> {
         let entries = await opendir(this.prefixer.prefixDirectoryPath(path), {
             recursive: deep,
         });
@@ -92,7 +95,7 @@ export class LocalFileStorage implements StorageAdapter {
         }
     }
 
-    async read(path: string): Promise<FileContents> {
+    async read(path: string): Promise<Readable> {
         return createReadStream(this.prefixer.prefixFilePath(path));
     }
 
@@ -178,7 +181,7 @@ export class LocalFileStorage implements StorageAdapter {
             type: 'directory',
             isFile: false,
             isDirectory: true,
-            visibility: isDirent ? undefined :this.visibilityConversion.directoryPermissionsToVisibility(info.mode & 0o777),
+            visibility: isDirent ? undefined : this.visibilityConversion.directoryPermissionsToVisibility(info.mode & 0o777),
             lastModifiedMs: isDirent ? undefined : info.mtimeMs,
         };
     }
@@ -234,5 +237,9 @@ export class LocalFileStorage implements StorageAdapter {
                 directoryVisibility: options.directoryVisibility,
             });
         }
+    }
+
+    async checksum(path: string, options: ChecksumOptions): Promise<string> {
+        return checksumFromStream(await this.read(path), options);
     }
 }

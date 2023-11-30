@@ -18,9 +18,11 @@ import {
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
 import {
+    ChecksumIsNotAvailable,
+    ChecksumOptions,
     CreateDirectoryOptions,
     FileContents,
-    MiscellaneousOptions, normalizeExpiryToMilliseconds,
+    normalizeExpiryToMilliseconds,
     PathPrefixer,
     PublicUrlOptions,
     StatEntry,
@@ -32,6 +34,12 @@ import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {Readable} from 'stream';
 
 type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
+const possibleChecksumAlgos = ['SHA1', 'SHA256', 'CRC32', 'CRC32C', 'ETAG'] as const;
+type ChecksumAlgo = typeof possibleChecksumAlgos[number];
+
+function isSupportedAlgo(algo: string): algo is ChecksumAlgo {
+    return possibleChecksumAlgos.includes(algo as ChecksumAlgo);
+}
 
 export type AwsS3FileStorageOptions = Readonly<{
     bucket: string,
@@ -39,6 +47,7 @@ export type AwsS3FileStorageOptions = Readonly<{
     publicUrlOptions?: PublicUrlOptions,
     putObjectOptions?: PutObjectOptions,
     uploadConfiguration?: Partial<Configuration>,
+    defaultChecksumAlgo?: ChecksumAlgo,
 }>;
 
 export type AwsPublicUrlOptions = PublicUrlOptions & {
@@ -347,5 +356,29 @@ export class AwsS3FileStorage implements StorageAdapter {
             ...options,
             ...this.options.publicUrlOptions,
         });
+    }
+
+    async checksum(path: string, options: ChecksumOptions): Promise<string> {
+        const algo = (options.algo || this.options.defaultChecksumAlgo || 'SHA256').toUpperCase();
+
+        if (!isSupportedAlgo(algo)) {
+            throw ChecksumIsNotAvailable.checksumNotSupported(algo);
+        }
+
+        const responseKey = algo === 'ETAG' ? 'ETag' : `Checksum${algo}` as const;
+
+        const response = await this.client.send(new HeadObjectCommand({
+            Bucket: this.options.bucket,
+            Key: this.prefixer.prefixFilePath(path),
+            ...algo === 'ETAG' ? {} : {ChecksumMode: 'ENABLED'},
+        }));
+
+        const checksum = response[responseKey];
+
+        if (checksum === undefined) {
+            throw new Error(`Unable to retrieve checksum with algo ${algo}`);
+        }
+
+        return checksum.replace(/^"(.+)"$/, '$1');
     }
 }

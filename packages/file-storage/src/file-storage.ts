@@ -1,4 +1,8 @@
+import {BinaryToTextEncoding} from 'crypto';
 import {Readable} from 'stream';
+import {checksumFromStream} from './checksum-from-stream.js';
+import * as errors from './errors.js';
+import {ChecksumIsNotAvailable} from './errors.js';
 import {PathNormalizer, PathNormalizerV1} from './path-normalizer.js';
 
 export type CommonStatInfo = Readonly<{
@@ -45,6 +49,7 @@ export interface StorageAdapter {
     directoryExists(path: string): Promise<boolean>;
     publicUrl(path: string, options: PublicUrlOptions): Promise<string>;
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string>;
+    checksum(path: string, options: ChecksumOptions): Promise<string>;
 }
 
 export interface DirectoryListing extends AsyncIterable<StatEntry> {
@@ -70,6 +75,11 @@ export type PublicUrlOptions = MiscellaneousOptions & {};
 export type TemporaryUrlOptions = MiscellaneousOptions & {
     expiresAt: ExpiresAt,
 };
+
+export type ChecksumOptions = MiscellaneousOptions & {
+    algo?: string,
+    encoding?: BinaryToTextEncoding,
+}
 
 export type ConfigurationOptions = {
     defaults?: VisibilityOptions,
@@ -98,53 +108,116 @@ export class FileStorage {
     }
 
     public async write(path: string, contents: FileContents, options: WriteOptions = {}): Promise<void> {
-        const body = toReadable(contents);
-        await this.adapter.write(
-            this.pathNormalizer.normalizePath(path),
-            body,
-            Object.assign({}, this.options.writes || {}, options),
-        );
-        await closeReadable(body);
+        try {
+            const body = toReadable(contents);
+            await this.adapter.write(
+                this.pathNormalizer.normalizePath(path),
+                body,
+                Object.assign({}, this.options.writes || {}, options),
+            );
+            await closeReadable(body);
+        } catch (error) {
+            throw errors.UnableToWriteFile.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, options}},
+            );
+        }
     }
 
     public async read(path: string): Promise<Readable> {
-        return Readable.from(await this.adapter.read(this.pathNormalizer.normalizePath(path)));
+        try {
+            return Readable.from(await this.adapter.read(this.pathNormalizer.normalizePath(path)));
+        } catch (error) {
+            throw errors.UnableToReadFile.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}},
+            );
+        }
     }
 
     public async readToString(path: string): Promise<string> {
-        return readableToString(await this.read(path));
+        return await readableToString(await this.read(path));
     }
 
     public async readToUint8Array(path: string): Promise<Uint8Array> {
-        return readableToUint8Array(await this.read(path));
+        return await readableToUint8Array(await this.read(path));
     }
 
     public async deleteFile(path: string): Promise<void> {
-        await this.adapter.deleteFile(this.pathNormalizer.normalizePath(path));
+        try {
+            await this.adapter.deleteFile(this.pathNormalizer.normalizePath(path));
+        } catch (error) {
+            throw errors.UnableToDeleteFile.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}},
+            );
+        }
     }
 
-    public createDirectory(path: string, options: CreateDirectoryOptions = {}): Promise<void> {
-        return this.adapter.createDirectory(this.pathNormalizer.normalizePath(path), options);
+    public async createDirectory(path: string, options: CreateDirectoryOptions = {}): Promise<void> {
+        try {
+            return await this.adapter.createDirectory(this.pathNormalizer.normalizePath(path), options);
+        } catch (error) {
+            throw errors.UnableToCreateDirectory.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, options}},
+            )
+        }
     }
 
-    public deleteDirectory(path: string): Promise<void> {
-        return this.adapter.deleteDirectory(this.pathNormalizer.normalizePath(path));
+    public async deleteDirectory(path: string): Promise<void> {
+        try {
+            return await this.adapter.deleteDirectory(this.pathNormalizer.normalizePath(path));
+        } catch (error) {
+            throw errors.UnableToDeleteDirectory.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}},
+            );
+        }
     }
 
-    public stat(path: string): Promise<StatEntry> {
-        return this.adapter.stat(this.pathNormalizer.normalizePath(path));
+    public async stat(path: string): Promise<StatEntry> {
+        try {
+            return await this.adapter.stat(this.pathNormalizer.normalizePath(path));
+        } catch (error) {
+            throw errors.UnableToGetStat.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}},
+            )
+        }
     }
 
-    public setVisibility(path: string, visibility: string): Promise<void> {
-        return this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility);
+    public async setVisibility(path: string, visibility: string): Promise<void> {
+        try {
+            return await this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility);
+        } catch (error) {
+            throw errors.UnableToSetVisibility.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, visibility}},
+            );
+        }
     }
 
-    public visibility(path: string): Promise<string> {
-        return this.adapter.visibility(this.pathNormalizer.normalizePath(path));
+    public async visibility(path: string): Promise<string> {
+        try {
+            return await this.adapter.visibility(this.pathNormalizer.normalizePath(path));
+        } catch (error) {
+            throw errors.UnableToGetVisibility.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}}
+            )
+        }
     }
 
-    public fileExists(path: string): Promise<boolean> {
-        return this.adapter.fileExists(this.pathNormalizer.normalizePath(path));
+    public async fileExists(path: string): Promise<boolean> {
+        try {
+            return await this.adapter.fileExists(this.pathNormalizer.normalizePath(path));
+        } catch (error) {
+            throw errors.UnableToCheckFileExistence.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}},
+            )
+        }
     }
 
     public list(path: string, {deep = false}: {deep?: boolean} = {}): DirectoryListing {
@@ -160,39 +233,96 @@ export class FileStorage {
                 return sorted ? items.sort((a, b) => naturalSorting.compare(a.path, b.path)) : items;
             },
             async *[Symbol.asyncIterator]() {
-                for await (const item of listing) {
-                    yield item;
+                try {
+                    for await (const item of listing) {
+                        yield item;
+                    }
+                } catch (error) {
+                    throw errors.UnableToListDirectory.because(
+                        errors.errorToMessage(error),
+                        {cause: error, context: {path, deep}},
+                    )
                 }
             }
         }
     }
 
     public async statFile(path: string): Promise<FileInfo> {
-        const stat = await this.adapter.stat(this.pathNormalizer.normalizePath(path));
+        const stat = await this.stat(path);
 
         if (isFile(stat)) {
             return stat;
         }
 
-        throw new Error('Stat entry is not a file');
+        throw errors.UnableToGetStat.noFileStatResolved({context: {path}});
     }
 
-    public directoryExists(path: string): Promise<boolean> {
-        return this.adapter.directoryExists(this.pathNormalizer.normalizePath(path));
+    public async directoryExists(path: string): Promise<boolean> {
+        try {
+            return await this.adapter.directoryExists(this.pathNormalizer.normalizePath(path));
+        } catch (error) {
+            throw errors.UnableToCheckDirectoryExistence.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}},
+            );
+        }
     }
 
-    public publicUrl(path: string, options: PublicUrlOptions = {}): Promise<string> {
-        return this.adapter.publicUrl(
-            this.pathNormalizer.normalizePath(path),
-            options,
-        );
+    public async publicUrl(path: string, options: PublicUrlOptions = {}): Promise<string> {
+        try {
+            return await this.adapter.publicUrl(
+                this.pathNormalizer.normalizePath(path),
+                options,
+            );
+        } catch (error) {
+            throw errors.UnableToGetPublicUrl.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, options}},
+            );
+        }
     }
 
-    public temporaryUrl(path: string,options: TemporaryUrlOptions): Promise<string> {
-        return this.adapter.temporaryUrl(
-            this.pathNormalizer.normalizePath(path),
-            options,
-        );
+    public async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
+        try {
+            return await this.adapter.temporaryUrl(
+                this.pathNormalizer.normalizePath(path),
+                options,
+            );
+        } catch (error) {
+            throw errors.UnableToGetTemporaryUrl.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, options}},
+            );
+        }
+    }
+
+    public async checksum(path: string, options: ChecksumOptions = {}): Promise<string> {
+        try {
+            return await this.adapter.checksum(
+                this.pathNormalizer.normalizePath(path),
+                options,
+            );
+        } catch (error) {
+            if (error instanceof ChecksumIsNotAvailable) {
+                return this.calculateChecksum(path, options);
+            }
+
+            throw errors.UnableToGetChecksum.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, options}},
+            );
+        }
+    }
+
+    private async calculateChecksum(path: string, options: ChecksumOptions): Promise<string> {
+        try {
+            return await checksumFromStream(await this.read(path), options);
+        } catch (error) {
+            throw errors.UnableToGetChecksum.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, options}},
+            );
+        }
     }
 }
 
@@ -247,3 +377,4 @@ function concatUint8Arrays(input: Uint8Array[]): Uint8Array {
 
     return output;
 }
+
