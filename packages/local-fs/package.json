@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "dependencies": {
-    "@flystorage/file-storage": "^0.0.1"
+    "@flystorage/file-storage": "0.0.1"
   },
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",

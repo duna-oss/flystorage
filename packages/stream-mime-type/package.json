@@ -1,6 +1,6 @@
 {
   "name": "@flystorage/stream-mime-type",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "Get the mime-type of a readable stream, non-destructive",
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",
