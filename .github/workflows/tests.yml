@@ -39,7 +39,7 @@ jobs:
           cache-key: npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
           cache-restore-keys: npm-caches-${{ matrix.node }}
       - name: Run tests
-        run: npm run tests
+        run: npm run test
         env:
           AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
