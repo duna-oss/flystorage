@@ -3,12 +3,15 @@
   "exclude": [
     "node_modules",
     "dist",
-    "**/dist"
+    "**/dist/**/*.js"
   ],
   "include": [
-    "**/*.ts"
+    "./**/*.ts"
   ],
   "compilerOptions": {
-    "esModuleInterop": true
+    "esModuleInterop": false,
+    "types": [
+      "./packages/*/dist/types"
+    ]
   }
 }

@@ -3,6 +3,7 @@
   "type": "module",
   "scripts": {
     "build": "npm run compile -ws --if-present",
+    "clean:build": "npm run clean && npm run build",
     "watch": "concurrently npm:watch:*",
     "watch:file-storage": "npm run watch -w ./packages/file-storage",
     "watch:stream-mime-type": "npm run watch -w ./packages/stream-mime-type",
