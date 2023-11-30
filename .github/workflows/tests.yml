@@ -24,8 +24,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [18, 20]
-    name: Install dependencies
+        node: [18, 19, 20]
+    name: Flystorage Tests
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
