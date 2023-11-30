@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [20]
+        node: [18, 20]
     name: Install dependencies
     steps:
       - name: Checkout the repository

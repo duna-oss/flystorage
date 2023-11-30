@@ -1,24 +1,25 @@
 import {S3Client} from '@aws-sdk/client-s3';
 import {FileStorage, readableToString, Visibility} from '@flystorage/file-storage';
-import {BinaryToTextEncoding, createHash} from 'crypto';
+import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as https from 'https';
 import {AwsS3FileStorage} from './aws-s3-file-storage.js';
 
 let client: S3Client;
 let storage: FileStorage;
+const testSegment = randomBytes(10).toString('hex');
 
 describe('aws-s3 file storage', () => {
     const truncate = async () =>
         await new FileStorage(new AwsS3FileStorage(client, {
             bucket: 'flysystem-check',
             prefix: 'storage',
-        })).deleteDirectory('tests');
+        })).deleteDirectory(testSegment);
 
     beforeAll(() => {
         client = new S3Client();
         storage = new FileStorage(new AwsS3FileStorage(client, {
             bucket: 'flysystem-check',
-            prefix: 'storage/tests',
+            prefix: `storage/${testSegment}`,
         }));
     })
 
