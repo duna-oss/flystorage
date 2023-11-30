@@ -4,15 +4,23 @@ import {BinaryToTextEncoding, createHash} from 'crypto';
 import * as https from 'https';
 import {AwsS3FileStorage} from './aws-s3-file-storage.js';
 
-describe('aws-s3 file storage', () => {
-    const client = new S3Client();
-    let storage: FileStorage;
+let client: S3Client;
+let storage: FileStorage;
 
+describe('aws-s3 file storage', () => {
     const truncate = async () =>
-        await (new FileStorage(new AwsS3FileStorage(client, {
+        await new FileStorage(new AwsS3FileStorage(client, {
             bucket: 'flysystem-check',
             prefix: 'storage',
-        }))).deleteDirectory('tests');
+        })).deleteDirectory('tests');
+
+    beforeAll(() => {
+        client = new S3Client();
+        storage = new FileStorage(new AwsS3FileStorage(client, {
+            bucket: 'flysystem-check',
+            prefix: 'storage/tests',
+        }));
+    })
 
     beforeEach(async () => {
         await truncate();
@@ -26,6 +34,10 @@ describe('aws-s3 file storage', () => {
         await truncate();
     });
 
+    afterAll(() => {
+        client.destroy();
+    })
+
     test('writing and reading a file', async () => {
         await storage.write('path.txt', 'this is the contents');
 
@@ -33,11 +45,11 @@ describe('aws-s3 file storage', () => {
     });
 
     test('you can download public files using a public URL', async () => {
-        await storage.write('path.txt', 'contents of the public file', {
+        await storage.write('public.txt', 'contents of the public file', {
             visibility: Visibility.PUBLIC,
         });
 
-        const url = await storage.publicUrl('path.txt');
+        const url = await storage.publicUrl('public.txt');
         const contents = await naivelyDownloadFile(url);
 
         expect(contents).toEqual('contents of the public file');

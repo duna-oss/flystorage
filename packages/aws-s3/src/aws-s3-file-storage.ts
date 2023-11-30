@@ -44,6 +44,7 @@ function isSupportedAlgo(algo: string): algo is ChecksumAlgo {
 export type AwsS3FileStorageOptions = Readonly<{
     bucket: string,
     prefix?: string,
+    region?: string,
     publicUrlOptions?: PublicUrlOptions,
     putObjectOptions?: PutObjectOptions,
     uploadConfiguration?: Partial<Configuration>,
@@ -52,17 +53,35 @@ export type AwsS3FileStorageOptions = Readonly<{
 
 export type AwsPublicUrlOptions = PublicUrlOptions & {
     bucket: string,
+    region?: string,
+    forcePathStyle?: boolean,
+    baseUrl?: string,
 }
 
 export type AwsPublicUrlGenerator = {
     publicUrl(path: string, options: AwsPublicUrlOptions): Promise<string>;
 };
 
-export class HostStyleAwsPublicUrlGenerator implements AwsPublicUrlGenerator {
+export class DefaultAwsPublicUrlGenerator implements AwsPublicUrlGenerator {
     async publicUrl(path: string, options: AwsPublicUrlOptions): Promise<string> {
-        return `https://${options.bucket}.s3.amazonaws.com/${path}`;
+        const baseUrl = options.baseUrl ?? 'https://{subdomain}.amazonaws.com/{uri}';
+        const subdomain = options.forcePathStyle !== true
+            ? `${options.bucket}.s3`
+            : options.region === undefined
+                ? 's3'
+                : `s3-${options.region}`;
+        const uri = options.forcePathStyle !== true
+            ? path
+            : `${options.bucket}/${path}`;
+
+        return baseUrl.replace('{subdomain}', subdomain).replace('{uri}', uri);
     }
 }
+
+/**
+ * BC extension
+ */
+export class HostStyleAwsPublicUrlGenerator extends DefaultAwsPublicUrlGenerator {}
 
 export type TimestampResolver = () => number;
 
@@ -72,7 +91,7 @@ export class AwsS3FileStorage implements StorageAdapter {
     constructor(
         private readonly client: S3Client,
         private readonly options: AwsS3FileStorageOptions,
-        private readonly publicUrlGenerator: AwsPublicUrlGenerator = new HostStyleAwsPublicUrlGenerator(),
+        private readonly publicUrlGenerator: AwsPublicUrlGenerator = new DefaultAwsPublicUrlGenerator(),
         private readonly timestampResolver: TimestampResolver = () => Date.now(),
     ) {
         this.prefixer = new PathPrefixer(options.prefix || '');
@@ -82,7 +101,7 @@ export class AwsS3FileStorage implements StorageAdapter {
         const expiry = normalizeExpiryToMilliseconds(options.expiresAt);
         const now = (this.timestampResolver)();
 
-        return getSignedUrl(this.client, new GetObjectCommand({
+        return await getSignedUrl(this.client, new GetObjectCommand({
             Bucket: this.options.bucket,
             Key: this.prefixer.prefixFilePath(path),
         }), {

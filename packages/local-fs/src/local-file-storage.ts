@@ -12,6 +12,7 @@ import {
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
 import {chmod, mkdir, opendir, rm, stat} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
+import {platform} from 'os';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -21,6 +22,8 @@ export type LocalFileStorageOptions = {
     publicUrlOptions?: LocalPublicUrlOptions,
     temporaryUrlOptions?: Omit<LocalTemporaryUrlOptions, 'expiresAt'>,
 };
+
+const isMacOs = platform() === 'darwin';
 
 export type LocalPublicUrlOptions = PublicUrlOptions & {
     baseUrl?: string,
@@ -84,9 +87,7 @@ export class LocalFileStorage implements StorageAdapter {
         });
 
         for await (const item of entries) {
-            const itemPath = item.path.endsWith(item.name)
-                ? item.path
-                : join(item.path, item.name);
+            const itemPath = isMacOs ? join(item.path, item.name) : item.path;
 
             yield this.mapStatToEntry(
                 item,
