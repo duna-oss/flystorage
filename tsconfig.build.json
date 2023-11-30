@@ -1,5 +1,4 @@
 {
-  "extends": "@tsconfig/node20/tsconfig.json",
   "exclude": [
     "**/*.test.ts",
     "node_modules",
@@ -11,6 +10,12 @@
     "skipLibCheck": true,
     "paths": {
       "@filestorage/*": ["./packages/*/src/index.ts", "./packages/*/src/"]
-    }
+    },
+    "lib": ["es2023"],
+    "module": "node16",
+    "target": "es2022",
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node16"
   }
 }
