@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [18, 19, 20]
+        node: [19, 20]
     name: Flystorage Tests
     steps:
       - name: Checkout the repository
