@@ -91,7 +91,7 @@ describe('LocalFileStorage', () => {
 
         expect(listing).toHaveLength(2);
         expect(listing.map(l => l.type)).toEqual(['file', 'file']);
-        expect(listing.map(l => l.path)).toEqual(['file-1.txt', 'file-2.txt']);
+        expect(listing.map(l => l.path).sort()).toEqual(['file-1.txt', 'file-2.txt']);
     });
 
     test('file file visibility can be changes', async () => {
@@ -144,7 +144,7 @@ describe('LocalFileStorage', () => {
         const listing = await storage.list('/', {deep: true}).toArray();
 
         expect(listing).toHaveLength(3);
-        expect(listing.map(l => l.type)).toEqual(['directory', 'directory', 'file']);
+        expect(listing.map(l => l.type).sort()).toEqual(['directory', 'directory', 'file']);
     });
 
     test('generating a public urls works when the base URL is provided in the constructor', async () => {

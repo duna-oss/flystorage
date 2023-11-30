@@ -84,7 +84,9 @@ export class LocalFileStorage implements StorageAdapter {
         });
 
         for await (const item of entries) {
-            const itemPath = join(item.path, item.name);
+            const itemPath = item.path.endsWith(item.name)
+                ? item.path
+                : join(item.path, item.name);
 
             yield this.mapStatToEntry(
                 item,
