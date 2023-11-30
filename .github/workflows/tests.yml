@@ -13,12 +13,6 @@ permissions:
   contents: read  # This is required for actions/checkout
   pull-requests: read # Required for change detection
 
-env:
-  ECR_REPOSITORY: 'duna-staging'
-  APP_BASE_IMAGE: 'ghcr.io/building-duna/duna-application/duna-node:base-20.9.0'
-  CI_BASE_IMAGE: 'ghcr.io/building-duna/duna-application/duna-node:ci-20.9.0'
-  IMAGE_TAG: "prod-1.${{ github.run_id }}"
-
 jobs:
   run-tests:
     runs-on: ubuntu-latest
