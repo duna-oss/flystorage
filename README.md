@@ -108,5 +108,6 @@ await storage.deleteDirectory('some-directory');
 
 ## Author
 Flystorage is built by the maintainer of [Flysystem](https://flysystem.thephpleague.com), a
-filesystem abstract for PHP. This brings along more than a decade of smoothing over filesystem
-implementation differences and weighing trade-offs to make a usable API.
+filesystem abstraction for PHP. This brings along more than
+a decade of smoothing over filesystem implementation differences
+and weighing trade-offs to make a usable API.
