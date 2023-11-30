@@ -1,4 +1,4 @@
-# \[WIP\] Flystorage
+# Flystorage
 Flystorage is a file storage abstraction for NodeJS and TypeScript. It is an 80/20 solution
 that is built around a set of goals:
 

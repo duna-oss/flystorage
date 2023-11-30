@@ -56,7 +56,7 @@ export class UnableToGetChecksum extends FlystorageError {
     static because = (reason: string, {context = {}, cause = undefined}: {
         context?: ErrorContext,
         cause?: unknown
-    }) => new UnableToWriteFile(
+    }) => new UnableToGetChecksum(
         `Unable to write the file. Reason: ${reason}`,
         context,
         cause,
