@@ -67,21 +67,25 @@ import {createReadStream} from 'node:fs';
 import {FileStorage, Visibility} from '@flystorage/file-storage';
 import {LocalFileStorage} from '@flystorage/local-fs';
 
-// SETUP
+/**
+ * SETUP
+ **/
 
 const rootDirectory = resolve(process.cwd(), 'my-files');
 const storage = new FileStorage(new LocalFileStorage(rootDirectory));
 
-// USAGE
+/**
+ * USAGE
+ **/
 
-# Write using a string
+// Write using a string
 await storage.write('write-from-a-string.txt', 'file contents');
 
-# Write using a stream
-const stream = createReadStream(resolve('process.cwd(), 'test-files/picture.png'));
+// Write using a stream
+const stream = createReadStream(resolve(process.cwd(), 'test-files/picture.png'));
 await storage.write('picture.png', stream);
 
-# Write with visibility (permissions).
+// Write with visibility (permissions).
 await storage.write('public.txt', 'debug', {
     visibility: Visibility.PUBLIC, // mode: 0o644
 });
@@ -89,7 +93,7 @@ await storage.write('private.txt', 'debug', {
     visibility: Visibility.PRIVATE, // mode: 0o600
 });
 
-# List directory contents
+// List directory contents
 const contentsAsAsyncGenerator = storage.list('', {deep: true});
 
 for await (const item of contentsAsAsyncGenerator) {
@@ -102,10 +106,10 @@ for await (const item of contentsAsAsyncGenerator) {
     }
 }
 
-# Delete a file
+// Delete a file
 await storage.deleteFile('some-file.txt');
 
-# Delete a directory (with all contents)
+// Delete a directory (with all contents)
 await storage.deleteDirectory('some-directory');
 ```
 
