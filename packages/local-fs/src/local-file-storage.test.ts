@@ -165,6 +165,17 @@ describe('LocalFileStorage', () => {
         expect(listing.map(l => l.type).sort()).toEqual(['directory', 'directory', 'file']);
     });
 
+    test('filtering out directories for a deep listing', async () => {
+        await storage.write('deeply/nested/directory.txt', 'contents');
+
+        const listing = await storage.list('/', {deep: true})
+            .filter(entry => entry.isFile)
+            .toArray();
+
+        expect(listing).toHaveLength(1);
+        expect(listing.map(l => l.type).sort()).toEqual(['file']);
+    });
+
     test('generating a public urls works when the base URL is provided in the constructor', async () => {
         const url = await storage.publicUrl('some/path.txt');
 

@@ -69,6 +69,18 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
 
         return sorted ? items.sort((a, b) => naturalSorting.compare(a.path, b.path)) : items;
     }
+    filter(filter: (entry: StatEntry) => boolean): DirectoryListing {
+        const listing = this.listing;
+        const filtered = (async function *() {
+            for await (const entry of listing) {
+                if (filter(entry)) {
+                    yield entry;
+                }
+            }
+        })();
+
+        return new DirectoryListing(filtered, this.path, this.deep);
+    }
     async *[Symbol.asyncIterator]() {
         try {
             for await (const item of this.listing) {
