@@ -55,8 +55,32 @@ export interface StorageAdapter {
     fileSize(path: string): Promise<number>;
 }
 
-export interface DirectoryListing extends AsyncIterable<StatEntry> {
-    toArray(sorted?: boolean): Promise<StatEntry[]>;
+export class DirectoryListing implements AsyncIterable<StatEntry> {
+    constructor(
+        private readonly listing: AsyncGenerator<StatEntry>,
+        private readonly path: string,
+        private readonly deep: boolean,
+    ) {}
+    async toArray(sorted: boolean = true): Promise<StatEntry[]> {
+        const items = [];
+        for await (const item of this.listing) {
+            items.push(item);
+        }
+
+        return sorted ? items.sort((a, b) => naturalSorting.compare(a.path, b.path)) : items;
+    }
+    async *[Symbol.asyncIterator]() {
+        try {
+            for await (const item of this.listing) {
+                yield item;
+            }
+        } catch (error) {
+            throw errors.UnableToListDirectory.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path: this.path, deep: this.deep}},
+            )
+        }
+    }
 }
 
 export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable;
@@ -229,30 +253,11 @@ export class FileStorage {
     }
 
     public list(path: string, {deep = false}: {deep?: boolean} = {}): DirectoryListing {
-        const listing = this.adapter.list(this.pathNormalizer.normalizePath(path), {deep});
-
-        return {
-            async toArray(sorted: boolean = true): Promise<StatEntry[]> {
-                const items = [];
-                for await (const item of listing) {
-                    items.push(item);
-                }
-
-                return sorted ? items.sort((a, b) => naturalSorting.compare(a.path, b.path)) : items;
-            },
-            async *[Symbol.asyncIterator]() {
-                try {
-                    for await (const item of listing) {
-                        yield item;
-                    }
-                } catch (error) {
-                    throw errors.UnableToListDirectory.because(
-                        errors.errorToMessage(error),
-                        {cause: error, context: {path, deep}},
-                    )
-                }
-            }
-        }
+        return new DirectoryListing(
+            this.adapter.list(this.pathNormalizer.normalizePath(path), {deep}),
+            path,
+            deep
+        );
     }
 
     public async statFile(path: string): Promise<FileInfo> {
