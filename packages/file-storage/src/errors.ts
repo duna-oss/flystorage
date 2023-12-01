@@ -63,6 +63,19 @@ export class UnableToGetChecksum extends FlystorageError {
     );
 }
 
+export class UnableToGetMimeType extends FlystorageError {
+    public readonly code = 'flystorage.unable_to_get_mimetype';
+
+    static because = (reason: string, {context = {}, cause = undefined}: {
+        context?: ErrorContext,
+        cause?: unknown
+    }) => new UnableToGetMimeType(
+        `Unable to get mime-type. Reason: ${reason}`,
+        context,
+        cause,
+    );
+}
+
 export class UnableToWriteFile extends FlystorageError {
     public readonly code = 'flystorage.unable_to_write_file';
 

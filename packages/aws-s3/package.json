@@ -31,6 +31,8 @@
     "@aws-sdk/lib-storage": "^3.462.0",
     "@aws-sdk/s3-request-presigner": "^3.462.0",
     "@flystorage/file-storage": "0.0.2",
-    "@flystorage/stream-mime-type": "0.0.2"
+    "@flystorage/stream-mime-type": "^0.0.2",
+    "file-type": "^18.7.0",
+    "mime-types": "^2.1.35"
   }
 }

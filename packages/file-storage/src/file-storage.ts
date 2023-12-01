@@ -50,6 +50,7 @@ export interface StorageAdapter {
     publicUrl(path: string, options: PublicUrlOptions): Promise<string>;
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string>;
     checksum(path: string, options: ChecksumOptions): Promise<string>;
+    mimeType(path: string, options: MimeTypeOptions): Promise<string>;
 }
 
 export interface DirectoryListing extends AsyncIterable<StatEntry> {
@@ -60,6 +61,11 @@ export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableS
 
 export type MiscellaneousOptions = {
     [option: string]: any,
+}
+
+export type MimeTypeOptions = MiscellaneousOptions & {
+    disallowFallback?: boolean,
+    fallbackMethod?: 'contents' | 'path',
 }
 
 export type VisibilityOptions = {
@@ -308,6 +314,20 @@ export class FileStorage {
             }
 
             throw errors.UnableToGetChecksum.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, options}},
+            );
+        }
+    }
+
+    public async mimeType(path: string, options: MimeTypeOptions = {}): Promise<string> {
+        try {
+            return await this.adapter.mimeType(
+                this.pathNormalizer.normalizePath(path),
+                options,
+            );
+        } catch (error) {
+            throw errors.UnableToGetMimeType.because(
                 errors.errorToMessage(error),
                 {cause: error, context: {path, options}},
             );

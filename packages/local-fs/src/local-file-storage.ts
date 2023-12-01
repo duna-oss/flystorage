@@ -15,6 +15,8 @@ import {dirname, join} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
+import {closeReadable, MimeTypeOptions} from "@flystorage/file-storage";
+import {resolveMimeType} from "@flystorage/stream-mime-type";
 
 export type LocalFileStorageOptions = {
     rootDirectoryVisibility?: string,
@@ -76,6 +78,17 @@ export class LocalFileStorage implements StorageAdapter {
 
     publicUrl(path: string, options: PublicUrlOptions): Promise<string> {
         return this.publicUrlGenerator.publicUrl(path, {...this.options.publicUrlOptions, ...options});
+    }
+
+    async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
+        const [mimeType, stream] = await resolveMimeType(path, await this.read(path));
+        await closeReadable(stream);
+
+        if (mimeType === undefined) {
+            throw new Error('Unable to resolve mime-type');
+        }
+
+        return mimeType;
     }
 
     async* list(path: string, {deep}: { deep: boolean }): AsyncGenerator<StatEntry, any, unknown> {

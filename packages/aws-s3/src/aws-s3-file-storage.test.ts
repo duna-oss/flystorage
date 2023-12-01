@@ -1,8 +1,10 @@
 import {S3Client} from '@aws-sdk/client-s3';
-import {FileStorage, readableToString, Visibility} from '@flystorage/file-storage';
+import {FileStorage, readableToString, Visibility, closeReadable} from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as https from 'https';
 import {AwsS3FileStorage} from './aws-s3-file-storage.js';
+import {createReadStream} from "node:fs";
+import * as path from "node:path";
 
 let client: S3Client;
 let storage: FileStorage;
@@ -66,6 +68,16 @@ describe('aws-s3 file storage', () => {
         await expect(naivelyDownloadFile(
             await storage.temporaryUrl('private.txt', {expiresAt: Date.now() + 60 * 1000})
         )).resolves.toEqual('contents of the private file');
+    });
+
+    test('writing a png and fetching its mime-type', async () => {
+        const handle = createReadStream(path.resolve(process.cwd(), 'fixtures/screenshot.png'));
+        await storage.write('image.png', handle);
+        closeReadable(handle);
+
+        const mimeType = await storage.mimeType('image.png');
+
+        expect(mimeType).toEqual('image/png');
     });
 
     test('it can request checksums', async () => {

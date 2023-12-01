@@ -32,6 +32,8 @@ import {
 } from '@flystorage/file-storage';
 import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {Readable} from 'stream';
+import {MimeTypeOptions, closeReadable} from "@flystorage/file-storage";
+import {lookup} from "mime-types";
 
 type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
 const possibleChecksumAlgos = ['SHA1', 'SHA256', 'CRC32', 'CRC32C', 'ETAG'] as const;
@@ -107,6 +109,33 @@ export class AwsS3FileStorage implements StorageAdapter {
         }), {
             expiresIn: Math.floor((expiry - now) / 1000),
         });
+    }
+
+    async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
+        const response = await this.stat(path);
+
+        if (!response.isFile) {
+            throw new Error(`Path "${path} is not a file.`);
+        }
+
+        if (response.mimeType) {
+            return response.mimeType;
+        }
+
+        if (options.disallowFallback) {
+            throw new Error('Mime-type not available via HeadObject');
+        }
+
+        const method = options.fallbackMethod ?? 'path';
+        const mimeType = method === 'path'
+            ? lookup(path)
+            : await this.lookupMimeTypeFromStream(path, options);
+
+        if (mimeType === undefined || mimeType === false) {
+            throw new Error('Unable to resolve mime-type');
+        }
+
+        return mimeType;
     }
 
     async visibility(path: string): Promise<string> {
@@ -399,5 +428,12 @@ export class AwsS3FileStorage implements StorageAdapter {
         }
 
         return checksum.replace(/^"(.+)"$/, '$1');
+    }
+
+    private async lookupMimeTypeFromStream(path: string, options: MimeTypeOptions) {
+        const [mimetype, stream] = await resolveMimeType(path, Readable.from(await this.read(path)));
+        await closeReadable(stream);
+
+        return mimetype;
     }
 }

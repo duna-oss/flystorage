@@ -3,7 +3,8 @@
   "version": "0.0.2",
   "description": "",
   "dependencies": {
-    "@flystorage/file-storage": "0.0.2"
+    "@flystorage/file-storage": "0.0.2",
+    "@flystorage/stream-mime-type": "^0.0.2"
   },
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",

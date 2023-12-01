@@ -5,10 +5,11 @@ import {
     Visibility
 } from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash} from 'crypto';
-import {mkdirSync} from 'fs';
-import path from 'node:path';
+import * as path from 'node:path';
 import {LocalFileStorage, LocalTemporaryUrlGenerator, LocalTemporaryUrlOptions} from './local-file-storage.js';
 import {execSync} from 'child_process';
+import {createReadStream, mkdirSync} from 'node:fs';
+import {closeReadable} from "@flystorage/file-storage";
 
 const rootDirectory = path.resolve(process.cwd(), 'fixtures/test-files');
 
@@ -58,6 +59,16 @@ describe('LocalFileStorage', () => {
         const stat = await storage.stat('test.txt');
 
         expect(stat.visibility).toEqual(Visibility.PRIVATE);
+    });
+
+    test('writing a png and fetching its mime-type', async () => {
+        const handle = createReadStream(path.resolve(process.cwd(), 'fixtures/screenshot.png'));
+        await storage.write('image.png', handle);
+        closeReadable(handle);
+
+        const mimeType = await storage.mimeType('image.png');
+
+        expect(mimeType).toEqual('image/png');
     });
 
     describe('stat for (public) files', () => {
