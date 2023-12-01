@@ -27,7 +27,11 @@
     "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
     "watch": "tsc --watch"
   },
-  "keywords": [],
   "author": "Frank de Jonge (https://frankdejonge.nl)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flystorage/flystorage.git",
+    "directory": "packages/stream-mime-type"
+  },
   "license": "MIT"
 }
