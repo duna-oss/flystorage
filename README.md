@@ -88,7 +88,7 @@ await storage.write('public.txt', 'debug', {
     visibility: Visibility.PUBLIC, // mode: 0o644
 });
 await storage.write('private.txt', 'debug', {
-    visibility: Visibility.PRIVATE, // mode: 0o644
+    visibility: Visibility.PRIVATE, // mode: 0o600
 });
 
 # List directory contents
