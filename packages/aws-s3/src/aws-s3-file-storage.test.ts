@@ -70,6 +70,13 @@ describe('aws-s3 file storage', () => {
         )).resolves.toEqual('contents of the private file');
     });
 
+    test('retrieving the size of a file', async () => {
+        const contents = 'this is the contents of the file';
+        await storage.write('something.txt', contents);
+
+        expect(await storage.fileSize('something.txt')).toEqual(contents.length);
+    });
+
     test('writing a png and fetching its mime-type', async () => {
         const handle = createReadStream(path.resolve(process.cwd(), 'fixtures/screenshot.png'));
         await storage.write('image.png', handle);

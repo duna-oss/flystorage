@@ -111,6 +111,30 @@ export class AwsS3FileStorage implements StorageAdapter {
         });
     }
 
+    async lastModified(path: string): Promise<number> {
+        const stat = await this.stat(path);
+
+        if (stat.lastModifiedMs === undefined) {
+            throw new Error('Last modified is not available in stat');
+        }
+
+        return stat.lastModifiedMs;
+    }
+
+    async fileSize(path: string): Promise<number> {
+        const stat = await this.stat(path);
+
+        if (stat.isFile === false) {
+            throw new Error('Path is not a file');
+        }
+
+        if (stat.size === undefined) {
+            throw new Error('File size is not available in stat.')
+        }
+
+        return stat.size;
+    }
+
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
         const response = await this.stat(path);
 

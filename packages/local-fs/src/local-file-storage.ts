@@ -91,6 +91,34 @@ export class LocalFileStorage implements StorageAdapter {
         return mimeType;
     }
 
+    async fileSize(path: string): Promise<number> {
+        const stat = await this.stat(path);
+
+        if (!stat.isFile) {
+            throw new Error(`Path ${path} is not a file.`);
+        }
+
+        if (stat.size === undefined) {
+            throw new Error('Stat unexpectedly did not return file size.');
+        }
+
+        return stat.size;
+    }
+
+    async lastModified(path: string): Promise<number> {
+        const stat = await this.stat(path);
+
+        if (!stat.isFile) {
+            throw new Error(`Path ${path} is not a file.`);
+        }
+
+        if (stat.lastModifiedMs === undefined) {
+            throw new Error('Stat unexpectedly did not return last modified.');
+        }
+
+        return stat.lastModifiedMs;
+    }
+
     async* list(path: string, {deep}: { deep: boolean }): AsyncGenerator<StatEntry, any, unknown> {
         let entries = await opendir(this.prefixer.prefixDirectoryPath(path), {
             recursive: deep,

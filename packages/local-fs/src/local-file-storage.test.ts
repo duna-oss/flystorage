@@ -71,6 +71,13 @@ describe('LocalFileStorage', () => {
         expect(mimeType).toEqual('image/png');
     });
 
+    test('retrieving the size of a file', async () => {
+        const contents = 'this is the contents of the file';
+        await storage.write('something.txt', contents);
+
+        expect(await storage.fileSize('something.txt')).toEqual(contents.length);
+    });
+
     describe('stat for (public) files', () => {
         let fileInfo: FileInfo;
         beforeEach(async () => {

@@ -27,10 +27,8 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] Generate temporary (signed) URLs.
 - [x] Expose or calculate checksums for files.
 - [x] Mime-type resolving
-
-### Planned
-- [ ] Last modified fetching
-- [ ] File size
+- [x] Last modified fetching
+- [x] File size
 
 ## Implementations / Adapters
 

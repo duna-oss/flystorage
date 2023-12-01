@@ -76,6 +76,32 @@ export class UnableToGetMimeType extends FlystorageError {
     );
 }
 
+export class UnableToGetLastModified extends FlystorageError {
+    public readonly code = 'flystorage.unable_to_get_last_modified';
+
+    static because = (reason: string, {context = {}, cause = undefined}: {
+        context?: ErrorContext,
+        cause?: unknown
+    }) => new UnableToGetLastModified(
+        `Unable to get last modified. Reason: ${reason}`,
+        context,
+        cause,
+    );
+}
+
+export class UnableToGetFileSize extends FlystorageError {
+    public readonly code = 'flystorage.unable_to_get_file_size';
+
+    static because = (reason: string, {context = {}, cause = undefined}: {
+        context?: ErrorContext,
+        cause?: unknown
+    }) => new UnableToGetFileSize(
+        `Unable to get file size. Reason: ${reason}`,
+        context,
+        cause,
+    );
+}
+
 export class UnableToWriteFile extends FlystorageError {
     public readonly code = 'flystorage.unable_to_write_file';
 

@@ -51,6 +51,8 @@ export interface StorageAdapter {
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string>;
     checksum(path: string, options: ChecksumOptions): Promise<string>;
     mimeType(path: string, options: MimeTypeOptions): Promise<string>;
+    lastModified(path: string): Promise<number>;
+    fileSize(path: string): Promise<number>;
 }
 
 export interface DirectoryListing extends AsyncIterable<StatEntry> {
@@ -330,6 +332,32 @@ export class FileStorage {
             throw errors.UnableToGetMimeType.because(
                 errors.errorToMessage(error),
                 {cause: error, context: {path, options}},
+            );
+        }
+    }
+
+    public async lastModified(path: string): Promise<number> {
+        try {
+            return await this.adapter.lastModified(
+                this.pathNormalizer.normalizePath(path),
+            );
+        } catch (error) {
+            throw errors.UnableToGetLastModified.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}},
+            );
+        }
+    }
+
+    public async fileSize(path: string): Promise<number> {
+        try {
+            return await this.adapter.fileSize(
+                this.pathNormalizer.normalizePath(path),
+            );
+        } catch (error) {
+            throw errors.UnableToGetFileSize.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path}},
             );
         }
     }
