@@ -24,6 +24,11 @@
     "watch": "tsc --watch"
   },
   "author": "Frank de Jonge (https://frankdejonge.nl)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flystorage/flystorage.git",
+    "directory": "packages/file-storage"
+  },
   "keywords": ["fs", "file", "files", "filesystem", "filesystems", "storage"],
   "license": "MIT"
 }

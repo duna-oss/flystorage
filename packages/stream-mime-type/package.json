@@ -1,6 +1,10 @@
 {
   "name": "@flystorage/stream-mime-type",
   "version": "0.0.3",
+  "dependencies": {
+    "file-type": "^18.7.0",
+    "mime-types": "^2.1.35"
+  },
   "description": "Get the mime-type of a readable stream, non-destructive",
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",
@@ -25,9 +29,5 @@
   },
   "keywords": [],
   "author": "Frank de Jonge (https://frankdejonge.nl)",
-  "license": "MIT",
-  "dependencies": {
-    "file-type": "^18.7.0",
-    "mime-types": "^2.1.35"
-  }
+  "license": "MIT"
 }
