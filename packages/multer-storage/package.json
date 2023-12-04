@@ -1,0 +1,47 @@
+{
+  "name": "@flystorage/multer-storage",
+  "version": "0.0.3",
+  "type": "module",
+  "dependencies": {
+    "@azure/storage-blob": "^12.17.0",
+    "@flystorage/file-storage": "0.0.3",
+    "@flystorage/stream-mime-type": "0.0.3",
+    "multer": "^1.4.5-lts.1"
+  },
+  "description": "",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./dist/esm/index.js",
+        "types": "./dist/types/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/cjs/index.js",
+        "types": "./dist/types/index.d.ts"
+      }
+    }
+  },
+  "scripts": {
+    "compile": "concurrently npm:compile:*",
+    "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
+    "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
+    "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "s3",
+    "file",
+    "storage",
+    "flystorage",
+    "filesystem"
+  ],
+  "author": "Frank de Jonge (https://frankdejonge.nl)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flystorage/flystorage.git",
+    "directory": "packages/aws-s3"
+  },
+  "license": "MIT"
+}

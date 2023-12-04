@@ -187,6 +187,10 @@ export class FileStorage {
         return await readableToUint8Array(await this.read(path));
     }
 
+    public async readToBuffer(path: string): Promise<Buffer> {
+        return Buffer.from(await this.readToUint8Array(path));
+    }
+
     public async deleteFile(path: string): Promise<void> {
         try {
             await this.adapter.deleteFile(this.pathNormalizer.normalizePath(path));
