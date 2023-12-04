@@ -32,6 +32,10 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] Last modified fetching
 - [x] File size
 
+### Planned
+- [ ] Moving files
+- [ ] Copying files
+
 ## Implementations / Adapters
 
 ### Implemented
@@ -41,9 +45,9 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 ### Planned
 
 #### Prio 1
+- [ ] Azure Blob Storage
 - [ ] Test implementation (in-memory, with staged errors)
 - [ ] Google Cloud Storage
-- [ ] Azure Blob Storage
 
 ### Prio 2
 - [ ] FTP (using `basic-ftp`)
