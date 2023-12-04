@@ -1,9 +1,9 @@
 {
   "name": "@flystorage/local-fs",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "dependencies": {
-    "@flystorage/file-storage": "0.0.3",
-    "@flystorage/stream-mime-type": "0.0.3"
+    "@flystorage/file-storage": "0.0.4",
+    "@flystorage/stream-mime-type": "0.0.4"
   },
   "description": "",
   "main": "./dist/cjs/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@flystorage/stream-mime-type",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "dependencies": {
     "file-type": "^18.7.0",
     "mime-types": "^2.1.35"
