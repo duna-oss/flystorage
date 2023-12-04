@@ -4,11 +4,13 @@
 Flystorage is a file storage abstraction for NodeJS and TypeScript. It is an 80/20 solution
 that is built around a set of goals:
 
-- Application code should not be aware WHERE files are stored.
+- Provide a straight-forward API that is easy to use.
+- Allow application code to be unaware WHERE files are stored.
 - Pragmatically smooth over underlying storage differences.
-- Provide an async/await based API, promises all the way.
-- Maximise cross-implementation portability.
+- Expose an async/await based API, promises all the way.
 - Abstract over file permissions using "visibility".
+- Actually tested using real integrations, _mocks are not welcome_.
+- Stand on the shoulders of giants, use official vendor packages when possible.
 
 ### What is Flystorage NOT:
 Flystorage is meant to be used in cases for generic file storage use-cases. It's not an API for
