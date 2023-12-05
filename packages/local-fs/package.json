@@ -1,9 +1,10 @@
 {
   "name": "@flystorage/local-fs",
-  "version": "0.0.4",
+  "type": "module",
+  "version": "0.0.5",
   "dependencies": {
-    "@flystorage/file-storage": "0.0.4",
-    "@flystorage/stream-mime-type": "0.0.4"
+    "@flystorage/file-storage": "0.0.5",
+    "@flystorage/stream-mime-type": "0.0.5"
   },
   "description": "",
   "main": "./dist/cjs/index.js",
@@ -21,7 +22,7 @@
     }
   },
   "scripts": {
-    "compile": "concurrently npm:compile:*",
+    "compile": "concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
     "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
     "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
     "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",

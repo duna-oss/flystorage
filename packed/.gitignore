@@ -1,0 +1,4 @@
+*.tgz
+*/node_modules/
+*/package-lock.json
+*/files/
