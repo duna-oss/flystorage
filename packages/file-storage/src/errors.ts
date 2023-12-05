@@ -180,6 +180,32 @@ export class UnableToGetTemporaryUrl extends FlystorageError {
     );
 }
 
+export class UnableToCopyFile extends FlystorageError {
+    public readonly code = 'flystorage.unable_to_copy_file';
+
+    static because = (reason: string, {context = {}, cause = undefined}: {
+        context?: ErrorContext,
+        cause?: unknown
+    }) => new UnableToCopyFile(
+        `Unable to copy file. Reason: ${reason}`,
+        context,
+        cause,
+    );
+}
+
+export class UnableToMoveFile extends FlystorageError {
+    public readonly code = 'flystorage.unable_to_move_file';
+
+    static because = (reason: string, {context = {}, cause = undefined}: {
+        context?: ErrorContext,
+        cause?: unknown
+    }) => new UnableToMoveFile(
+        `Unable to move file. Reason: ${reason}`,
+        context,
+        cause,
+    );
+}
+
 export class UnableToGetStat extends FlystorageError {
     public readonly code = 'flystorage.unable_to_get_stat';
 

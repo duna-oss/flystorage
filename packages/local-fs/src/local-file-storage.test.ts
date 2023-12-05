@@ -186,6 +186,32 @@ describe('LocalFileStorage', () => {
         expect(url).toEqual('https://example.org/with-prefix/some/path.txt');
     });
 
+    test('moving a file', async () => {
+        await storage.write('from.txt', 'this');
+
+        await storage.moveFile('from.txt', 'to.txt');
+
+        expect(await storage.fileExists('from.txt')).toEqual(false);
+        expect(await storage.readToString('to.txt')).toEqual('this');
+    });
+
+    test('copying a file', async () => {
+        await storage.write('from.txt', 'this');
+
+        await storage.copyFile('from.txt', 'to.txt');
+
+        expect(await storage.fileExists('from.txt')).toEqual(true);
+        expect(await storage.readToString('to.txt')).toEqual('this');
+    });
+
+    test('trying to copy a file that does not exist', async () => {
+        expect(storage.copyFile('from.txt', 'to.txt')).rejects.toThrow();
+    });
+
+    test('trying to move a file that does not exist', async () => {
+        expect(storage.moveFile('from.txt', 'to.txt')).rejects.toThrow();
+    });
+
     test('generating a public urls failed when the base URL is undefined', async () => {
         const url = storage.publicUrl('/some/path.txt', {
             baseUrl: undefined

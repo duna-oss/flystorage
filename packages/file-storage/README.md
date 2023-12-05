@@ -33,10 +33,8 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] Mime-type resolving
 - [x] Last modified fetching
 - [x] File size
-
-### Planned
-- [ ] Moving files
-- [ ] Copying files
+- [x] Moving files
+- [x] Copying files
 
 ## Implementations / Adapters
 

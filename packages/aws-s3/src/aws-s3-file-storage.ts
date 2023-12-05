@@ -1,6 +1,6 @@
 import {
     _Object,
-    CommonPrefix,
+    CommonPrefix, CopyObjectCommand,
     DeleteObjectCommand,
     DeleteObjectsCommand,
     GetObjectAclCommand,
@@ -17,6 +17,7 @@ import {
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
+import {join} from 'node:path';
 import {
     ChecksumIsNotAvailable,
     ChecksumOptions,
@@ -34,6 +35,8 @@ import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {Readable} from 'stream';
 import {MimeTypeOptions, closeReadable} from "@flystorage/file-storage";
 import {lookup} from "mime-types";
+import {CopyFileOptions, MoveFileOptions} from "@filestorage/file-storage";
+import {CopyObjectRequest} from "@aws-sdk/client-s3/dist-types/models/models_0.js";
 
 type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
 const possibleChecksumAlgos = ['SHA1', 'SHA256', 'CRC32', 'CRC32C', 'ETAG'] as const;
@@ -83,9 +86,11 @@ export class DefaultAwsPublicUrlGenerator implements AwsPublicUrlGenerator {
 /**
  * BC extension
  */
-export class HostStyleAwsPublicUrlGenerator extends DefaultAwsPublicUrlGenerator {}
+export class HostStyleAwsPublicUrlGenerator extends DefaultAwsPublicUrlGenerator {
+}
 
 export type TimestampResolver = () => number;
+type AclOptions = Pick<CopyObjectRequest, 'ACL'>;
 
 export class AwsS3FileStorage implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
@@ -97,6 +102,31 @@ export class AwsS3FileStorage implements StorageAdapter {
         private readonly timestampResolver: TimestampResolver = () => Date.now(),
     ) {
         this.prefixer = new PathPrefixer(options.prefix || '');
+    }
+
+    async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
+        let visibility = options.visibility;
+
+        if (visibility === undefined && options.retainVisibility) {
+            visibility = await this.visibility(from);
+        }
+
+        let acl: AclOptions = visibility ? {ACL: this.visibilityToAcl(visibility)} : {};
+
+        try {
+            await this.client.send(new CopyObjectCommand({
+                Bucket: this.options.bucket,
+                CopySource: join('/', this.options.bucket, this.prefixer.prefixFilePath(from)),
+                Key: this.prefixer.prefixFilePath(to),
+                ...acl,
+            }));
+        } catch (error) {
+            console.error(error);
+        }
+    }
+    async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
+        await this.copyFile(from, to, options);
+        await this.deleteFile(from);
     }
 
     async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {

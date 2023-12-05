@@ -2,6 +2,7 @@ import {
     checksumFromStream,
     ChecksumOptions,
     CreateDirectoryOptions,
+    MiscellaneousOptions,
     PathPrefixer,
     PublicUrlOptions,
     StatEntry,
@@ -10,7 +11,7 @@ import {
     WriteOptions,
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
-import {chmod, mkdir, opendir, rm, stat} from 'node:fs/promises';
+import {chmod, mkdir, opendir, rm, stat, rename, copyFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
@@ -70,6 +71,19 @@ export class LocalFileStorage implements StorageAdapter {
     ) {
         this.rootDir = join(this.rootDir, '/');
         this.prefixer = new PathPrefixer(this.rootDir);
+    }
+
+    async copyFile(from: string, to: string, options: MiscellaneousOptions): Promise<void> {
+        await copyFile(
+            this.prefixer.prefixFilePath(from),
+            this.prefixer.prefixFilePath(to),
+        );
+    }
+    async moveFile(from: string, to: string, options: MiscellaneousOptions): Promise<void> {
+        await rename(
+            this.prefixer.prefixFilePath(from),
+            this.prefixer.prefixFilePath(to),
+        );
     }
 
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {

@@ -40,6 +40,8 @@ export interface StorageAdapter {
     read(path: string): Promise<FileContents>;
     deleteFile(path: string): Promise<void>;
     createDirectory(path: string, options: CreateDirectoryOptions): Promise<void>;
+    copyFile(from: string, to: string, options: CopyFileOptions): Promise<void>;
+    moveFile(from: string, to: string, options: MoveFileOptions): Promise<void>;
     stat(path: string): Promise<StatEntry>;
     list(path: string, options: {deep: boolean}): AsyncGenerator<StatEntry>;
     changeVisibility(path: string, visibility: string): Promise<void>;
@@ -109,6 +111,7 @@ export type MimeTypeOptions = MiscellaneousOptions & {
 export type VisibilityOptions = {
     visibility?: string,
     directoryVisibility?: string,
+
 }
 export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
     mimeType?: string,
@@ -116,6 +119,13 @@ export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
 };
 export type CreateDirectoryOptions = MiscellaneousOptions & Pick<VisibilityOptions, 'directoryVisibility'> & {};
 export type PublicUrlOptions = MiscellaneousOptions & {};
+export type CopyFileOptions = MiscellaneousOptions & VisibilityOptions & {
+    retainVisibility?: boolean,
+};
+export type MoveFileOptions = MiscellaneousOptions & VisibilityOptions & {
+    retainVisibility?: boolean,
+};
+export type ListOptions = {deep?: boolean};
 export type TemporaryUrlOptions = MiscellaneousOptions & {
     expiresAt: ExpiresAt,
 };
@@ -126,8 +136,14 @@ export type ChecksumOptions = MiscellaneousOptions & {
 }
 
 export type ConfigurationOptions = {
-    defaults?: VisibilityOptions,
+    visibility?: VisibilityOptions,
     writes?: WriteOptions,
+    moves?: MoveFileOptions,
+    copies?: CopyFileOptions,
+    publicUrls?: PublicUrlOptions,
+    temporaryUrls?: TemporaryUrlOptions,
+    checksums?: ChecksumOptions,
+    mimeTypes?: MimeTypeOptions,
 }
 
 function toReadable(contents: FileContents): Readable {
@@ -157,7 +173,7 @@ export class FileStorage {
             await this.adapter.write(
                 this.pathNormalizer.normalizePath(path),
                 body,
-                Object.assign({}, this.options.writes || {}, options),
+                {...this.options.visibility, ...this.options.writes, ...options},
             );
             await closeReadable(body);
         } catch (error) {
@@ -204,7 +220,10 @@ export class FileStorage {
 
     public async createDirectory(path: string, options: CreateDirectoryOptions = {}): Promise<void> {
         try {
-            return await this.adapter.createDirectory(this.pathNormalizer.normalizePath(path), options);
+            return await this.adapter.createDirectory(
+                this.pathNormalizer.normalizePath(path),
+                {...this.options.visibility, ...options},
+            );
         } catch (error) {
             throw errors.UnableToCreateDirectory.because(
                 errors.errorToMessage(error),
@@ -231,6 +250,36 @@ export class FileStorage {
             throw errors.UnableToGetStat.because(
                 errors.errorToMessage(error),
                 {cause: error, context: {path}},
+            )
+        }
+    }
+
+    public async moveFile(from: string, to: string, options: MoveFileOptions = {}): Promise<void> {
+        try {
+            await this.adapter.moveFile(
+                this.pathNormalizer.normalizePath(from),
+                this.pathNormalizer.normalizePath(to),
+                {...this.options.visibility, ...this.options.moves, ...options},
+            );
+        } catch (error) {
+            throw errors.UnableToMoveFile.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {from, to}},
+            )
+        }
+    }
+
+    public async copyFile(from: string, to: string, options: CopyFileOptions = {}): Promise<void> {
+        try {
+            await this.adapter.copyFile(
+                this.pathNormalizer.normalizePath(from),
+                this.pathNormalizer.normalizePath(to),
+                {...this.options.visibility, ...this.options.copies, ...options},
+            );
+        } catch (error) {
+            throw errors.UnableToCopyFile.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {from, to}},
             )
         }
     }
@@ -268,7 +317,7 @@ export class FileStorage {
         }
     }
 
-    public list(path: string, {deep = false}: {deep?: boolean} = {}): DirectoryListing {
+    public list(path: string, {deep = false}: ListOptions = {}): DirectoryListing {
         return new DirectoryListing(
             this.adapter.list(this.pathNormalizer.normalizePath(path), {deep}),
             path,
@@ -301,7 +350,7 @@ export class FileStorage {
         try {
             return await this.adapter.publicUrl(
                 this.pathNormalizer.normalizePath(path),
-                options,
+                {...this.options.publicUrls, ...options},
             );
         } catch (error) {
             throw errors.UnableToGetPublicUrl.because(
@@ -315,7 +364,7 @@ export class FileStorage {
         try {
             return await this.adapter.temporaryUrl(
                 this.pathNormalizer.normalizePath(path),
-                options,
+                {...this.options.temporaryUrls, ...options},
             );
         } catch (error) {
             throw errors.UnableToGetTemporaryUrl.because(
@@ -329,7 +378,7 @@ export class FileStorage {
         try {
             return await this.adapter.checksum(
                 this.pathNormalizer.normalizePath(path),
-                options,
+                {...this.options.checksums, ...options},
             );
         } catch (error) {
             if (error instanceof ChecksumIsNotAvailable) {
@@ -347,7 +396,7 @@ export class FileStorage {
         try {
             return await this.adapter.mimeType(
                 this.pathNormalizer.normalizePath(path),
-                options,
+                {...this.options.mimeTypes, ...options},
             );
         } catch (error) {
             throw errors.UnableToGetMimeType.because(
