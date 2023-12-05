@@ -267,7 +267,7 @@ export class LocalFileStorage implements StorageAdapter {
             });
         }
 
-        return this.rootDirectoryCreation;
+        return await this.rootDirectoryCreation;
     }
 
     private async ensureParentDirectoryExists(path: string, options: WriteOptions) {

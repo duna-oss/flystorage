@@ -8,7 +8,7 @@ import {BinaryToTextEncoding, createHash} from 'crypto';
 import * as path from 'node:path';
 import {LocalFileStorage, LocalTemporaryUrlGenerator, LocalTemporaryUrlOptions} from './local-file-storage.js';
 import {execSync} from 'child_process';
-import {createReadStream, mkdirSync} from 'node:fs';
+import {createReadStream} from 'node:fs';
 import {closeReadable} from "@flystorage/file-storage";
 
 const rootDirectory = path.resolve(process.cwd(), 'fixtures/test-files');
@@ -24,12 +24,8 @@ describe('LocalFileStorage', () => {
             }
         ),
     );
-
-    beforeEach(() => {
-        mkdirSync(rootDirectory);
-    });
     afterEach(() => {
-        execSync(`rm -rf ${rootDirectory}`);
+        execSync(`rm -rf ${rootDirectory}/*`);
     });
 
     test('deleting a file', async () => {
