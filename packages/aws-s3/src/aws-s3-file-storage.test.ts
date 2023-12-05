@@ -66,11 +66,11 @@ describe('aws-s3 file storage', () => {
     });
 
     test('trying to copy a file that does not exist', async () => {
-        expect(storage.copyFile('from.txt', 'to.txt')).rejects.toThrow();
+        expect(storage.copyFile('404.txt', 'to.txt')).rejects.toThrow();
     });
 
     test('trying to move a file that does not exist', async () => {
-        expect(storage.moveFile('from.txt', 'to.txt')).rejects.toThrow();
+        expect(storage.moveFile('404.txt', 'to.txt')).rejects.toThrow();
     });
 
     test('you can download public files using a public URL', async () => {

@@ -113,16 +113,12 @@ export class AwsS3FileStorage implements StorageAdapter {
 
         let acl: AclOptions = visibility ? {ACL: this.visibilityToAcl(visibility)} : {};
 
-        try {
-            await this.client.send(new CopyObjectCommand({
-                Bucket: this.options.bucket,
-                CopySource: join('/', this.options.bucket, this.prefixer.prefixFilePath(from)),
-                Key: this.prefixer.prefixFilePath(to),
-                ...acl,
-            }));
-        } catch (error) {
-            console.error(error);
-        }
+        await this.client.send(new CopyObjectCommand({
+            Bucket: this.options.bucket,
+            CopySource: join('/', this.options.bucket, this.prefixer.prefixFilePath(from)),
+            Key: this.prefixer.prefixFilePath(to),
+            ...acl,
+        }));
     }
     async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         await this.copyFile(from, to, options);
