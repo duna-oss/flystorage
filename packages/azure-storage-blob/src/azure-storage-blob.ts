@@ -1,8 +1,10 @@
 import {Readable} from "stream";
 import {
     ChecksumOptions,
+    CopyFileOptions,
     FileContents,
     MimeTypeOptions,
+    MoveFileOptions,
     PathPrefixer,
     PublicUrlOptions,
     StatEntry,
@@ -24,8 +26,15 @@ export class AzureStorageBlobFileStorage implements StorageAdapter {
     constructor(
         private readonly container: ContainerClient,
         private readonly options: AzureStorageBlobFileStorageOptions = {},
-        ) {
+    ) {
         this.prefixer = new PathPrefixer(options.prefix || '');
+    }
+
+    copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
+        throw new Error("Method not implemented.");
     }
 
     async write(path: string, contents: Readable, options: WriteOptions): Promise<void> {
