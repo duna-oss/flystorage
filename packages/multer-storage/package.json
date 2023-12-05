@@ -1,11 +1,11 @@
 {
   "name": "@flystorage/multer-storage",
   "type": "module",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "dependencies": {
     "@azure/storage-blob": "^12.17.0",
-    "@flystorage/file-storage": "0.0.5",
-    "@flystorage/stream-mime-type": "0.0.5",
+    "@flystorage/file-storage": "0.0.6",
+    "@flystorage/stream-mime-type": "0.0.6",
     "multer": "^1.4.5-lts.1"
   },
   "description": "",
