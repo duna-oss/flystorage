@@ -2,7 +2,6 @@ import {
     checksumFromStream,
     ChecksumOptions,
     CreateDirectoryOptions,
-    MiscellaneousOptions,
     PathPrefixer,
     PublicUrlOptions,
     StatEntry,
@@ -18,6 +17,7 @@ import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
 import {closeReadable, MimeTypeOptions} from "@flystorage/file-storage";
 import {resolveMimeType} from "@flystorage/stream-mime-type";
+import {CopyFileOptions, MoveFileOptions, VisibilityOptions} from "@filestorage/file-storage";
 
 export type LocalFileStorageOptions = {
     rootDirectoryVisibility?: string,
@@ -73,13 +73,17 @@ export class LocalFileStorage implements StorageAdapter {
         this.prefixer = new PathPrefixer(this.rootDir);
     }
 
-    async copyFile(from: string, to: string, options: MiscellaneousOptions): Promise<void> {
+    async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
+        await this.ensureRootDirectoryExists();
+        await this.ensureParentDirectoryExists(to, options);
         await copyFile(
             this.prefixer.prefixFilePath(from),
             this.prefixer.prefixFilePath(to),
         );
     }
-    async moveFile(from: string, to: string, options: MiscellaneousOptions): Promise<void> {
+    async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
+        await this.ensureRootDirectoryExists();
+        await this.ensureParentDirectoryExists(to, options);
         await rename(
             this.prefixer.prefixFilePath(from),
             this.prefixer.prefixFilePath(to),
@@ -284,7 +288,7 @@ export class LocalFileStorage implements StorageAdapter {
         return await this.rootDirectoryCreation;
     }
 
-    private async ensureParentDirectoryExists(path: string, options: WriteOptions) {
+    private async ensureParentDirectoryExists(path: string, options: VisibilityOptions) {
         const directoryName = dirname(path);
 
         if (directoryName !== '.' && directoryName !== '/') {

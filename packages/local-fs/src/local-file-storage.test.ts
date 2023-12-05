@@ -212,6 +212,24 @@ describe('LocalFileStorage', () => {
         expect(storage.moveFile('from.txt', 'to.txt')).rejects.toThrow();
     });
 
+    test('moving a file between directories', async () => {
+        await storage.write('dir-a/here.txt', 'this');
+
+        await storage.moveFile('dir-a/here.txt', 'dir-b/there.txt');
+
+        expect(await storage.fileExists('dir-a/here.txt')).toEqual(false);
+        expect(await storage.readToString('dir-b/there.txt')).toEqual('this');
+    });
+
+    test('copying a file between directories', async () => {
+        await storage.write('dir-a/here.txt', 'this');
+
+        await storage.copyFile('dir-a/here.txt', 'dir-b/there.txt');
+
+        expect(await storage.fileExists('dir-a/here.txt')).toEqual(true);
+        expect(await storage.readToString('dir-b/there.txt')).toEqual('this');
+    });
+
     test('generating a public urls failed when the base URL is undefined', async () => {
         const url = storage.publicUrl('/some/path.txt', {
             baseUrl: undefined

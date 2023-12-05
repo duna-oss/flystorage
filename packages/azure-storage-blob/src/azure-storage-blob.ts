@@ -30,15 +30,22 @@ export class AzureStorageBlobFileStorage implements StorageAdapter {
         this.prefixer = new PathPrefixer(options.prefix || '');
     }
 
-    copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
-        throw new Error("Method not implemented.");
+    async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
+        const fromUrl = this.blockClient(from).url;
+        await this.blockClient(to).syncCopyFromURL(fromUrl)
     }
-    moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
+    async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         throw new Error("Method not implemented.");
     }
 
     async write(path: string, contents: Readable, options: WriteOptions): Promise<void> {
-        const [mimeType, stream] = await this.resolveMimetype(path, contents, options);
+        let mimeType = options.mimeType;
+        let stream = contents;
+
+        if (mimeType === undefined) {
+            [mimeType, stream] = await this.resolveMimetype(path, contents, options);
+        }
+
         const blob = this.blockClient(path);
         await blob.uploadStream(
             stream,
@@ -101,7 +108,7 @@ export class AzureStorageBlobFileStorage implements StorageAdapter {
         throw new Error('Not implemented');
     }
     async fileExists(path: string): Promise<boolean> {
-        throw new Error('Not implemented');
+        return await this.blockClient(path).exists()
     }
     async directoryExists(path: string): Promise<boolean> {
         throw new Error('Not implemented');
