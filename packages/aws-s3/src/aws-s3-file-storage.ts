@@ -208,7 +208,7 @@ export class AwsS3FileStorage implements StorageAdapter {
                         isDirectory: false,
                         path: this.prefixer.stripFilePath(path),
                         size: item.Size ?? 0,
-                        lastModifiedMs: item.LastModified?.getMilliseconds(),
+                        lastModifiedMs: item.LastModified?.getTime(),
                     };
                 }
             }
@@ -289,7 +289,7 @@ export class AwsS3FileStorage implements StorageAdapter {
             isDirectory: false,
             isFile: true,
             size: response.ContentLength ?? 0,
-            lastModifiedMs: response.LastModified?.getMilliseconds(),
+            lastModifiedMs: response.LastModified?.getTime(),
             mimeType: response.ContentType,
         };
     }

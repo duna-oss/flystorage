@@ -87,6 +87,15 @@ describe('aws-s3 file storage', () => {
         expect(mimeType).toEqual('image/png');
     });
 
+    test('fetching the last modified', async () => {
+        await storage.write('test.txt', 'contents');
+
+        const lastModified = await storage.lastModified('test.txt');
+
+        expect(lastModified).toBeGreaterThan(Date.now() - 5000);
+        expect(lastModified).toBeLessThan(Date.now() + 5000);
+    })
+
     test('it can request checksums', async () => {
         function hashString(input: string, algo: string, encoding: BinaryToTextEncoding = 'hex'): string {
             return createHash(algo).update(input).digest(encoding);
