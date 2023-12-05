@@ -33,11 +33,17 @@
     "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
     "watch": "tsc --watch"
   },
-  "keywords": ["s3" ,"file", "storage", "flystorage", "filesystem"],
+  "keywords": [
+    "s3",
+    "file",
+    "storage",
+    "flystorage",
+    "filesystem"
+  ],
   "author": "Frank de Jonge (https://frankdejonge.nl)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/flystorage/flystorage.git",
+    "url": "git+https://github.com/flystorage/flystorage.git",
     "directory": "packages/aws-s3"
   },
   "license": "MIT"
