@@ -14,6 +14,7 @@ import {
     PutObjectCommandInput,
     S3Client,
     S3ServiceException,
+    CopyObjectRequest,
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
@@ -33,10 +34,8 @@ import {
 } from '@flystorage/file-storage';
 import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {Readable} from 'stream';
-import {MimeTypeOptions, closeReadable} from "@flystorage/file-storage";
+import {MimeTypeOptions, closeReadable, CopyFileOptions, MoveFileOptions} from "@flystorage/file-storage";
 import {lookup} from "mime-types";
-import {CopyFileOptions, MoveFileOptions} from "@filestorage/file-storage";
-import {CopyObjectRequest} from "@aws-sdk/client-s3/dist-types/models/models_0.js";
 
 type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
 const possibleChecksumAlgos = ['SHA1', 'SHA256', 'CRC32', 'CRC32C', 'ETAG'] as const;

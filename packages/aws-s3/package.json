@@ -1,13 +1,13 @@
 {
   "name": "@flystorage/aws-s3",
   "type": "module",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.465.0",
     "@aws-sdk/lib-storage": "^3.465.0",
     "@aws-sdk/s3-request-presigner": "^3.465.0",
-    "@flystorage/file-storage": "0.0.7",
-    "@flystorage/stream-mime-type": "0.0.7",
+    "@flystorage/file-storage": "0.0.8",
+    "@flystorage/stream-mime-type": "0.0.8",
     "file-type": "^18.7.0",
     "mime-types": "^2.1.35"
   },
@@ -27,8 +27,8 @@
     }
   },
   "scripts": {
-    "compile": "concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
-    "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
+    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
+    "compile:esm": "tsc --outDir ./dist/esm/ --declaration false src/**.ts",
     "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
     "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
     "watch": "tsc --watch"
