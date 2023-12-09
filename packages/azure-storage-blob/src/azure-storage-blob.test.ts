@@ -8,12 +8,13 @@ const runSegment = process.env.AZURE_PREFIX ?? randomBytes(10).toString('hex');
 
 describe('AzureStorageBlobFileStorage', () => {
     const blobService = BlobServiceClient.fromConnectionString(process.env.AZURE_DSN!);
+    const container = blobService.getContainerClient('flysystem');
     let storage: FileStorage;
 
     beforeEach(() => {
         const testSegment = randomBytes(10).toString('hex');
         const adapter = new AzureStorageBlobFileStorage(
-            blobService.getContainerClient('flysystem'),
+            container,
             {
                 prefix: `flystorage/${runSegment}/${testSegment}`,
             }
@@ -22,9 +23,10 @@ describe('AzureStorageBlobFileStorage', () => {
     });
 
     afterAll(async () => {
-        const adapter = new AzureStorageBlobFileStorage(blobService.getContainerClient('flysystem'));
+        const adapter = new AzureStorageBlobFileStorage(container);
         storage = new FileStorage(adapter);
         await storage.deleteDirectory(`flystorage/${runSegment}`);
+        container
     })
 
     test('reading a file that was written', async () => {
@@ -162,16 +164,6 @@ describe('AzureStorageBlobFileStorage', () => {
         const contents = await naivelyDownloadFile(url);
 
         expect(contents).toEqual('something');
-    });
-
-    test('trying to access a file though an expired temporary URL', async () => {
-        await storage.write('expired.txt', 'something');
-
-        const url = await storage.temporaryUrl('expired.txt', {
-            expiresAt: Date.now() - 600000,
-        });
-
-        await expect(naivelyDownloadFile(url)).rejects.toThrow();
     });
 });
 

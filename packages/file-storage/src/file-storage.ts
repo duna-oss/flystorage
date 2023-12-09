@@ -470,7 +470,10 @@ export async function closeReadable(body: Readable) {
 const decoder = new TextDecoder();
 
 export async function readableToString(stream: Readable): Promise<string> {
-    return decoder.decode(await readableToUint8Array(stream));
+    const contents = decoder.decode(await readableToUint8Array(stream));
+    await closeReadable(stream);
+
+    return contents;
 }
 
 export function readableToUint8Array(stream: Readable): Promise<Uint8Array> {
