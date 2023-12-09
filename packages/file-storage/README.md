@@ -1,6 +1,6 @@
 <img src="https://avatars.githubusercontent.com/u/151840999" width="50px" height="50px" />
 
-# Flystorage
+# Flystorage (work in progress)
 Flystorage is a file storage abstraction for NodeJS and TypeScript. It is an 80/20 solution
 that is built around a set of goals:
 
@@ -41,11 +41,11 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 ### Implemented
 - [x] Local Filesystem
 - [x] AWS S3 (using the V3 SDK)
+- [x] Azure Blob Storage
 
 ### Planned
 
 #### Prio 1
-- [ ] Azure Blob Storage
 - [ ] Test implementation (in-memory, with staged errors)
 - [ ] Google Cloud Storage
 
