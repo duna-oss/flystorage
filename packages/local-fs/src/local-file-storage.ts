@@ -8,6 +8,11 @@ import {
     StorageAdapter,
     TemporaryUrlOptions,
     WriteOptions,
+    CopyFileOptions,
+    MoveFileOptions,
+    VisibilityOptions,
+    closeReadable,
+    MimeTypeOptions
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
 import {chmod, mkdir, opendir, rm, stat, rename, copyFile} from 'node:fs/promises';
@@ -15,9 +20,7 @@ import {dirname, join} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
-import {closeReadable, MimeTypeOptions} from "@flystorage/file-storage";
 import {resolveMimeType} from "@flystorage/stream-mime-type";
-import {CopyFileOptions, MoveFileOptions, VisibilityOptions} from "@filestorage/file-storage";
 
 export type LocalFileStorageOptions = {
     rootDirectoryVisibility?: string,

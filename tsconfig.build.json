@@ -8,9 +8,6 @@
     "esModuleInterop": false,
     "declaration": true,
     "skipLibCheck": true,
-    "paths": {
-      "@filestorage/*": ["./packages/*/src/index.ts", "./packages/*/src/"]
-    },
     "lib": ["es2023"],
     "module": "node16",
     "target": "es2022",

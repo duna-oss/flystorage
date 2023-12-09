@@ -19,27 +19,20 @@ describe('aws-s3 file storage', () => {
 
     beforeAll(() => {
         client = new S3Client();
-        storage = new FileStorage(new AwsS3FileStorage(client, {
-            bucket: 'flysystem-check',
-            prefix: `storage/${testSegment}`,
-        }));
-    })
+    });
 
     beforeEach(async () => {
-        await truncate();
+        const secondSegment = randomBytes(10).toString('hex');
         storage = new FileStorage(new AwsS3FileStorage(client, {
             bucket: 'flysystem-check',
-            prefix: 'storage/tests',
+            prefix: `storage/${testSegment}/${secondSegment}`,
         }));
     });
 
-    afterEach(async () => {
+    afterAll(async () => {
         await truncate();
-    });
-
-    afterAll(() => {
         client.destroy();
-    })
+    });
 
     test('writing and reading a file', async () => {
         await storage.write('path.txt', 'this is the contents');
