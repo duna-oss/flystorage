@@ -4,6 +4,7 @@ import {checksumFromStream} from './checksum-from-stream.js';
 import * as errors from './errors.js';
 import {ChecksumIsNotAvailable} from './errors.js';
 import {PathNormalizer, PathNormalizerV1} from './path-normalizer.js';
+import {TextEncoder} from "util";
 
 export type CommonStatInfo = Readonly<{
     path: string,
@@ -97,7 +98,7 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
     }
 }
 
-export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable;
+export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable | string;
 
 export type MiscellaneousOptions = {
     [option: string]: any,
@@ -146,9 +147,13 @@ export type ConfigurationOptions = {
     mimeTypes?: MimeTypeOptions,
 }
 
-function toReadable(contents: FileContents): Readable {
+export function toReadable(contents: FileContents): Readable {
     if (contents instanceof Readable) {
         return contents;
+    }
+
+    if (typeof contents === 'string') {
+        contents = encoder.encode(contents);
     }
 
     return Readable.from(contents);
@@ -476,11 +481,19 @@ export async function readableToString(stream: Readable): Promise<string> {
     return contents;
 }
 
+const encoder = new TextEncoder();
+
 export function readableToUint8Array(stream: Readable): Promise<Uint8Array> {
     return new Promise((resolve, reject) => {
         const parts: Uint8Array[] = [];
-        stream.on('data', (chunk: Uint8Array) => {
-            parts.push(chunk);
+        stream.on('data', (chunk: Uint8Array | string | number) => {
+            const type = typeof chunk;
+            if (type === 'string') {
+                chunk = encoder.encode(chunk as string);
+            } else if (type === 'number') {
+                chunk = new Uint8Array([chunk as number]);
+            }
+            parts.push(chunk as Uint8Array);
         });
         stream.on('error', reject);
         stream.on('end', () => resolve(concatUint8Arrays(parts)));
@@ -488,7 +501,7 @@ export function readableToUint8Array(stream: Readable): Promise<Uint8Array> {
 }
 
 function concatUint8Arrays(input: Uint8Array[]): Uint8Array {
-    const length = input.reduce((l, a) => l + a.byteLength, 0);
+    const length = input.reduce((l, a) => l + (a.byteLength), 0);
     const output = new Uint8Array(length);
     let position = 0;
     input.forEach(i => {
