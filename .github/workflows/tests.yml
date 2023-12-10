@@ -32,6 +32,8 @@ jobs:
         with:
           cache-key: npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
           cache-restore-keys: npm-caches-${{ matrix.node }}
+      - name: Run build
+        run: npm run build
       - name: Run tests
         run: npm run test
         env:
