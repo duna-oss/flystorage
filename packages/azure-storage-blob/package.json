@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@flystorage/azure-storage-blob",
   "type": "module",
   "version": "0.0.8",
@@ -40,7 +39,7 @@
   "author": "Frank de Jonge (https://frankdejonge.nl)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flystorage/flystorage.git",
+    "url": "git+https://github.com/duna-oss/flystorage.git",
     "directory": "packages/aws-s3"
   },
   "license": "MIT"

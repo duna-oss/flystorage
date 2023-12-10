@@ -31,7 +31,7 @@
   "author": "Frank de Jonge (https://frankdejonge.nl)",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flystorage/flystorage.git",
+    "url": "git+https://github.com/duna-oss/flystorage.git",
     "directory": "packages/stream-mime-type"
   },
   "license": "MIT"
