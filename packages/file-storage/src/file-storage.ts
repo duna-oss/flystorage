@@ -152,10 +152,6 @@ export function toReadable(contents: FileContents): Readable {
         return contents;
     }
 
-    if (typeof contents === 'string') {
-        contents = encoder.encode(contents);
-    }
-
     return Readable.from(contents);
 }
 
