@@ -1,10 +1,10 @@
 {
   "name": "@flystorage/multer-storage",
   "type": "module",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "dependencies": {
-    "@flystorage/file-storage": "0.0.8",
-    "@flystorage/stream-mime-type": "0.0.8",
+    "@flystorage/file-storage": "0.0.9",
+    "@flystorage/stream-mime-type": "0.0.9",
     "multer": "^1.4.5-lts.1"
   },
   "description": "",
