@@ -34,6 +34,11 @@ jobs:
           cache-restore-keys: npm-caches-${{ matrix.node }}
       - name: Run build
         run: npm run build
+      - name: Configure GCP access
+        run: |
+          echo $CONTENTS > google-cloud-service-account.json
+        env:
+          CONTENTS: "${{ secrets.GCS_KEY_CONTENTS }}"
       - name: Run tests
         run: npm run test
         env:
@@ -41,4 +46,8 @@ jobs:
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
           AWS_REGION: "${{ secrets.AWS_REGION }}"
           AZURE_DSN: "${{ secrets.AZURE_DSN }}"
+      - name: Delete GCP access
+        if: always()
+        run: |
+          rm -rf google-cloud-service-account.json
 

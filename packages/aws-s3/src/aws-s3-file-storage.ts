@@ -100,7 +100,7 @@ export class AwsS3FileStorage implements StorageAdapter {
         private readonly publicUrlGenerator: AwsPublicUrlGenerator = new DefaultAwsPublicUrlGenerator(),
         private readonly timestampResolver: TimestampResolver = () => Date.now(),
     ) {
-        this.prefixer = new PathPrefixer(options.prefix || '');
+        this.prefixer = new PathPrefixer(options.prefix ?? '');
     }
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {

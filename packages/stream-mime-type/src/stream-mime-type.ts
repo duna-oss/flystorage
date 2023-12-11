@@ -15,7 +15,7 @@ function concatUint8Arrays(input: Uint8Array[]): Uint8Array {
     return output;
 }
 
-async function streamHead(stream: Readable, size: number): Promise<[Uint8Array, Readable]> {
+export async function streamHead(stream: Readable, size: number): Promise<[Uint8Array, Readable]> {
     return new Promise((resolve, reject) => {
         const tunnel = new PassThrough();
         const outputStream = new PassThrough();
