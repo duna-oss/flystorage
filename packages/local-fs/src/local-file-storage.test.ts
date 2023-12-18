@@ -115,7 +115,7 @@ describe('LocalFileStorage', () => {
 
         expect((await storage.stat('file.txt')).visibility).toEqual(Visibility.PUBLIC);
 
-        await storage.setVisibility('file.txt', Visibility.PRIVATE);
+        await storage.changeVisibility('file.txt', Visibility.PRIVATE);
 
         expect((await storage.statFile('file.txt')).visibility).toEqual(Visibility.PRIVATE);
     });

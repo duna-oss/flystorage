@@ -285,7 +285,14 @@ export class FileStorage {
         }
     }
 
+    /**
+     * @deprecated use changeVisibility instead
+     */
     public async setVisibility(path: string, visibility: string): Promise<void> {
+        return this.changeVisibility(path, visibility);
+    }
+
+    public async changeVisibility(path: string, visibility: string): Promise<void> {
         try {
             return await this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility);
         } catch (error) {

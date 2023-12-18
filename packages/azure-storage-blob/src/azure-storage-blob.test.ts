@@ -86,8 +86,8 @@ describe('AzureStorageBlobFileStorage', () => {
 
     test('setting visibility always fails', async () => {
         await storage.write('exsiting.txt', 'yes');
-        await expect(storage.setVisibility('existing.txt')).rejects.toThrow();
-        await expect(storage.setVisibility('404.txt')).rejects.toThrow();
+        await expect(storage.changeVisibility('existing.txt')).rejects.toThrow();
+        await expect(storage.changeVisibility('404.txt')).rejects.toThrow();
     });
 
     test('listing entries in a directory, shallow', async () => {

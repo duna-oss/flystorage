@@ -1,4 +1,5 @@
 import {
+    ChecksumIsNotAvailable,
     ChecksumOptions,
     CopyFileOptions,
     CreateDirectoryOptions,
@@ -16,17 +17,21 @@ import {Readable} from 'stream';
 import {Bucket, GetFilesOptions, File} from '@google-cloud/storage';
 import {resolveMimeType, streamHead} from '@flystorage/stream-mime-type';
 import {pipeline} from 'node:stream/promises';
+import {
+    UniformBucketLevelAccessVisibilityHandling,
+    VisibilityHandlingForGoogleCloudStorage,
+} from './visibility-handling.js';
 
 export type GoogleCloudStorageFileStorageOptions = {
     prefix?: string,
 }
 
-
 export class GoogleCloudStorageFileStorage implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
     constructor(
         private readonly bucket: Bucket,
-        private readonly options: GoogleCloudStorageFileStorageOptions,
+        readonly options: GoogleCloudStorageFileStorageOptions,
+        readonly visibilityHandling: VisibilityHandlingForGoogleCloudStorage = new UniformBucketLevelAccessVisibilityHandling()
     ) {
         this.prefixer = new PathPrefixer(options.prefix ?? '');
     }
@@ -39,14 +44,22 @@ export class GoogleCloudStorageFileStorage implements StorageAdapter {
         }
 
         const writeStream = this.bucket.file(this.prefixer.prefixFilePath(path))
-            .createWriteStream({contentType: mimeType});
+            .createWriteStream({
+                contentType: mimeType,
+                predefinedAcl: options.visibility
+                    ? this.visibilityHandling.visibilityToPredefinedAcl(options.visibility)
+                    : undefined
+            });
 
         await pipeline(contents, writeStream);
     }
 
     async read(path: string): Promise<FileContents> {
         const readStream = this.bucket.file(this.prefixer.prefixFilePath(path)).createReadStream();
-        const [, outStream] = await streamHead(readStream, 10);
+        // force retrieval of the head to ensure the http call is made
+        // this ensures the error from the HTTP call is caught at the
+        // abstraction level
+        const [_head, outStream] = await streamHead(readStream, 10);
 
         return outStream;
     }
@@ -73,7 +86,9 @@ export class GoogleCloudStorageFileStorage implements StorageAdapter {
     }
 
     async stat(path: string): Promise<StatEntry> {
-        throw new Error('Method not implemented.');
+        const [metadata] = await this.bucket.file(this.prefixer.prefixFilePath(path)).getMetadata();
+
+        return this.mapToStatEntry(metadata);
     }
 
     async* list(path: string, options: { deep: boolean; }): AsyncGenerator<StatEntry, any, unknown> {
@@ -115,11 +130,16 @@ export class GoogleCloudStorageFileStorage implements StorageAdapter {
     }
 
     async changeVisibility(path: string, visibility: string): Promise<void> {
-        throw new Error('Method not implemented.');
+        await this.visibilityHandling.changeVisibility(
+            this.bucket.file(this.prefixer.prefixFilePath(path)),
+            visibility,
+        );
     }
 
     async visibility(path: string): Promise<string> {
-        throw new Error('Method not implemented.');
+        return await this.visibilityHandling.determineVisibility(
+            this.bucket.file(this.prefixer.prefixFilePath(path)),
+        );
     }
 
     async deleteDirectory(path: string): Promise<void> {
@@ -139,31 +159,74 @@ export class GoogleCloudStorageFileStorage implements StorageAdapter {
     }
 
     async directoryExists(path: string): Promise<boolean> {
-        throw new Error('Method not implemented.');
+        const [exists] = await this.bucket.file(this.prefixer.prefixDirectoryPath(path)).exists();
+
+        if (exists) {
+            return true;
+        }
+
+        const [response] = await this.bucket.getFiles({
+            autoPaginate: false,
+            maxResults: 1,
+            prefix: this.prefixer.prefixDirectoryPath(path),
+        });
+
+        return response.length > 0;
     }
 
     async publicUrl(path: string, options: PublicUrlOptions): Promise<string> {
-        throw new Error('Method not implemented.');
+        return this.bucket.file(this.prefixer.prefixFilePath(path)).publicUrl();
     }
 
     async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
-        throw new Error('Method not implemented.');
+        const [response] = await this.bucket.file(this.prefixer.prefixFilePath(path)).getSignedUrl({
+            action: 'read',
+            expires: options.expiresAt,
+        });
+
+        return response;
     }
 
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
-        throw new Error('Method not implemented.');
+        const algo = options.algo ?? 'md5';
+
+        if (algo !== 'md5' && algo !== 'crc32c') {
+            throw ChecksumIsNotAvailable.checksumNotSupported(algo);
+        }
+
+        const [metadata] = await this.bucket.file(this.prefixer.prefixFilePath(path)).getMetadata();
+
+        return algo === 'crc32c' ? metadata.crc32c! : metadata.md5Hash!;
     }
 
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
-        throw new Error('Method not implemented.');
+        const stat = await this.stat(path);
+
+        if (stat.type !== 'file' || stat.mimeType === undefined) {
+            throw new Error('Unable to resolve mime-type, not available in stat entry.');
+        }
+
+        return stat.mimeType;
     }
 
     async lastModified(path: string): Promise<number> {
-        throw new Error('Method not implemented.');
+        const stat = await this.stat(path);
+
+        if (stat.type !== 'file' || stat.lastModifiedMs === undefined) {
+            throw new Error('Unable to resolve last modified time, not available in stat entry.');
+        }
+
+        return stat.lastModifiedMs;
     }
 
     async fileSize(path: string): Promise<number> {
-        throw new Error('Method not implemented.');
+        const stat = await this.stat(path);
+
+        if (stat.type !== 'file' || stat.size === undefined) {
+            throw new Error('Unable to resolve file size, not available in stat entry.');
+        }
+
+        return stat.size;
     }
 
 }
