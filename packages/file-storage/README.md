@@ -43,12 +43,12 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] AWS S3 (using the V3 SDK)
 - [x] Azure Blob Storage
 - [x] Test implementation (in-memory)
+- [x] Google Cloud Storage
 
 ### Planned
 
 #### Prio 1
 - [ ] Failure decorator (stage errors for tests)
-- [ ] Google Cloud Storage
 
 ### Prio 2
 - [ ] FTP (using `basic-ftp`)

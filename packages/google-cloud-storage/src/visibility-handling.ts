@@ -40,7 +40,7 @@ export class UniformBucketLevelAccessVisibilityHandling implements VisibilityHan
 
 }
 
-export class LegacyVisibilityHandlingForGoogleCloudStorage implements VisibilityHandlingForGoogleCloudStorage {
+export class LegacyVisibilityHandling implements VisibilityHandlingForGoogleCloudStorage {
     constructor(
         private readonly entity: string = 'allUsers',
         private readonly publicAcl: PredefinedAcl = 'publicRead',

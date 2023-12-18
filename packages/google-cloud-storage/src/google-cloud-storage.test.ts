@@ -4,7 +4,7 @@ import { FileStorage, Visibility, readableToString } from '@flystorage/file-stor
 import {randomBytes} from 'crypto';
 import {resolve} from 'node:path';
 import * as https from 'https';
-import {LegacyVisibilityHandlingForGoogleCloudStorage} from './visibility-handling.js';
+import {LegacyVisibilityHandling} from './visibility-handling.js';
 
 const testSegment = randomBytes(10).toString('hex');
 let adapter: GoogleCloudStorageFileStorage;
@@ -107,7 +107,7 @@ describe('GoogleCloudStorageFileStorage', () => {
 
             adapter = new GoogleCloudStorageFileStorage(legacyBucket, {
                 prefix: `flystorage/${testSegment}/${secondSegment}`,
-            }, new LegacyVisibilityHandlingForGoogleCloudStorage());
+            }, new LegacyVisibilityHandling());
             storage = new FileStorage(adapter);
         });
 
