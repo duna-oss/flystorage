@@ -30,7 +30,7 @@ jobs:
           list-files: shell
           filters: |
             source:
-              - 'src/**/*.(ts|tsx|js|jsx)'
+              - 'packages/**/*.(ts|tsx|js|jsx)'
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
