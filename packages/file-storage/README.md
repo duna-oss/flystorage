@@ -44,13 +44,9 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 - [x] Azure Blob Storage
 - [x] Test implementation (in-memory)
 - [x] Google Cloud Storage
+- [x] Chaos adapter decorator
 
 ### Planned
-
-#### Prio 1
-- [ ] Failure decorator (stage errors for tests)
-
-### Prio 2
 - [ ] FTP (using `basic-ftp`)
 - [ ] SFTP (?)
 
