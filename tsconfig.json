@@ -10,8 +10,6 @@
   ],
   "compilerOptions": {
     "esModuleInterop": false,
-    "types": [
-      "./packages/*/dist/types"
-    ]
+    "allowSyntheticDefaultImports": true
   }
 }

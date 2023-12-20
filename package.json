@@ -11,7 +11,10 @@
     "watch:aws-s3": "npm run watch -w ./packages/aws-s3",
     "clean": "rm -rf ./packages/*/dist/",
     "ts": "node --loader ts-node/esm",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --detectOpenHandles"
+    "lint": "tsc --noEmit --incremental false",
+    "jest": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand --detectOpenHandles",
+    "test": "npm run lint && npm run jest",
+    "test:related-to": "npm run lint && npm run jest -- --passWithNoTests --findRelatedTests"
   },
   "workspaces": [
     "./packages/stream-mime-type",

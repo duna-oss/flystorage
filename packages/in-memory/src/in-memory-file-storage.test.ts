@@ -1,4 +1,4 @@
-import {FileStorage} from "@flystorage/file-storage";
+import {FileStorage, Visibility} from "@flystorage/file-storage";
 import {InMemoryFileStorage} from "./in-memory-file-storage.js";
 
 describe('InMemoryFileStorage', () => {
@@ -66,8 +66,8 @@ describe('InMemoryFileStorage', () => {
 
     test('setting visibility always fails', async () => {
         await storage.write('exsiting.txt', 'yes');
-        await expect(storage.changeVisibility('existing.txt')).rejects.toThrow();
-        await expect(storage.changeVisibility('404.txt')).rejects.toThrow();
+        await expect(storage.changeVisibility('existing.txt', Visibility.PUBLIC)).rejects.toThrow();
+        await expect(storage.changeVisibility('404.txt', Visibility.PRIVATE)).rejects.toThrow();
     });
 
     test('listing entries in a directory, shallow', async () => {

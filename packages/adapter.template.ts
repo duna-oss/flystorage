@@ -8,6 +8,8 @@ import {
     StatEntry, TemporaryUrlOptions,
     WriteOptions,
     PathPrefixer,
+    CopyFileOptions,
+    MoveFileOptions,
 } from "@flystorage/file-storage";
 
 export type AdapterFileStorageOptions = {
@@ -73,6 +75,12 @@ export class AdapterFileStorage implements StorageAdapter {
         throw new Error('Not implemented');
     }
     async fileSize(path: string): Promise<number> {
+        throw new Error('Not implemented');
+    }
+    async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
+        throw new Error('Not implemented');
+    }
+    async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         throw new Error('Not implemented');
     }
 }

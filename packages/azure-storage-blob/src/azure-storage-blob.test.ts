@@ -1,7 +1,7 @@
 import {BlobServiceClient} from "@azure/storage-blob";
 import {AzureStorageBlobFileStorage} from "./azure-storage-blob.js";
 import {randomBytes} from "crypto";
-import {FileStorage, readableToString} from "@flystorage/file-storage";
+import {FileStorage, Visibility, readableToString} from "@flystorage/file-storage";
 import * as https from "https";
 
 const runSegment = process.env.AZURE_PREFIX ?? randomBytes(10).toString('hex');
@@ -86,8 +86,8 @@ describe('AzureStorageBlobFileStorage', () => {
 
     test('setting visibility always fails', async () => {
         await storage.write('exsiting.txt', 'yes');
-        await expect(storage.changeVisibility('existing.txt')).rejects.toThrow();
-        await expect(storage.changeVisibility('404.txt')).rejects.toThrow();
+        await expect(storage.changeVisibility('existing.txt', Visibility.PRIVATE)).rejects.toThrow();
+        await expect(storage.changeVisibility('404.txt', Visibility.PUBLIC)).rejects.toThrow();
     });
 
     test('listing entries in a directory, shallow', async () => {

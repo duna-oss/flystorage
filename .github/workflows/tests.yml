@@ -23,6 +23,14 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+      - name: Paths Changes Filter
+        id: changes
+        uses: dorny/paths-filter@v2.11.1
+        with:
+          list-files: shell
+          filters: |
+            source:
+              - 'src/**/*.(ts|tsx|js|jsx)'
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -39,8 +47,9 @@ jobs:
           echo $CONTENTS > google-cloud-service-account.json
         env:
           CONTENTS: "${{ secrets.GCS_KEY_CONTENTS }}"
-      - name: Run tests
-        run: npm run test
+      - name: Run relevant tests
+        if: steps.changes.outputs.source == 'true'
+        run: "npm run test:related-to -- ${{ steps.changes.outputs.source_files }}"
         env:
           AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
           AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
