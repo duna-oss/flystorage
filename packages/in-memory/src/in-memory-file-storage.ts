@@ -34,7 +34,7 @@ type DirectoryEntry = {
 
 export type TimestampResolver = () => number;
 
-export class InMemoryFileStorage implements StorageAdapter {
+export class InMemoryStorageAdapter implements StorageAdapter {
     private entries: Map<string, FileEntry | DirectoryEntry> = new Map;
 
     constructor(
@@ -249,3 +249,10 @@ export async function resolveMimeType(
 
     return mimeTimeForExt(ext) || 'application/octet-stream';
 }
+
+/**
+ * BC export
+ *
+ * @deprecated
+ */
+export class InMemoryFileStorage extends InMemoryStorageAdapter {}

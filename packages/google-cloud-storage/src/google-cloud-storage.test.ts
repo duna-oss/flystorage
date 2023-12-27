@@ -1,5 +1,5 @@
 import { Storage } from '@google-cloud/storage';
-import {GoogleCloudStorageFileStorage} from './google-cloud-storage.js';
+import {GoogleCloudStorageAdapter} from './google-cloud-storage.js';
 import { FileStorage, Visibility, readableToString } from '@flystorage/file-storage';
 import {randomBytes} from 'crypto';
 import {resolve} from 'node:path';
@@ -7,10 +7,10 @@ import * as https from 'https';
 import {LegacyVisibilityHandling} from './visibility-handling.js';
 
 const testSegment = randomBytes(10).toString('hex');
-let adapter: GoogleCloudStorageFileStorage;
+let adapter: GoogleCloudStorageAdapter;
 let storage: FileStorage;
 
-describe('GoogleCloudStorageFileStorage', () => {
+describe('GoogleCloudStorageAdapter', () => {
     const googleStorage = new Storage({keyFilename: resolve(process.cwd(), 'google-cloud-service-account.json')});
     const bucket = googleStorage.bucket('no-acl-bucket-for-ci', {
         userProject: 'flysystem-testing',
@@ -20,7 +20,7 @@ describe('GoogleCloudStorageFileStorage', () => {
     });
 
     afterAll(async () => {
-        adapter = new GoogleCloudStorageFileStorage(bucket, {
+        adapter = new GoogleCloudStorageAdapter(bucket, {
             prefix: `flystorage`,
         });
         storage = new FileStorage(adapter);
@@ -31,7 +31,7 @@ describe('GoogleCloudStorageFileStorage', () => {
         beforeEach(() => {
             const secondSegment = randomBytes(10).toString('hex');
 
-            adapter = new GoogleCloudStorageFileStorage(bucket, {
+            adapter = new GoogleCloudStorageAdapter(bucket, {
                 prefix: `flystorage/${testSegment}/${secondSegment}`,
             });
             storage = new FileStorage(adapter);
@@ -105,7 +105,7 @@ describe('GoogleCloudStorageFileStorage', () => {
         beforeEach(() => {
             const secondSegment = randomBytes(10).toString('hex');
 
-            adapter = new GoogleCloudStorageFileStorage(legacyBucket, {
+            adapter = new GoogleCloudStorageAdapter(legacyBucket, {
                 prefix: `flystorage/${testSegment}/${secondSegment}`,
             }, new LegacyVisibilityHandling());
             storage = new FileStorage(adapter);

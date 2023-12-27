@@ -2,7 +2,7 @@ import {S3Client} from '@aws-sdk/client-s3';
 import {FileStorage, readableToString, Visibility, closeReadable} from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as https from 'https';
-import {AwsS3FileStorage} from './aws-s3-file-storage.js';
+import {AwsS3StorageAdapter} from './aws-s3-storage-adapter.js';
 import {createReadStream} from "node:fs";
 import * as path from "node:path";
 
@@ -12,7 +12,7 @@ const testSegment = randomBytes(10).toString('hex');
 
 describe('aws-s3 file storage', () => {
     const truncate = async () =>
-        await new FileStorage(new AwsS3FileStorage(client, {
+        await new FileStorage(new AwsS3StorageAdapter(client, {
             bucket: 'flysystem-check',
             prefix: 'storage',
         })).deleteDirectory(testSegment);
@@ -23,7 +23,7 @@ describe('aws-s3 file storage', () => {
 
     beforeEach(async () => {
         const secondSegment = randomBytes(10).toString('hex');
-        storage = new FileStorage(new AwsS3FileStorage(client, {
+        storage = new FileStorage(new AwsS3StorageAdapter(client, {
             bucket: 'flysystem-check',
             prefix: `storage/${testSegment}/${secondSegment}`,
         }));

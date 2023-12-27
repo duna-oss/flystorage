@@ -72,7 +72,7 @@ export class TriggeredErrors implements ChaosStrategy {
     }
 }
 
-export class ChaosAdapterDecorator implements StorageAdapter {
+export class ChaosStorageAdapterDecorator implements StorageAdapter {
     constructor(
         private readonly storage: StorageAdapter,
         private readonly chaos: ChaosStrategy,

@@ -1,6 +1,6 @@
 import express, {Response, Request} from 'express';
 import {FlystorageMulterStorageEngine} from './index.js';
-import {LocalFileStorage} from "@flystorage/local-fs";
+import {LocalStorageAdapter} from "@flystorage/local-fs";
 import {FileStorage} from "@flystorage/file-storage";
 import {resolve} from "node:path";
 import FormData from "form-data";
@@ -10,12 +10,12 @@ import fetch from 'node-fetch';
 describe('FlystorageMulterStorageEngine', () => {
     test('it can process uploaded files', async () => {
         const uploadStorage = new FileStorage(
-            new LocalFileStorage(
+            new LocalStorageAdapter(
                 resolve(process.cwd(), 'fixtures/test-files'),
             )
         );
         const fixtureStorage = new FileStorage(
-            new LocalFileStorage(
+            new LocalStorageAdapter(
                 resolve(process.cwd(), 'fixtures'),
             )
         );

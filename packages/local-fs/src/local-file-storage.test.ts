@@ -6,16 +6,16 @@ import {
 } from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash} from 'crypto';
 import * as path from 'node:path';
-import {LocalFileStorage, LocalTemporaryUrlGenerator, LocalTemporaryUrlOptions} from './local-file-storage.js';
+import {LocalStorageAdapter, LocalTemporaryUrlGenerator, LocalTemporaryUrlOptions} from './local-file-storage.js';
 import {execSync} from 'child_process';
 import {createReadStream} from 'node:fs';
 import {closeReadable} from "@flystorage/file-storage";
 
 const rootDirectory = path.resolve(process.cwd(), 'fixtures/test-files');
 
-describe('LocalFileStorage', () => {
+describe('LocalStorageAdapter', () => {
     const storage = new FileStorage(
-        new LocalFileStorage(
+        new LocalStorageAdapter(
             rootDirectory,
             {
                 publicUrlOptions: {
@@ -246,7 +246,7 @@ describe('LocalFileStorage', () => {
 
     test('generating a temporary URL works when the generator is configured', async () => {
         const storage = new FileStorage(
-            new LocalFileStorage(
+            new LocalStorageAdapter(
                 rootDirectory,
                 {
                     publicUrlOptions: {

@@ -4,7 +4,7 @@
   "version": "0.0.9",
   "dependencies": {
     "@flystorage/file-storage": "0.0.9",
-    "@flystorage/stream-mime-type": "0.0.9"
+    "file-type": "^18.7.0"
   },
   "description": "",
   "main": "./dist/cjs/index.js",

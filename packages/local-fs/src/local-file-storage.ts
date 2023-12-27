@@ -11,7 +11,6 @@ import {
     CopyFileOptions,
     MoveFileOptions,
     VisibilityOptions,
-    closeReadable,
     MimeTypeOptions
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
@@ -20,9 +19,8 @@ import {dirname, join} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
-import {resolveMimeType} from "@flystorage/stream-mime-type";
 
-export type LocalFileStorageOptions = {
+export type LocalStorageAdapterOptions = {
     rootDirectoryVisibility?: string,
     publicUrlOptions?: LocalPublicUrlOptions,
     temporaryUrlOptions?: Omit<LocalTemporaryUrlOptions, 'expiresAt'>,
@@ -62,12 +60,12 @@ export class FailingLocalTemporaryUrlGenerator implements LocalTemporaryUrlGener
     }
 }
 
-export class LocalFileStorage implements StorageAdapter {
+export class LocalStorageAdapter implements StorageAdapter {
     private prefixer: PathPrefixer;
 
     constructor(
         readonly rootDir: string,
-        private readonly options: LocalFileStorageOptions = {},
+        private readonly options: LocalStorageAdapterOptions = {},
         private readonly visibilityConversion: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
         private readonly publicUrlGenerator: LocalPublicUrlGenerator = new BaseUrlLocalPublicUrlGenerator(),
         private readonly temporaryUrlGenerator: LocalTemporaryUrlGenerator = new FailingLocalTemporaryUrlGenerator(),
@@ -102,14 +100,15 @@ export class LocalFileStorage implements StorageAdapter {
     }
 
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
-        const [mimeType, stream] = await resolveMimeType(path, await this.read(path));
-        await closeReadable(stream);
+        const location = this.prefixer.prefixFilePath(path);
+        const {fileTypeFromFile} = await import('file-type');
+        const result = await fileTypeFromFile(location);
 
-        if (mimeType === undefined) {
+        if (result === undefined) {
             throw new Error('Unable to resolve mime-type');
         }
 
-        return mimeType;
+        return result.mime;
     }
 
     async fileSize(path: string): Promise<number> {
@@ -305,3 +304,10 @@ export class LocalFileStorage implements StorageAdapter {
         return checksumFromStream(await this.read(path), options);
     }
 }
+
+/**
+ * BC export
+ *
+ * @deprecated
+ */
+export class LocalFileStorage extends LocalStorageAdapter {}

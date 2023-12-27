@@ -1,20 +1,20 @@
 import { FileStorage } from "@flystorage/file-storage";
-import {InMemoryFileStorage} from '@flystorage/in-memory';
-import {AlwaysThrowError, ChaosAdapterDecorator, NeverThrowError, TriggeredErrors} from './index.js';
+import {InMemoryStorageAdapter} from '@flystorage/in-memory';
+import {AlwaysThrowError, ChaosStorageAdapterDecorator, NeverThrowError, TriggeredErrors} from './index.js';
 
 describe('chaos adapter decorator', () => {
     describe('triggered strategy', () => {
         const strategy = new TriggeredErrors();
-        const inMemoryFileStorage = new InMemoryFileStorage();
+        const adapter = new InMemoryStorageAdapter();
 
         afterEach(() => {
             strategy.clearTriggers();
-            inMemoryFileStorage.deleteEverything();
+            adapter.deleteEverything();
         });
 
         const storage = new FileStorage(
-            new ChaosAdapterDecorator(
-                inMemoryFileStorage,
+            new ChaosStorageAdapterDecorator(
+                adapter,
                 strategy,
             ),
         );
@@ -57,13 +57,13 @@ describe('chaos adapter decorator', () => {
 
     describe('always throwing an error', () => {
         const strategy = new AlwaysThrowError(() => new Error('Oh no...'));
-        const inMemoryFileStorage = new InMemoryFileStorage();
+        const adapter = new InMemoryStorageAdapter();
 
-        afterEach(() => inMemoryFileStorage.deleteEverything());
+        afterEach(() => adapter.deleteEverything());
 
         const storage = new FileStorage(
-            new ChaosAdapterDecorator(
-                inMemoryFileStorage,
+            new ChaosStorageAdapterDecorator(
+                adapter,
                 strategy,
             ),
         );
@@ -75,13 +75,13 @@ describe('chaos adapter decorator', () => {
 
     describe('never throwing an error', () => {
         const strategy = new NeverThrowError();
-        const inMemoryFileStorage = new InMemoryFileStorage();
+        const adapter = new InMemoryStorageAdapter();
 
-        afterEach(() => inMemoryFileStorage.deleteEverything());
+        afterEach(() => adapter.deleteEverything());
 
         const storage = new FileStorage(
-            new ChaosAdapterDecorator(
-                inMemoryFileStorage,
+            new ChaosStorageAdapterDecorator(
+                adapter,
                 strategy,
             ),
         );

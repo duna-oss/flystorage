@@ -1,8 +1,8 @@
 import {FileStorage, Visibility} from "@flystorage/file-storage";
-import {InMemoryFileStorage} from "./in-memory-file-storage.js";
+import {InMemoryStorageAdapter} from "./in-memory-file-storage.js";
 
-describe('InMemoryFileStorage', () => {
-    const adapter = new InMemoryFileStorage();
+describe('InMemoryStorageAdapter', () => {
+    const adapter = new InMemoryStorageAdapter();
     const storage = new FileStorage(adapter);
 
     beforeEach(() => {

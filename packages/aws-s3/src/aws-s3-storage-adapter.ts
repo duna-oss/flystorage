@@ -45,7 +45,7 @@ function isSupportedAlgo(algo: string): algo is ChecksumAlgo {
     return possibleChecksumAlgos.includes(algo as ChecksumAlgo);
 }
 
-export type AwsS3FileStorageOptions = Readonly<{
+export type AwsS3StorageAdapterOptions = Readonly<{
     bucket: string,
     prefix?: string,
     region?: string,
@@ -91,12 +91,12 @@ export class HostStyleAwsPublicUrlGenerator extends DefaultAwsPublicUrlGenerator
 export type TimestampResolver = () => number;
 type AclOptions = Pick<CopyObjectRequest, 'ACL'>;
 
-export class AwsS3FileStorage implements StorageAdapter {
+export class AwsS3StorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
 
     constructor(
         private readonly client: S3Client,
-        private readonly options: AwsS3FileStorageOptions,
+        private readonly options: AwsS3StorageAdapterOptions,
         private readonly publicUrlGenerator: AwsPublicUrlGenerator = new DefaultAwsPublicUrlGenerator(),
         private readonly timestampResolver: TimestampResolver = () => Date.now(),
     ) {
@@ -486,3 +486,10 @@ export class AwsS3FileStorage implements StorageAdapter {
         return mimetype;
     }
 }
+
+/**
+ * BC export
+ *
+ * @deprecated
+ */
+export class AwsS3FileStorage extends AwsS3StorageAdapter {}

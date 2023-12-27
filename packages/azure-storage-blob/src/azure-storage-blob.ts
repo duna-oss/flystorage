@@ -25,7 +25,7 @@ import {resolveMimeType} from "@flystorage/stream-mime-type";
 import {dirname} from 'node:path';
 
 
-export type AzureStorageBlobFileStorageOptions = {
+export type AzureStorageBlobStorageAdapterOptions = {
     prefix?: string,
     uploadMaxConcurrency?: number,
     ignoreVisibility?: boolean,
@@ -33,12 +33,12 @@ export type AzureStorageBlobFileStorageOptions = {
     deleteDirBatchSize?: number,
 }
 
-export class AzureStorageBlobFileStorage implements StorageAdapter {
+export class AzureStorageBlobStorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
 
     constructor(
         private readonly container: ContainerClient,
-        private readonly options: AzureStorageBlobFileStorageOptions = {},
+        private readonly options: AzureStorageBlobStorageAdapterOptions = {},
     ) {
         this.prefixer = new PathPrefixer(options.prefix || '');
     }
@@ -281,3 +281,10 @@ export class AzureStorageBlobFileStorage implements StorageAdapter {
         return [mimeType ?? 'application/octet-stream', stream];
     }
 }
+
+/**
+ * BC export
+ *
+ * @deprecated
+ */
+export class AzureStorageBlobFileStorage extends AzureStorageBlobStorageAdapter {}

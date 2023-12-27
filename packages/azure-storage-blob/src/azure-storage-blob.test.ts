@@ -1,19 +1,19 @@
 import {BlobServiceClient} from "@azure/storage-blob";
-import {AzureStorageBlobFileStorage} from "./azure-storage-blob.js";
+import {AzureStorageBlobStorageAdapter} from "./azure-storage-blob.js";
 import {randomBytes} from "crypto";
 import {FileStorage, Visibility, readableToString} from "@flystorage/file-storage";
 import * as https from "https";
 
 const runSegment = process.env.AZURE_PREFIX ?? randomBytes(10).toString('hex');
 
-describe('AzureStorageBlobFileStorage', () => {
+describe('AzureStorageBlobStorageAdapter', () => {
     const blobService = BlobServiceClient.fromConnectionString(process.env.AZURE_DSN!);
     const container = blobService.getContainerClient('flysystem');
     let storage: FileStorage;
 
     beforeEach(() => {
         const testSegment = randomBytes(10).toString('hex');
-        const adapter = new AzureStorageBlobFileStorage(
+        const adapter = new AzureStorageBlobStorageAdapter(
             container,
             {
                 prefix: `flystorage/${runSegment}/${testSegment}`,
@@ -23,7 +23,7 @@ describe('AzureStorageBlobFileStorage', () => {
     });
 
     afterAll(async () => {
-        const adapter = new AzureStorageBlobFileStorage(container);
+        const adapter = new AzureStorageBlobStorageAdapter(container);
         storage = new FileStorage(adapter);
         await storage.deleteDirectory(`flystorage/${runSegment}`);
         container

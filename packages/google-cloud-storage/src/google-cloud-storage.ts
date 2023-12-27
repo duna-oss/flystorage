@@ -22,15 +22,15 @@ import {
     VisibilityHandlingForGoogleCloudStorage,
 } from './visibility-handling.js';
 
-export type GoogleCloudStorageFileStorageOptions = {
+export type GoogleCloudStorageAdapterOptions = {
     prefix?: string,
 }
 
-export class GoogleCloudStorageFileStorage implements StorageAdapter {
+export class GoogleCloudStorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
     constructor(
         private readonly bucket: Bucket,
-        readonly options: GoogleCloudStorageFileStorageOptions,
+        readonly options: GoogleCloudStorageAdapterOptions,
         readonly visibilityHandling: VisibilityHandlingForGoogleCloudStorage = new UniformBucketLevelAccessVisibilityHandling()
     ) {
         this.prefixer = new PathPrefixer(options.prefix ?? '');
@@ -230,3 +230,10 @@ export class GoogleCloudStorageFileStorage implements StorageAdapter {
     }
 
 }
+
+/**
+ * BC export
+ *
+ * @deprecated
+ */
+export class GoogleCloudFileStorage extends GoogleCloudStorageAdapter {}

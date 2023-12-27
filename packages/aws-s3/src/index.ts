@@ -1,1 +1,1 @@
-export * from './aws-s3-file-storage.js';
+export * from './aws-s3-storage-adapter.js';
