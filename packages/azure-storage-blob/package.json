@@ -1,11 +1,11 @@
 {
   "name": "@flystorage/azure-storage-blob",
   "type": "module",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "dependencies": {
     "@azure/storage-blob": "^12.17.0",
-    "@flystorage/file-storage": "0.0.9",
-    "@flystorage/stream-mime-type": "0.0.9"
+    "@flystorage/file-storage": "~0.1.0",
+    "@flystorage/stream-mime-type": "~0.1.0"
   },
   "description": "",
   "main": "./dist/cjs/index.js",

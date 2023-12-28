@@ -1,9 +1,9 @@
 {
   "name": "@flystorage/chaos",
   "type": "module",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "dependencies": {
-    "@flystorage/file-storage": "0.0.9"
+    "@flystorage/file-storage": "~0.1.0"
   },
   "description": "A storage adapter decorator with the ability to stage errors.",
   "main": "./dist/cjs/index.js",
