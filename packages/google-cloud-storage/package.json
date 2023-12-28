@@ -1,5 +1,4 @@
 {
-  "private": true,
   "name": "@flystorage/google-cloud-storage",
   "type": "module",
   "version": "0.1.0",

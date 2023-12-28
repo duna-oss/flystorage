@@ -39,12 +39,12 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 ## Implementations / Adapters
 
 ### Implemented
-- [x] Local Filesystem
-- [x] AWS S3 (using the V3 SDK)
-- [x] Azure Blob Storage
-- [x] Test implementation (in-memory)
-- [x] Google Cloud Storage
-- [x] Chaos adapter decorator
+- [x] [Local Filesystem](https://www.npmjs.com/package/@flystorage/local-fs)
+- [x] [AWS S3 (using the V3 SDK)](https://www.npmjs.com/package/@flystorage/aws-s3)
+- [x] [Azure Blob Storage](https://www.npmjs.com/package/@flystorage/file-storage)
+- [x] [Test implementation (in-memory)](https://www.npmjs.com/package/@flystorage/in-memory)
+- [x] [Google Cloud Storage](https://www.npmjs.com/package/@flystorage/google-cloud-storage)
+- [x] [Chaos adapter decorator](https://www.npmjs.com/package/@flystorage/chaos)
 
 ### Planned
 - [ ] FTP (using `basic-ftp`)
