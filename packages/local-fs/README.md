@@ -16,10 +16,10 @@ npm install --save @flystorage/file-storage @flystorage/local-fs
 
 ```typescript
 import {FileStorage} from '@flystorage/file-storage';
-import {LocalFileStorage} from '@flystorage/local-fs';
+import {LocalStorageAdapter} from '@flystorage/local-fs';
 
 const rootDirectory = resolve(process.cwd(), 'my-files');
-const adapter = new LocalFileStorage(rootDirectory);
+const adapter = new LocalStorageAdapter(rootDirectory);
 const storage = new FileStorage(adapter);
 ```
 

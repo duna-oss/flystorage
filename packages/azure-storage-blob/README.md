@@ -16,11 +16,11 @@ npm install --save @flystorage/file-storage @flystorage/azure-storage-blob @azur
 
 ```typescript
 import {FileStorage} from '@flystorage/file-storage';
-import {AzureStorageBlobFileStorage} from '@flystorage/azure-storage-blob';
+import {AzureStorageBlobStorageAdapter} from '@flystorage/azure-storage-blob';
 
 const blobService = BlobServiceClient.fromConnectionString(process.env.AZURE_DSN!);
 const container = blobService.getContainerClient('flysystem');
-const adapter = new AzureStorageBlobFileStorage(container);
+const adapter = new AzureStorageBlobStorageAdapter(container);
 const storage = new FileStorage(adapter);
 ```
 

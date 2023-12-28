@@ -16,14 +16,14 @@ npm install --save @flystorage/file-storage @flystorage/google-cloud-storage @go
 
 ```typescript
 import {FileStorage} from '@flystorage/file-storage';
-import {GoogleCloudStorageFileStorage} from '@flystorage/google-cloud-storage';
+import {GoogleCloudStorageStorageAdapter} from '@flystorage/google-cloud-storage';
 import {Storage} from '@google-cloud/storage';
 
 const client = new Storage();
 const bucket = googleStorage.bucket('{bucket-name}}', {
     userProject: '{user-project}}',
 });
-const adapter = new GoogleCloudStorageFileStorage(bucket, {
+const adapter = new GoogleCloudStorageStorageAdapter(bucket, {
     prefix: '{optional-path-prefix}',
 });
 const storage = new FileStorage(adapter);
@@ -38,9 +38,9 @@ Setting an retrieving visibility is only meaningful for legacy buckets. To use t
 with Flystorage, pass the legacy visibility handling to the constructor:
 
 ```typescript
-import {GoogleCloudStorageFileStorage, LegacyVisibilityHandling} from '@flystorage/google-cloud-storage';
+import {GoogleCloudStorageStorageAdapter, LegacyVisibilityHandling} from '@flystorage/google-cloud-storage';
 
-const adapter = new GoogleCloudStorageFileStorage(bucket, {
+const adapter = new GoogleCloudStorageStorageAdapter(bucket, {
     prefix: '{optional-path-prefix}',
 }, new LegacyVisibilityHandling(
     'allUsers', // acl entity, optional

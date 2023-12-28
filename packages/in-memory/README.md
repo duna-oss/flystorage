@@ -16,9 +16,9 @@ npm install --save @flystorage/file-storage @flystorage/in-memory
 
 ```typescript
 import {FileStorage} from '@flystorage/file-storage';
-import {InMemoryFileStorage} from '@flystorage/in-memory';
+import {InMemoryStorageAdapter} from '@flystorage/in-memory';
 
-const adapter = new InMemoryFileStorage();
+const adapter = new InMemoryStorageAdapter();
 const storage = new FileStorage(adapter);
 ```
 

@@ -1,6 +1,6 @@
 <img src="https://avatars.githubusercontent.com/u/151840999" width="50px" height="50px" />
 
-# Flystorage (work in progress)
+# Flystorage
 Flystorage is a file storage abstraction for NodeJS and TypeScript. It is an 80/20 solution
 that is built around a set of goals:
 
@@ -68,7 +68,7 @@ npm i -S @flystorage/local-fs
 import {resolve} from 'node:path';
 import {createReadStream} from 'node:fs';
 import {FileStorage, Visibility} from '@flystorage/file-storage';
-import {LocalFileStorage} from '@flystorage/local-fs';
+import {LocalStorageAdapter} from '@flystorage/local-fs';
 
 /**
  * SETUP

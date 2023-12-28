@@ -16,10 +16,10 @@ npm install --save @flystorage/file-storage @flystorage/chaos
 
 ```typescript
 import {FileStorage} from '@flystorage/file-storage';
-import {ChaosAdapterDecorator, TriggeredErrors} from '@flystorage/chaos';
+import {ChaosStorageAdapterDecorator, TriggeredErrors} from '@flystorage/chaos';
 
 const strategy = new TriggeredErrors();
-const adapter = new ChaosAdapterDecorator(
+const adapter = new ChaosStorageAdapterDecorator(
     createActualAdapter(),
     strategy,
 );
@@ -33,7 +33,7 @@ const storage = new FileStorage(adapter);
 
 ```typescript
 
-import {ChaosAdapterDecorator, TriggeredErrors} from '@flystorage/chaos';
+import {TriggeredErrors} from '@flystorage/chaos';
 
 const strategy = new TriggeredErrors();
 

@@ -16,11 +16,11 @@ npm install --save @flystorage/file-storage @flystorage/aws-s3 @aws-sdk/client-s
 
 ```typescript
 import {FileStorage} from '@flystorage/file-storage';
-import {AwsS3FileStorage} from '@flystorage/aws-s3';
+import {AwsS3StorageAdapter} from '@flystorage/aws-s3';
 import {S3Client} from '@aws-sdk/client-s3';
 
 const client = new S3Client();
-const adapter = new AwsS3FileStorage(client, {
+const adapter = new AwsS3StorageAdapter(client, {
     bucket: '{your-bucket-name}',
     prefix: '{optional-path-prefix}',
 });
