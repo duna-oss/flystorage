@@ -240,7 +240,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         }
     }
 
-    async* listObjects(
+    async * listObjects(
         path: string,
         options: {
             deep: boolean,

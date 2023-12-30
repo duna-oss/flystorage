@@ -1,0 +1,19 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g clip-path="url(#clip0_1_2)">
+        <rect width="400" height="400" fill="white"/>
+        <rect width="400" height="400" fill="white"/>
+        <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M40 50C40 44.4771 44.4772 40 50 40H350C355.523 40 360 44.4772 360 50V120C360 125.523 355.523 130 350 130H161.5L104.344 91.896C101.96 90.3066 98.9176 92.6443 99.8393 95.3572L111.609 130H50C44.4772 130 40 125.523 40 120V50ZM111.269 155H50C44.4772 155 40 159.477 40 165V245V350C40 355.523 44.4771 360 50 360H120C125.523 360 130 355.523 130 350V255C130 249.477 134.477 245 140 245H235C240.523 245 245 240.523 245 235V165C245 159.477 240.523 155 235 155H160L104.344 192.104C101.96 193.693 98.9176 191.356 99.8393 188.643L111.269 155Z"
+              fill="url(#flystorage_gradient)"/>
+    </g>
+    <defs>
+        <linearGradient id="flystorage_gradient" x1="328" y1="72" x2="51.7668" y2="327.199"
+                        gradientUnits="userSpaceOnUse">
+            <stop stop-color="#15C8BC"/>
+            <stop offset="1" stop-color="#3057EB"/>
+        </linearGradient>
+        <clipPath id="clip0_1_2">
+            <rect width="400" height="400" fill="white"/>
+        </clipPath>
+    </defs>
+</svg>

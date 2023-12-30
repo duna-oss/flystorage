@@ -1,8 +1,8 @@
-<img src="https://avatars.githubusercontent.com/u/151840999" width="50px" height="50px" />
+<img src="https://raw.githubusercontent.com/duna-oss/flystorage/main/flystorage.svg" width="50px" height="50px" />
 
 # Flystorage adapter using memory
 
-This package contains the Flystorage adapter for Azure Storage Blob
+This package contains the Flystorage adapter that uses only memory
 
 ## Installation
 

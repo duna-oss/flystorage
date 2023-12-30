@@ -1,4 +1,4 @@
-<img src="https://avatars.githubusercontent.com/u/151840999" width="50px" height="50px" />
+<img src="https://raw.githubusercontent.com/duna-oss/flystorage/main/flystorage.svg" width="50px" height="50px" />
 
 # Flystorage
 Flystorage is a file storage abstraction for NodeJS and TypeScript. It is an 80/20 solution

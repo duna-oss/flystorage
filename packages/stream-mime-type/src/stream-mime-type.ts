@@ -25,7 +25,7 @@ export async function streamHead(stream: Readable, size: number): Promise<[Uint8
 
         tunnel.once('error', reject);
         tunnel.on('data', (chunk: Uint8Array) => {
-            if (!resolved) {
+            if (resolved) {
                 readBytes += chunk.byteLength;
                 buffers.push(chunk);
 
