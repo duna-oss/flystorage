@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "dependencies": {
-    "file-type": "^18.7.0",
+    "file-type": "^19.0.0",
     "mime-types": "^2.1.35"
   },
   "description": "Get the mime-type of a readable stream, non-destructive",
