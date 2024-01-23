@@ -30,7 +30,7 @@ export class GoogleCloudStorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
     constructor(
         private readonly bucket: Bucket,
-        readonly options: GoogleCloudStorageAdapterOptions,
+        readonly options: GoogleCloudStorageAdapterOptions = {},
         readonly visibilityHandling: VisibilityHandlingForGoogleCloudStorage = new UniformBucketLevelAccessVisibilityHandling()
     ) {
         this.prefixer = new PathPrefixer(options.prefix ?? '');
