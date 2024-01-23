@@ -1,0 +1,48 @@
+{
+  "private": true,
+  "name": "@flystorage/sftp",
+  "version": "0.1.0",
+  "dependencies": {
+    "@flystorage/file-storage": "~0.1.0",
+    "ssh2": "^1.15.0"
+  },
+  "description": "",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./dist/esm/index.js",
+        "types": "./dist/types/index.d.ts"
+      },
+      "require": {
+        "default": "./dist/cjs/index.js",
+        "types": "./dist/types/index.d.ts"
+      }
+    }
+  },
+  "scripts": {
+    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
+    "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
+    "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
+    "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
+    "watch": "tsc --watch"
+  },
+  "keywords": [
+    "sftp",
+    "file",
+    "storage",
+    "flystorage",
+    "filesystem"
+  ],
+  "author": "Frank de Jonge (https://frankdejonge.nl)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duna-oss/flystorage.git",
+    "directory": "packages/local-fs"
+  },
+  "engines": {
+    "node": ">=20.1.0"
+  },
+  "license": "MIT"
+}

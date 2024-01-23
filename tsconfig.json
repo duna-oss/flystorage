@@ -10,6 +10,10 @@
   ],
   "compilerOptions": {
     "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "types": [
+      "jest",
+      "node"
+    ]
   }
 }
