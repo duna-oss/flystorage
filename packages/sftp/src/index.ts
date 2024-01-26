@@ -1,5 +1,5 @@
 import {Readable} from "stream";
-import SftpClient from 'ssh2-sftp-client';
+import * as SftpClient from 'ssh2-sftp-client';
 import {
     StorageAdapter,
     ChecksumOptions,
