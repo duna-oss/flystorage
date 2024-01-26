@@ -5,7 +5,8 @@
   "version": "0.1.0",
   "dependencies": {
     "@flystorage/file-storage": "~0.1.0",
-    "ssh2": "^1.15.0"
+    "ssh2": "^1.15.0",
+    "ssh2-sftp-client": "^10.0.3"
   },
   "description": "",
   "main": "./dist/cjs/index.js",
@@ -45,5 +46,8 @@
   "engines": {
     "node": ">=20.1.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/ssh2-sftp-client": "^9.0.3"
+  }
 }

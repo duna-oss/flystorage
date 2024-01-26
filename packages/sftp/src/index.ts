@@ -1,4 +1,5 @@
 import {Readable} from "stream";
+import SftpClient from 'ssh2-sftp-client';
 import {
     StorageAdapter,
     ChecksumOptions,
@@ -16,10 +17,15 @@ export type SftpStorageOptions = {
     prefix?: string,
 }
 
+export interface SftpConnectionProvider {
+    connection(): Promise<SftpClient>;
+}
+
 export class SftpStorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
 
     constructor(
+        private readonly connectionProvider: SftpConnectionProvider,
         private readonly options: SftpStorageOptions = {},
     ) {
         this.prefixer = new PathPrefixer(options.prefix || '');
