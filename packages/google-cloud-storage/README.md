@@ -20,7 +20,7 @@ import {GoogleCloudStorageStorageAdapter} from '@flystorage/google-cloud-storage
 import {Storage} from '@google-cloud/storage';
 
 const client = new Storage();
-const bucket = googleStorage.bucket('{bucket-name}}', {
+const bucket = client.bucket('{bucket-name}}', {
     userProject: '{user-project}}',
 });
 const adapter = new GoogleCloudStorageStorageAdapter(bucket, {
