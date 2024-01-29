@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Paths Changes Filter
         id: changes
-        uses: dorny/paths-filter@v2.11.1
+        uses: dorny/paths-filter@v3.0.0
         with:
           list-files: shell
           filters: |
