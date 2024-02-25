@@ -1,7 +1,7 @@
 {
   "name": "@flystorage/in-memory",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "@flystorage/file-storage": "~0.1.0",
     "file-type": "^19.0.0",

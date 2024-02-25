@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "name": "@flystorage/sftp",
-  "version": "0.1.0",
+  "version": "dev",
   "dependencies": {
     "@flystorage/file-storage": "~0.1.0",
     "ssh2": "^1.15.0",

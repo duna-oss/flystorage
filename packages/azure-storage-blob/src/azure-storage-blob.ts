@@ -19,7 +19,6 @@ import {
     BlobProperties,
     BlobSASPermissions,
     ContainerClient,
-    StorageSharedKeyCredential
 } from '@azure/storage-blob';
 import {resolveMimeType} from "@flystorage/stream-mime-type";
 import {dirname} from 'node:path';
