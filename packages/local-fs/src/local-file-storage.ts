@@ -15,7 +15,7 @@ import {
 } from '@flystorage/file-storage';
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
 import {chmod, mkdir, opendir, rm, stat, rename, copyFile} from 'node:fs/promises';
-import {dirname, join} from 'node:path';
+import {posix} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -70,8 +70,8 @@ export class LocalStorageAdapter implements StorageAdapter {
         private readonly publicUrlGenerator: LocalPublicUrlGenerator = new BaseUrlLocalPublicUrlGenerator(),
         private readonly temporaryUrlGenerator: LocalTemporaryUrlGenerator = new FailingLocalTemporaryUrlGenerator(),
     ) {
-        this.rootDir = join(this.rootDir, '/');
-        this.prefixer = new PathPrefixer(this.rootDir);
+        this.rootDir = posix.join(this.rootDir, '/');
+        this.prefixer = new PathPrefixer(this.rootDir, posix.sep, posix.join);
     }
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
@@ -145,7 +145,7 @@ export class LocalStorageAdapter implements StorageAdapter {
         });
 
         for await (const item of entries) {
-            const itemPath = deep ? item.path : join(item.path, item.name);
+            const itemPath = deep ? item.path : posix.join(item.path, item.name);
 
             yield this.mapStatToEntry(
                 item,
@@ -291,7 +291,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     private async ensureParentDirectoryExists(path: string, options: VisibilityOptions) {
-        const directoryName = dirname(path);
+        const directoryName = posix.dirname(path);
 
         if (directoryName !== '.' && directoryName !== '/') {
             await this.createDirectory(directoryName, {
