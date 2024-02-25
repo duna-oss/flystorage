@@ -42,6 +42,10 @@ export class BaseUrlLocalPublicUrlGenerator implements LocalPublicUrlGenerator {
 
         const base = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`;
 
+        if (posix.sep === '\\' && path.includes(posix.sep)) {
+            path = path.replace(posix.sep, '/');
+        }
+
         return `${base}${path}`;
     }
 }
