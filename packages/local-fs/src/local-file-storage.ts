@@ -74,7 +74,7 @@ export class LocalStorageAdapter implements StorageAdapter {
         private readonly publicUrlGenerator: LocalPublicUrlGenerator = new BaseUrlLocalPublicUrlGenerator(),
         private readonly temporaryUrlGenerator: LocalTemporaryUrlGenerator = new FailingLocalTemporaryUrlGenerator(),
     ) {
-        this.rootDir = posix.join(this.rootDir, '/');
+        this.rootDir = posix.join(this.rootDir, posix.sep);
         this.prefixer = new PathPrefixer(this.rootDir, posix.sep, posix.join);
     }
 
