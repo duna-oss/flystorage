@@ -75,7 +75,7 @@ import {LocalStorageAdapter} from '@flystorage/local-fs';
  **/
 
 const rootDirectory = resolve(process.cwd(), 'my-files');
-const storage = new FileStorage(new LocalFileStorage(rootDirectory));
+const storage = new FileStorage(new LocalStorageAdapter(rootDirectory));
 
 /**
  * USAGE
