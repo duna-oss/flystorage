@@ -12,6 +12,10 @@ describe('AzureStorageBlobStorageAdapter', () => {
     const container = blobService.getContainerClient('flysystem');
     let storage: FileStorage;
 
+    beforeAll(async () => {
+        await container.createIfNotExists();
+    })
+
     beforeEach(() => {
         const testSegment = randomBytes(10).toString('hex');
         const adapter = new AzureStorageBlobStorageAdapter(
