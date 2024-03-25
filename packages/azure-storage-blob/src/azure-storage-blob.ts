@@ -30,6 +30,7 @@ export type AzureStorageBlobStorageAdapterOptions = {
     ignoreVisibility?: boolean,
     ignoredVisibilityResponse?: string,
     deleteDirBatchSize?: number,
+    temporaryUrlOptions?: TemporaryUrlOptions,
 }
 
 export class AzureStorageBlobStorageAdapter implements StorageAdapter {
@@ -223,6 +224,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         return await this.blockClient(path).generateSasUrl({
             expiresOn: normalizeExpiryToDate(options.expiresAt),
             permissions: BlobSASPermissions.parse('r'),
+            ...this.options.temporaryUrlOptions,
         });
     }
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
