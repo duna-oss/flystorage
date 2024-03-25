@@ -13,7 +13,7 @@ describe('AzureStorageBlobStorageAdapter', () => {
     let storage: FileStorage;
 
     beforeAll(async () => {
-        await container.createIfNotExists();
+        await container.createIfNotExists({ access: "container" });
     })
 
     beforeEach(() => {
