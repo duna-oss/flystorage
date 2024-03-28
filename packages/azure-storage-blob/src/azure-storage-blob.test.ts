@@ -8,7 +8,9 @@ import { Readable } from "node:stream";
 const runSegment = process.env.AZURE_PREFIX ?? randomBytes(10).toString('hex');
 
 describe('AzureStorageBlobStorageAdapter', () => {
-    const blobService = BlobServiceClient.fromConnectionString(process.env.AZURE_DSN!);
+    const blobService = BlobServiceClient.fromConnectionString(
+        process.env.AZURE_DSN || "UseDevelopmentStorage=true;"
+    );
     const container = blobService.getContainerClient('flysystem');
     let storage: FileStorage;
 
