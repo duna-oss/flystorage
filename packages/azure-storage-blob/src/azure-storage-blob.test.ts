@@ -2,14 +2,21 @@ import {BlobServiceClient} from "@azure/storage-blob";
 import {AzureStorageBlobStorageAdapter} from "./azure-storage-blob.js";
 import {randomBytes} from "crypto";
 import {FileStorage, Visibility, readableToString} from "@flystorage/file-storage";
-import * as https from "https";
+import fetch from "node-fetch";
+import { Readable } from "node:stream";
 
 const runSegment = process.env.AZURE_PREFIX ?? randomBytes(10).toString('hex');
 
 describe('AzureStorageBlobStorageAdapter', () => {
-    const blobService = BlobServiceClient.fromConnectionString(process.env.AZURE_DSN!);
+    const blobService = BlobServiceClient.fromConnectionString(
+        process.env.AZURE_DSN || "UseDevelopmentStorage=true;"
+    );
     const container = blobService.getContainerClient('flysystem');
     let storage: FileStorage;
+
+    beforeAll(async () => {
+        await container.createIfNotExists({ access: "container" });
+    })
 
     beforeEach(() => {
         const testSegment = randomBytes(10).toString('hex');
@@ -167,14 +174,12 @@ describe('AzureStorageBlobStorageAdapter', () => {
     });
 });
 
-function naivelyDownloadFile(url: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        https.get(url, async res => {
-            if (res.statusCode !== 200) {
-                reject(new Error(`Not able to download the file from ${url}, response status [${res.statusCode}]`));
-            } else {
-                resolve(await readableToString(res));
-            }
-        });
-    });
+async function naivelyDownloadFile(url: string): Promise<string> {
+    const res = await fetch(url);
+
+    if (res.status !== 200 || !res.body) {
+        throw new Error(`Not able to download the file from ${url}, response status [${res.status}]`);
+    } else {
+        return await readableToString(Readable.from(res.body));
+    }
 }

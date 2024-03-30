@@ -50,3 +50,19 @@ services:
 #    ports:
 #      - "2121:21"
 #      - "21000-21010:21000-21010"
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    profiles: ["azure"]
+    restart: unless-stopped
+    healthcheck:
+      test:
+        wget --no-verbose --tries=1 --spider http://localhost:10000/ || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    ports:
+      - 10000:10000
+      - 10001:10001
+      - 10002:10002
