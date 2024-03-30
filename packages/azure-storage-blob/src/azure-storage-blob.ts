@@ -224,7 +224,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         return await this.blockClient(path).generateSasUrl({
             expiresOn: normalizeExpiryToDate(options.expiresAt),
             permissions: BlobSASPermissions.parse('r'),
-            ...this.options.temporaryUrlOptions,
+            ...(this.options.temporaryUrlOptions ?? {}),
         });
     }
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
