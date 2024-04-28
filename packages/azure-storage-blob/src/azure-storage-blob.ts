@@ -68,6 +68,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
             {
                 blobHTTPHeaders: {
                     blobContentType: mimeType,
+                    blobCacheControl: options.cacheControl
                 },
             },
         );

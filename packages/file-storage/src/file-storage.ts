@@ -117,6 +117,7 @@ export type VisibilityOptions = {
 export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
     mimeType?: string,
     size?: number,
+    cacheControl?: string,
 };
 export type CreateDirectoryOptions = MiscellaneousOptions & Pick<VisibilityOptions, 'directoryVisibility'> & {};
 export type PublicUrlOptions = MiscellaneousOptions & {};

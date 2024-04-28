@@ -370,6 +370,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             ACL: options.visibility ? this.visibilityToAcl(options.visibility) : undefined,
             ContentType: mimeType,
             ContentLength: options.size,
+            CacheControl: options.cacheControl
         });
     }
 
