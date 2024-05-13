@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.2",
   "dependencies": {
-    "@azure/storage-blob": "^12.17.0",
+    "@azure/storage-blob": "^12.18.0",
     "@flystorage/file-storage": "~0.1.0",
     "@flystorage/stream-mime-type": "~0.1.0"
   },
