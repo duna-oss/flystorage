@@ -48,7 +48,8 @@ export class GoogleCloudStorageAdapter implements StorageAdapter {
                 contentType: mimeType,
                 predefinedAcl: options.visibility
                     ? this.visibilityHandling.visibilityToPredefinedAcl(options.visibility)
-                    : undefined
+                    : undefined,
+                metadata: options.cacheControl? {cacheControl: options.cacheControl} : undefined,
             });
 
         await pipeline(contents, writeStream);

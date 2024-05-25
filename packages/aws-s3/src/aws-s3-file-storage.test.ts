@@ -130,6 +130,13 @@ describe('aws-s3 file storage', () => {
 
         expect(checksum).toEqual(expectedChecksum);
     });
+
+    test('it handles custom Cache-Control header', async() => {
+        await storage.write('cache.txt', 'some content', {cacheControl: "max-age=7200, public", visibility: Visibility.PUBLIC});
+        const url = await storage.publicUrl('cache.txt')
+        const res = await fetch(url);
+        expect(res.headers.get("Cache-Control")).toEqual("max-age=7200, public")
+    });
 });
 
 function naivelyDownloadFile(url: string): Promise<string> {

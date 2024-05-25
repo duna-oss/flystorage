@@ -172,6 +172,13 @@ describe('AzureStorageBlobStorageAdapter', () => {
 
         expect(contents).toEqual('something');
     });
+
+    test('setting cache-control headers', async () => {
+        await storage.write('cachecontrol.txt', 'something', { cacheControl: 'max-age=3200, public' });
+        const url = await storage.publicUrl('cachecontrol.txt');
+        const res = await fetch(url);
+        expect(res.headers.get("Cache-Control")).toEqual('max-age=3200, public');
+    });
 });
 
 async function naivelyDownloadFile(url: string): Promise<string> {

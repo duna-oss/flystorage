@@ -148,6 +148,13 @@ describe('GoogleCloudStorageAdapter', () => {
             expect(contents).toEqual('public contents');
         });
 
+        test('with a custom Cache-Control Header', async () => {
+            await storage.write('cache.txt', 'contents', {visibility: Visibility.PUBLIC, cacheControl: "max-age=9999, public"});
+            const url = await storage.publicUrl('cache.txt');
+            const res = await fetch(url);
+            expect (res.headers.get('Cache-Control')).toEqual('max-age=9999, public');
+        })
+
         test('using a temporary URL', async () => {
             await storage.write('path.txt', 'private contents', {
                 visibility: Visibility.PRIVATE,
