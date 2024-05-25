@@ -1,9 +1,9 @@
 {
   "name": "@flystorage/google-cloud-storage",
   "type": "module",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "dependencies": {
-    "@flystorage/file-storage": "~0.1.0",
+    "@flystorage/file-storage": "~0.1.2",
     "@flystorage/stream-mime-type": "~0.1.0",
     "@google-cloud/storage": "^7.11.0",
     "file-type": "^19.0.0",
