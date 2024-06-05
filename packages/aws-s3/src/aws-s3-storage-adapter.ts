@@ -75,8 +75,8 @@ export class DefaultAwsPublicUrlGenerator implements AwsPublicUrlGenerator {
                 ? 's3'
                 : `s3-${options.region}`;
         const uri = options.forcePathStyle !== true
-            ? path
-            : `${options.bucket}/${path}`;
+            ? encodePath(path)
+            : `${options.bucket}/${encodePath(path)}`;
 
         return baseUrl.replace('{subdomain}', subdomain).replace('{uri}', uri);
     }
@@ -90,6 +90,13 @@ export class HostStyleAwsPublicUrlGenerator extends DefaultAwsPublicUrlGenerator
 
 export type TimestampResolver = () => number;
 type AclOptions = Pick<CopyObjectRequest, 'ACL'>;
+
+/**
+ * Some commands need URI encoded paths to work ¯\_(ツ)_/¯
+ */
+function encodePath(path: string): string {
+    return path.split('/').map(encodeURIComponent).join('/');
+}
 
 export class AwsS3StorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
@@ -114,7 +121,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
 
         await this.client.send(new CopyObjectCommand({
             Bucket: this.options.bucket,
-            CopySource: join('/', this.options.bucket, this.prefixer.prefixFilePath(from)),
+            CopySource: join('/', this.options.bucket, encodePath(this.prefixer.prefixFilePath(from))),
             Key: this.prefixer.prefixFilePath(to),
             ...acl,
         }));
