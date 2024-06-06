@@ -1,7 +1,7 @@
 {
   "name": "@flystorage/multer-storage",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "dependencies": {
     "@flystorage/file-storage": "~0.1.0",
     "@flystorage/stream-mime-type": "~0.1.0",
@@ -25,7 +25,7 @@
   "scripts": {
     "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
     "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
-    "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
+    "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module node16 --moduleResolution node16",
     "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
     "watch": "tsc --watch"
   },

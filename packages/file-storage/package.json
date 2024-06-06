@@ -1,7 +1,7 @@
 {
   "name": "@flystorage/file-storage",
   "type": "module",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "File-storage abstraction: multiple filesystems, one API.",
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",
@@ -20,7 +20,7 @@
   "scripts": {
     "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
     "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
-    "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
+    "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module node16 --moduleResolution node16",
     "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
     "watch": "tsc --watch"
   },
