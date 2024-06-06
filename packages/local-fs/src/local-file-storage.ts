@@ -13,9 +13,11 @@ import {
     VisibilityOptions,
     MimeTypeOptions
 } from '@flystorage/file-storage';
+import type {FileExtension} from 'file-type';
+import {lookup} from "mime-types";
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
 import {chmod, mkdir, opendir, rm, stat, rename, copyFile} from 'node:fs/promises';
-import {posix} from 'node:path';
+import {posix, extname} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -104,8 +106,21 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
+
+        const {fileTypeFromFile, supportedExtensions} = await (eval('import("file-type")') as Promise<typeof import('file-type')>);
+        const extension = extname(path) as FileExtension;
+
+        if (!supportedExtensions.has(extension)) {
+            const mimetype = lookup(extension);
+
+            if (mimetype === false) {
+                throw new Error('Unable to resolve mime-type');
+            }
+
+            return mimetype;
+        }
+
         const location = this.prefixer.prefixFilePath(path);
-        const {fileTypeFromFile} = await import('file-type');
         const result = await fileTypeFromFile(location);
 
         if (result === undefined) {

@@ -52,7 +52,7 @@ export async function resolveMimeType(
     fallback: string | undefined = undefined
 ): Promise<[string|undefined, Readable]> {
     const [head, readable] = await streamHead(stream, 4100);
-    const {fileTypeFromBuffer} = await import('file-type');
+    const {fileTypeFromBuffer} = await (eval('import("file-type")') as Promise<typeof import('file-type')>);
     const lookup = await fileTypeFromBuffer(head);
 
     if (lookup) {

@@ -1,13 +1,14 @@
 const {FileStorage} = require('@flystorage/file-storage');
-const {LocalFileStorage} = require('@flystorage/local-fs');
+const {LocalStorageAdapter} = require('@flystorage/local-fs');
 const {resolve} = require("path");
 
 const storage = new FileStorage(
-    new LocalFileStorage(
+    new LocalStorageAdapter(
         resolve(__dirname, 'files'),
     )
 );
 
 (async () => {
-    await storage.write('path.txt', 'contents');
+    const mimetype = await storage.mimeType('screenshot.png');
+    console.log(mimetype);
 })();
