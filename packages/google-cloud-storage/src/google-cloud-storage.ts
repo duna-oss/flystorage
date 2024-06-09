@@ -60,7 +60,7 @@ export class GoogleCloudStorageAdapter implements StorageAdapter {
         // force retrieval of the head to ensure the http call is made
         // this ensures the error from the HTTP call is caught at the
         // abstraction level
-        const [_head, outStream] = await streamHead(readStream, 10);
+        const [_, outStream] = await streamHead(readStream, 10);
 
         return outStream;
     }

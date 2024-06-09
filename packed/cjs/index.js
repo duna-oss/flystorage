@@ -9,6 +9,7 @@ const storage = new FileStorage(
 );
 
 (async () => {
+    console.log(await storage.mimeType('path.svg'));
     const mimetype = await storage.mimeType('screenshot.png');
     console.log(mimetype);
 })();

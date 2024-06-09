@@ -11,7 +11,7 @@ import {
     CopyFileOptions,
     MoveFileOptions,
     VisibilityOptions,
-    MimeTypeOptions
+    MimeTypeOptions,
 } from '@flystorage/file-storage';
 import type {FileExtension} from 'file-type';
 import {lookup} from "mime-types";
@@ -66,6 +66,8 @@ export class FailingLocalTemporaryUrlGenerator implements LocalTemporaryUrlGener
     }
 }
 
+const fileTypes = eval('import("file-type")') as Promise<typeof import('file-type')>;
+
 export class LocalStorageAdapter implements StorageAdapter {
     private prefixer: PathPrefixer;
 
@@ -106,8 +108,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
-
-        const {fileTypeFromFile, supportedExtensions} = await (eval('import("file-type")') as Promise<typeof import('file-type')>);
+        const {fileTypeFromFile, supportedExtensions} = await fileTypes;
         const extension = extname(path) as FileExtension;
 
         if (!supportedExtensions.has(extension)) {
