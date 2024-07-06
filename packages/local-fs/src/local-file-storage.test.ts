@@ -161,6 +161,20 @@ describe('LocalStorageAdapter', () => {
         expect(listing.map(l => l.type).sort()).toEqual(['directory', 'directory', 'file']);
     });
 
+    test('non deep and deep listing should have consistant and similar results', async () => {
+        await storage.write('file_1.txt', 'contents');
+        await storage.write('file_2.txt', 'contents');
+        await storage.createDirectory('directory_1');
+        await storage.createDirectory('directory_2');
+
+        const non_deep_listing = await storage.list('/', {deep: false}).toArray();
+        const deep_listing = await storage.list('/', {deep: true}).toArray();
+
+        expect(non_deep_listing).toHaveLength(4);
+        expect(deep_listing).toHaveLength(4);
+        expect(non_deep_listing).toEqual(deep_listing);
+    });
+
     test('filtering out directories for a deep listing', async () => {
         await storage.write('deeply/nested/directory.txt', 'contents');
 
