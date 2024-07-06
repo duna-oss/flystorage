@@ -42,5 +42,8 @@
     "url": "git+https://github.com/duna-oss/flystorage.git",
     "directory": "packages/aws-s3"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "form-data": "^4.0.0"
+  }
 }
