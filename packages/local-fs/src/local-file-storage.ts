@@ -165,7 +165,7 @@ export class LocalStorageAdapter implements StorageAdapter {
         });
 
         for await (const item of entries) {
-            const itemPath = posix.join(item.path, item.name);
+            const itemPath = posix.join(item.parentPath, item.name);
 
             yield this.mapStatToEntry(
                 item,

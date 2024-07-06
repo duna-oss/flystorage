@@ -161,7 +161,7 @@ describe('LocalStorageAdapter', () => {
         expect(listing.map(l => l.type).sort()).toEqual(['directory', 'directory', 'file']);
     });
 
-    test('non deep and deep listing should have consistant and similar results', async () => {
+    test('non deep and deep listing should have consistent and similar results', async () => {
         await storage.write('file_1.txt', 'contents');
         await storage.write('file_2.txt', 'contents');
         await storage.createDirectory('directory_1');
@@ -219,11 +219,11 @@ describe('LocalStorageAdapter', () => {
     });
 
     test('trying to copy a file that does not exist', async () => {
-        expect(storage.copyFile('from.txt', 'to.txt')).rejects.toThrow();
+        await expect(storage.copyFile('from.txt', 'to.txt')).rejects.toThrow();
     });
 
     test('trying to move a file that does not exist', async () => {
-        expect(storage.moveFile('from.txt', 'to.txt')).rejects.toThrow();
+        await expect(storage.moveFile('from.txt', 'to.txt')).rejects.toThrow();
     });
 
     test('moving a file between directories', async () => {
