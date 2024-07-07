@@ -33,7 +33,7 @@ describe('FlystorageMulterStorageEngine', () => {
         );
 
         const uploader = multer({storage});
-        app.post('/upload', uploader.single('image'), (req: Request, res: Response) => {
+        app.post('/upload', uploader.single('image'), (_: Request, res: Response) => {
             res.status(200).json({
                 status: 'OK',
             });

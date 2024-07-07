@@ -34,7 +34,20 @@ describe('AzureStorageBlobStorageAdapter', () => {
         storage = new FileStorage(adapter);
         await storage.deleteDirectory(`flystorage/${runSegment}`);
         container
-    })
+    });
+
+    test('non deep and deep listing should have consistent and similar results', async () => {
+        await storage.write('file_1.txt', 'contents');
+        await storage.write('file_2.txt', 'contents');
+        await storage.write('directory_1/file.txt', 'contents');
+        await storage.write('directory_2/file.tx', 'contents');
+
+        const non_deep_listing = await storage.list('/', {deep: false}).toArray();
+        const deep_listing = await storage.list('/', {deep: true}).toArray();
+
+        expect(non_deep_listing).toHaveLength(4);
+        expect(deep_listing).toHaveLength(6);
+    });
 
     test('reading a file that was written', async () => {
         await storage.write('path.txt', 'content in azure');
@@ -44,7 +57,7 @@ describe('AzureStorageBlobStorageAdapter', () => {
     });
 
     test('trying to read a file that does not exist', async () => {
-        expect(storage.readToString('404.tx')).rejects.toThrow();
+        await expect(storage.readToString('404.tx')).rejects.toThrow();
     });
 
     test('trying to see if a non-existing file exists', async () => {
@@ -68,7 +81,7 @@ describe('AzureStorageBlobStorageAdapter', () => {
     });
 
     test('deleting a non-existing file is OK', async () => {
-        await expect(storage.deleteFile('404.txt')).resolves;
+        await expect(storage.deleteFile('404.txt')).resolves.not.toThrow();
     });
 
     test('copying a file', async () => {
@@ -92,7 +105,7 @@ describe('AzureStorageBlobStorageAdapter', () => {
     });
 
     test('setting visibility always fails', async () => {
-        await storage.write('exsiting.txt', 'yes');
+        await storage.write('existing.txt', 'yes');
         await expect(storage.changeVisibility('existing.txt', Visibility.PRIVATE)).rejects.toThrow();
         await expect(storage.changeVisibility('404.txt', Visibility.PUBLIC)).rejects.toThrow();
     });

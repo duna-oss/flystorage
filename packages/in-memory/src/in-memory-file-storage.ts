@@ -137,9 +137,11 @@ export class InMemoryStorageAdapter implements StorageAdapter {
             lastModifiedMs: entry.lastModifiedMs,
         }
     }
-    async *list(path: string, options: { deep: boolean; }): AsyncGenerator<StatEntry, any, unknown> {
+    async *list(path: string, options: { deep: boolean; }): AsyncGenerator<StatEntry, void, StatEntry> {
         const entries = this.entries.values();
-        const prefix = `${path.replace(/\/+$/g, '')}/`;
+        const prefix = path === '' || path === '/'
+            ? ''
+            : `${path.replace(/\/+$/g, '')}/`;
 
         for (const entry of entries) {
             if (!entry.path.startsWith(prefix)) {

@@ -7,7 +7,21 @@ describe('InMemoryStorageAdapter', () => {
 
     beforeEach(() => {
         adapter.deleteEverything();
-    })
+    });
+
+    test('non deep and deep listing should have consistent and similar results', async () => {
+        await storage.write('file_1.txt', 'contents');
+        await storage.write('file_2.txt', 'contents');
+        await storage.createDirectory('directory_1');
+        await storage.createDirectory('directory_2');
+
+        const non_deep_listing = await storage.list('/', {deep: false}).toArray();
+        const deep_listing = await storage.list('/', {deep: true}).toArray();
+
+        expect(non_deep_listing).toHaveLength(4);
+        expect(deep_listing).toHaveLength(4);
+        expect(non_deep_listing).toEqual(deep_listing);
+    });
 
     test('reading a file that was written', async () => {
         await storage.write('path.txt', 'content in azure');
@@ -17,7 +31,7 @@ describe('InMemoryStorageAdapter', () => {
     });
 
     test('trying to read a file that does not exist', async () => {
-        expect(storage.readToString('404.tx')).rejects.toThrow();
+        await expect(storage.readToString('404.tx')).rejects.toThrow();
     });
 
     test('trying to see if a non-existing file exists', async () => {
@@ -41,7 +55,7 @@ describe('InMemoryStorageAdapter', () => {
     });
 
     test('deleting a non-existing file is OK', async () => {
-        await expect(storage.deleteFile('404.txt')).resolves;
+        await expect(storage.deleteFile('404.txt')).resolves.not.toThrow();
     });
 
     test('copying a file', async () => {
