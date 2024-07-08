@@ -4,7 +4,7 @@
   "version": "0.1.4",
   "dependencies": {
     "@flystorage/file-storage": "~0.1.0",
-    "file-type": "^19.0.0",
+    "file-type": "^19.1.0",
     "mime-types": "^2.1.35"
   },
   "description": "",
