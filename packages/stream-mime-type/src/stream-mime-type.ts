@@ -46,7 +46,8 @@ export async function streamHead(stream: Readable, size: number): Promise<[Uint8
     });
 }
 
-const fileTypes = eval('import("file-type")') as Promise<typeof import('file-type')>;
+type FileTypePackage = typeof import('file-type');
+let fileTypes: FileTypePackage | undefined = undefined;
 
 export async function resolveMimeType(
     filename: string,
@@ -54,7 +55,12 @@ export async function resolveMimeType(
     fallback: string | undefined = undefined
 ): Promise<[string|undefined, Readable]> {
     const [head, readable] = await streamHead(stream, 4100);
-    const {fileTypeFromBuffer} = await fileTypes;
+
+    if (fileTypes === undefined) {
+        fileTypes = await eval('import("file-type")') as typeof import('file-type');
+    }
+
+    const {fileTypeFromBuffer} = fileTypes;
     const lookup = await fileTypeFromBuffer(head);
 
     if (lookup) {

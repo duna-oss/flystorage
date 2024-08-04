@@ -9,7 +9,9 @@ const storage = new FileStorage(
 );
 
 (async () => {
+    await storage.write('some/deep/file.txt', 'contents');
     console.log(await storage.mimeType('path.svg'));
     const mimetype = await storage.mimeType('screenshot.png');
     console.log(mimetype);
+    console.log(await storage.list('', {deep: true}).toArray());
 })();
