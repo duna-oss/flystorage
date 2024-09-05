@@ -15,6 +15,7 @@ import {
     S3Client,
     S3ServiceException,
     CopyObjectRequest,
+    GetObjectCommandInput,
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
@@ -135,10 +136,16 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         const expiry = normalizeExpiryToMilliseconds(options.expiresAt);
         const now = (this.timestampResolver)();
 
-        return await getSignedUrl(this.client, new GetObjectCommand({
+        const getObjectParams: GetObjectCommandInput = {
             Bucket: this.options.bucket,
             Key: this.prefixer.prefixFilePath(path),
-        }), {
+        };
+
+        if (options.ResponseContentDisposition) {
+            getObjectParams.ResponseContentDisposition = options.ResponseContentDisposition;
+        }
+
+        return await getSignedUrl(this.client, new GetObjectCommand(getObjectParams), {
             expiresIn: Math.floor((expiry - now) / 1000),
         });
     }
