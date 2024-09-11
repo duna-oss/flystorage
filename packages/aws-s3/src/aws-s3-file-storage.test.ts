@@ -220,9 +220,9 @@ describe('aws-s3 file storage', () => {
             });
 
             await expect(responseHeaderValue(
-                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Expires': 'Wed, 21 Oct 2023 07:28:00 GMT'} }),
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Expires': 'Sat, 21 Oct 2023 07:28:00 GMT'} }),
                 'Expires'
-            )).resolves.toEqual('Wed, 21 Oct 2023 07:28:00 GMT');
+            )).resolves.toEqual('Sat, 21 Oct 2023 07:28:00 GMT');
         });
 
         test('fetches file without Expires header when not specified in the options', async () => {

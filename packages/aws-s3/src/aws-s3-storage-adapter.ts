@@ -163,7 +163,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             }
 
             if (options.responseHeaders['Expires']) {
-                getObjectParams.ResponseExpires = options.responseHeaders['Expires'];
+                getObjectParams.ResponseExpires = new Date(options.responseHeaders['Expires']);
             }
         }
 
