@@ -103,6 +103,140 @@ describe('aws-s3 file storage', () => {
         )).resolves.toEqual('contents of the private file');
     });
 
+    describe('response headers', () => {
+        test('fetches file with Content-Disposition header when specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Content-Disposition': 'attachment; filename="private+file.txt"'} }),
+                'Content-Disposition'
+            )).resolves.toEqual('attachment; filename="private+file.txt"');
+        });
+
+        test('fetches file without Content-Disposition header when not specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
+                'Content-Disposition'
+            )).resolves.toBeNull();
+        });
+
+        test('fetches file with Cache-Control header when specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Cache-Control': 'none'} }),
+                'Cache-Control'
+            )).resolves.toEqual('none');
+        });
+
+        test('fetches file without Cache-Control header when not specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
+                'Cache-Control'
+            )).resolves.toBeNull();
+        });
+
+        test('fetches file with Content-Encoding header when specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Content-Encoding': 'br'} }),
+                'Content-Encoding'
+            )).resolves.toEqual('br');
+        });
+
+        test('fetches file without Content-Encoding header when not specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
+                'Content-Encoding'
+            )).resolves.toBeNull();
+        });
+
+        test('fetches file with Content-Language header when specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Content-Language': 'en-US'} }),
+                'Content-Language'
+            )).resolves.toEqual('en-US');
+        });
+
+        test('fetches file without Content-Language header when not specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
+                'Content-Language'
+            )).resolves.toBeNull();
+        });
+
+        test('fetches file with Content-Type header when specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Content-Type': 'image/jpeg'} }),
+                'Content-Type'
+            )).resolves.toEqual('en-US');
+        });
+
+        test('fetches file without Content-Type header when not specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
+                'Content-Type'
+            )).resolves.toBeNull();
+        });
+
+        test('fetches file with Expires header when specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Expires': 'Wed, 21 Oct 2023 07:28:00 GMT'} }),
+                'Expires'
+            )).resolves.toEqual('Wed, 21 Oct 2023 07:28:00 GMT');
+        });
+
+        test('fetches file without Expires header when not specified in the options', async () => {
+            await storage.write('private+file.txt', 'contents of the private file', {
+                visibility: Visibility.PRIVATE,
+            });
+
+            await expect(responseHeaderValue(
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
+                'Expires'
+            )).resolves.toBeNull();
+        });
+    });
+
     test('retrieving the size of a file', async () => {
         const contents = 'this is the contents of the file';
         await storage.write('something+file.txt', contents);
@@ -160,6 +294,18 @@ function naivelyDownloadFile(url: string): Promise<string> {
                 reject(new Error(`Not able to download the file from ${url}, response status [${res.statusCode}]`));
             } else {
                 resolve(await readableToString(res));
+            }
+        });
+    });
+}
+
+function responseHeaderValue(url: string, header: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+        https.get(url, res => {
+            if (res.statusCode !== 200) {
+                reject(new Error(`Not able to download the file from ${url}, response status [${res.statusCode}]`));
+            } else {
+                resolve(res.headers[header] as string);
             }
         });
     });

@@ -130,6 +130,7 @@ export type MoveFileOptions = MiscellaneousOptions & VisibilityOptions & {
 export type ListOptions = {deep?: boolean};
 export type TemporaryUrlOptions = MiscellaneousOptions & {
     expiresAt: ExpiresAt,
+    responseHeaders?: {[header: string]: string},
 };
 
 export type ChecksumOptions = MiscellaneousOptions & {

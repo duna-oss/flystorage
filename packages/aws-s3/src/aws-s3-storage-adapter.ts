@@ -141,8 +141,30 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             Key: this.prefixer.prefixFilePath(path),
         };
 
-        if (options.ResponseContentDisposition) {
-            getObjectParams.ResponseContentDisposition = options.ResponseContentDisposition;
+        if (options.responseHeaders) {
+            if (options.responseHeaders['Cache-Control']) {
+                getObjectParams.ResponseCacheControl = options.responseHeaders['Cache-Control'];
+            }
+
+            if (options.responseHeaders['Content-Disposition']) {
+                getObjectParams.ResponseContentDisposition = options.responseHeaders['Content-Disposition'];
+            }
+
+            if (options.responseHeaders['Content-Encoding']) {
+                getObjectParams.ResponseContentEncoding = options.responseHeaders['Content-Encoding'];
+            }
+
+            if (options.responseHeaders['Content-Language']) {
+                getObjectParams.ResponseContentLanguage = options.responseHeaders['Content-Language'];
+            }
+
+            if (options.responseHeaders['Content-Type']) {
+                getObjectParams.ResponseContentType = options.responseHeaders['Content-Type'];
+            }
+
+            if (options.responseHeaders['Expires']) {
+                getObjectParams.ResponseExpires = options.responseHeaders['Expires'];
+            }
         }
 
         return await getSignedUrl(this.client, new GetObjectCommand(getObjectParams), {
