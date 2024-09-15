@@ -53,10 +53,10 @@ jobs:
         env:
           CONTENTS: "${{ secrets.GCS_KEY_CONTENTS }}"
       - name: Run build
-        if: steps.changes.outputs.source == 'true'
+        # if: steps.changes.outputs.source == 'true'
         run: npm run build
       - name: Run relevant tests
-        if: steps.changes.outputs.source == 'true'
+        # if: steps.changes.outputs.source == 'true'
         run: "npm run test"
         env:
           AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
