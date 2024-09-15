@@ -1,7 +1,7 @@
 {
   "private": true,
   "type": "module",
-  "name": "packed",
+  "name": "packed-esm",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",

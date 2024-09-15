@@ -1,7 +1,7 @@
 {
   "private": true,
   "type": "commonjs",
-  "name": "packed",
+  "name": "packed-cjs",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
