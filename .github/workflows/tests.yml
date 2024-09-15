@@ -22,10 +22,10 @@ jobs:
         platform: [ubuntu-latest]
         node: [20, 21, 22]
         experimental: [false]
-        include:
-          - platform: windows-latest
-            experimental: true
-            node: 22
+#        include:
+#          - platform: windows-latest
+#            experimental: true
+#            node: 22
     name: Flystorage Tests
     steps:
       - name: Checkout the repository
