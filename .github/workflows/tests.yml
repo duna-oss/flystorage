@@ -66,5 +66,5 @@ jobs:
       - name: Delete GCP access
         if: always()
         run: |
-          rm -rf google-cloud-service-account.json
+          rimraf google-cloud-service-account.json
 
