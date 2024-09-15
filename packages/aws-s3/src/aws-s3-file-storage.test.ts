@@ -198,9 +198,9 @@ describe('aws-s3 file storage', () => {
             });
 
             await expect(responseHeaderValue(
-                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Content-Type': 'image/jpeg'} }),
+                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Content-Type': 'image/jpeg+special'} }),
                 'Content-Type'
-            )).resolves.toEqual('en-US');
+            )).resolves.toEqual('image/jpeg+special');
         });
 
         test('fetches file with Expires header when specified in the options', async () => {
@@ -294,7 +294,6 @@ function responseHeaderValue(url: string, header: string): Promise<string | unde
             if (res.statusCode !== 200) {
                 reject(new Error(`Not able to download the file from ${url}, response status [${res.statusCode}]`));
             } else {
-                console.log(res.headers);
                 resolve(
                     res.headers[header]?.toString()
                         ?? res.headers[header.toLowerCase()]?.toString()
