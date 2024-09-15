@@ -15,6 +15,7 @@ import {
     S3Client,
     S3ServiceException,
     CopyObjectRequest,
+    GetObjectCommandInput,
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
@@ -135,10 +136,38 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         const expiry = normalizeExpiryToMilliseconds(options.expiresAt);
         const now = (this.timestampResolver)();
 
-        return await getSignedUrl(this.client, new GetObjectCommand({
+        const getObjectParams: GetObjectCommandInput = {
             Bucket: this.options.bucket,
             Key: this.prefixer.prefixFilePath(path),
-        }), {
+        };
+
+        if (options.responseHeaders) {
+            if (options.responseHeaders['Cache-Control']) {
+                getObjectParams.ResponseCacheControl = options.responseHeaders['Cache-Control'];
+            }
+
+            if (options.responseHeaders['Content-Disposition']) {
+                getObjectParams.ResponseContentDisposition = options.responseHeaders['Content-Disposition'];
+            }
+
+            if (options.responseHeaders['Content-Encoding']) {
+                getObjectParams.ResponseContentEncoding = options.responseHeaders['Content-Encoding'];
+            }
+
+            if (options.responseHeaders['Content-Language']) {
+                getObjectParams.ResponseContentLanguage = options.responseHeaders['Content-Language'];
+            }
+
+            if (options.responseHeaders['Content-Type']) {
+                getObjectParams.ResponseContentType = options.responseHeaders['Content-Type'];
+            }
+
+            if (options.responseHeaders['Expires']) {
+                getObjectParams.ResponseExpires = new Date(options.responseHeaders['Expires']);
+            }
+        }
+
+        return await getSignedUrl(this.client, new GetObjectCommand(getObjectParams), {
             expiresIn: Math.floor((expiry - now) / 1000),
         });
     }
