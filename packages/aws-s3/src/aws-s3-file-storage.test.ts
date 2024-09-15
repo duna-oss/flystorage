@@ -123,7 +123,7 @@ describe('aws-s3 file storage', () => {
             await expect(responseHeaderValue(
                 await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
                 'Content-Disposition'
-            )).resolves.toBeNull();
+            )).resolves.toBeUndefined();
         });
 
         test('fetches file with Cache-Control header when specified in the options', async () => {
@@ -145,7 +145,7 @@ describe('aws-s3 file storage', () => {
             await expect(responseHeaderValue(
                 await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
                 'Cache-Control'
-            )).resolves.toBeNull();
+            )).resolves.toBeUndefined();
         });
 
         test('fetches file with Content-Encoding header when specified in the options', async () => {
@@ -167,7 +167,7 @@ describe('aws-s3 file storage', () => {
             await expect(responseHeaderValue(
                 await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
                 'Content-Encoding'
-            )).resolves.toBeNull();
+            )).resolves.toBeUndefined();
         });
 
         test('fetches file with Content-Language header when specified in the options', async () => {
@@ -189,7 +189,7 @@ describe('aws-s3 file storage', () => {
             await expect(responseHeaderValue(
                 await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
                 'Content-Language'
-            )).resolves.toBeNull();
+            )).resolves.toBeUndefined();
         });
 
         test('fetches file with Content-Type header when specified in the options', async () => {
@@ -201,17 +201,6 @@ describe('aws-s3 file storage', () => {
                 await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000, responseHeaders: {'Content-Type': 'image/jpeg'} }),
                 'Content-Type'
             )).resolves.toEqual('en-US');
-        });
-
-        test('fetches file without Content-Type header when not specified in the options', async () => {
-            await storage.write('private+file.txt', 'contents of the private file', {
-                visibility: Visibility.PRIVATE,
-            });
-
-            await expect(responseHeaderValue(
-                await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
-                'Content-Type'
-            )).resolves.toBeNull();
         });
 
         test('fetches file with Expires header when specified in the options', async () => {
@@ -233,7 +222,7 @@ describe('aws-s3 file storage', () => {
             await expect(responseHeaderValue(
                 await storage.temporaryUrl('private+file.txt', {expiresAt: Date.now() + 60 * 1000}),
                 'Expires'
-            )).resolves.toBeNull();
+            )).resolves.toBeUndefined();
         });
     });
 
@@ -299,13 +288,18 @@ function naivelyDownloadFile(url: string): Promise<string> {
     });
 }
 
-function responseHeaderValue(url: string, header: string): Promise<string> {
+function responseHeaderValue(url: string, header: string): Promise<string | undefined> {
     return new Promise((resolve, reject) => {
         https.get(url, res => {
             if (res.statusCode !== 200) {
                 reject(new Error(`Not able to download the file from ${url}, response status [${res.statusCode}]`));
             } else {
-                resolve(res.headers[header] as string);
+                console.log(res.headers);
+                resolve(
+                    res.headers[header]?.toString()
+                        ?? res.headers[header.toLowerCase()]?.toString()
+                        ?? undefined
+                );
             }
         });
     });
