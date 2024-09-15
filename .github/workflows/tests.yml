@@ -66,5 +66,5 @@ jobs:
       - name: Delete GCP access
         if: always()
         run: |
-          rimraf google-cloud-service-account.json
+          node_modules/.bin/rimraf google-cloud-service-account.json
 
