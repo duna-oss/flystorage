@@ -1,7 +1,7 @@
 {
   "name": "@flystorage/azure-storage-blob",
   "type": "module",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "dependencies": {
     "@azure/storage-blob": "^12.24.0",
     "@flystorage/file-storage": "~0.1.2",
