@@ -3,12 +3,12 @@
   "type": "module",
   "version": "0.1.6",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.623.0",
-    "@aws-sdk/lib-storage": "^3.623.0",
-    "@aws-sdk/s3-request-presigner": "^3.623.0",
+    "@aws-sdk/client-s3": "^3.654.0",
+    "@aws-sdk/lib-storage": "^3.654.0",
+    "@aws-sdk/s3-request-presigner": "^3.654.0",
     "@flystorage/file-storage": "~0.1.5",
     "@flystorage/stream-mime-type": "~0.1.0",
-    "file-type": "^19.4.0",
+    "file-type": "^19.5.0",
     "mime-types": "^2.1.35"
   },
   "description": "",
