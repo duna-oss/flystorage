@@ -8,12 +8,13 @@ import * as path from "node:path";
 
 let client: S3Client;
 let storage: FileStorage;
+let bucket = 'flysystem-check'
 const testSegment = randomBytes(10).toString('hex');
 
 describe('aws-s3 file storage', () => {
     const truncate = async () =>
         await new FileStorage(new AwsS3StorageAdapter(client, {
-            bucket: 'flysystem-check',
+            bucket: bucket,
             prefix: 'storage',
         })).deleteDirectory(testSegment);
 
@@ -24,7 +25,7 @@ describe('aws-s3 file storage', () => {
     beforeEach(async () => {
         const secondSegment = randomBytes(10).toString('hex');
         storage = new FileStorage(new AwsS3StorageAdapter(client, {
-            bucket: 'flysystem-check',
+            bucket: bucket,
             prefix: `storage/${testSegment}/${secondSegment}`,
         }));
     });
@@ -51,6 +52,40 @@ describe('aws-s3 file storage', () => {
 
         expect(non_deep_listing).toHaveLength(4);
         expect(deep_listing).toHaveLength(4);
+        expect(non_deep_listing).toEqual(deep_listing);
+    });
+
+    test('root listing should work without root-slash', async () => {
+        const rootStorage = new FileStorage(new AwsS3StorageAdapter(client, {
+            bucket: bucket,
+        }));
+        await rootStorage.deleteDirectory('');
+
+        await rootStorage.write('test-with-root-slash.txt', 'contents');
+        await rootStorage.createDirectory('test-with-root-slash');
+
+        const non_deep_listing = await rootStorage.list('', {deep: false}).toArray();
+        const deep_listing = await rootStorage.list('', {deep: true}).toArray();
+
+        expect(non_deep_listing).toHaveLength(2);
+        expect(deep_listing).toHaveLength(2);
+        expect(non_deep_listing).toEqual(deep_listing);
+    });
+
+    test('root listing should work with root-slash', async () => {
+        const rootStorage = new FileStorage(new AwsS3StorageAdapter(client, {
+            bucket: bucket,
+        }));
+        await rootStorage.deleteDirectory('/');
+
+        await rootStorage.write('test-without-root-slash.txt', 'contents');
+        await rootStorage.createDirectory('test-without-root-slash');
+
+        const non_deep_listing = await rootStorage.list('/', {deep: false}).toArray();
+        const deep_listing = await rootStorage.list('/', {deep: true}).toArray();
+
+        expect(non_deep_listing).toHaveLength(2);
+        expect(deep_listing).toHaveLength(2);
         expect(non_deep_listing).toEqual(deep_listing);
     });
 

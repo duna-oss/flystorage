@@ -108,7 +108,20 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         private readonly publicUrlGenerator: AwsPublicUrlGenerator = new DefaultAwsPublicUrlGenerator(),
         private readonly timestampResolver: TimestampResolver = () => Date.now(),
     ) {
-        this.prefixer = new PathPrefixer(options.prefix ?? '');
+        this.prefixer = new PathPrefixer(options.prefix ?? '', '/', (...paths) => {
+            const path = join(...paths);
+
+            if (path === "." || path === "/") {
+                // 1) https://nodejs.org/api/path.html#pathjoinpaths
+                // Zero-length path segments are ignored. If the joined path string is a zero-length string then '.' will be
+                // returned, representing the current working directory.
+                // 2) In S3 we use delimiter:"/". In that case we need to remove the root-slash in order to list the
+                // root-directory contents.
+                return ""
+            } else {
+                return path
+            }
+        });
     }
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
