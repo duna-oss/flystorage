@@ -20,7 +20,7 @@ describe('aws-s3 file storage', () => {
 
     beforeAll(() => {
         const [major] = process.versions.node.split('.').map(Number);
-        const versionToBucketMapping = [[20, 'a'], [21, 'b'], [22, 'c'], , [23, 'd']] as [number, string][];
+        const versionToBucketMapping = [[20, 'a'], [21, 'b'], [22, 'c'], [23, 'd']] as [number, string][];
         const bucketSuffix = versionToBucketMapping.find(([version]) => version === major);
 
         if (bucketSuffix) {
