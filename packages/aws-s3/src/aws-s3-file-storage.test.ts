@@ -8,7 +8,7 @@ import * as path from "node:path";
 
 let client: S3Client;
 let storage: FileStorage;
-let bucket = 'flysystem-check'
+let bucket = 'flysystem-check';
 const testSegment = randomBytes(10).toString('hex');
 
 describe('aws-s3 file storage', () => {
@@ -19,6 +19,14 @@ describe('aws-s3 file storage', () => {
         })).deleteDirectory(testSegment);
 
     beforeAll(() => {
+        const [major] = process.versions.node.split('.').map(Number);
+        const versionToBucketMapping = [[20, 'a'], [21, 'b'], [22, 'c']] as [number, string][];
+        const bucketSuffix = versionToBucketMapping.find(([version]) => version === major);
+
+        if (bucketSuffix) {
+            bucket = `flystorage-${bucketSuffix[1]}`;
+        }
+
         client = new S3Client();
     });
 
