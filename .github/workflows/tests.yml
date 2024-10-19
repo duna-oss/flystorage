@@ -15,7 +15,6 @@ permissions:
 
 jobs:
   run-tests:
-    concurrency:
     runs-on: ${{ matrix.platform }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
