@@ -15,6 +15,10 @@ permissions:
 
 jobs:
   run-tests:
+    concurrency:
+      # Run without concurrency for now because the S3 tests test some aspects on the root directory.
+      group: for-now
+      cancel-in-progress: false
     runs-on: ${{ matrix.platform }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:

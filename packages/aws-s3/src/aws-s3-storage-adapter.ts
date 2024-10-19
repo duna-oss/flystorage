@@ -117,9 +117,9 @@ export class AwsS3StorageAdapter implements StorageAdapter {
                 // returned, representing the current working directory.
                 // 2) In S3 we use delimiter:"/". In that case we need to remove the root-slash in order to list the
                 // root-directory contents.
-                return ""
+                return "";
             } else {
-                return path
+                return path;
             }
         });
     }
