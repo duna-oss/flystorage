@@ -180,6 +180,19 @@ export class UnableToGetTemporaryUrl extends FlystorageError {
     );
 }
 
+export class UnableToPrepareUploadRequest extends FlystorageError {
+    public readonly code = 'flystorage.unable_to_prepare_upload_request';
+
+    static because = (reason: string, {context = {}, cause = undefined}: {
+        context?: ErrorContext,
+        cause?: unknown
+    }) => new UnableToGetTemporaryUrl(
+        `Unable to prepare upload request. Reason: ${reason}`,
+        context,
+        cause,
+    );
+}
+
 export class UnableToCopyFile extends FlystorageError {
     public readonly code = 'flystorage.unable_to_copy_file';
 

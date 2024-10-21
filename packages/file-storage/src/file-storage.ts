@@ -52,6 +52,7 @@ export interface StorageAdapter {
     directoryExists(path: string): Promise<boolean>;
     publicUrl(path: string, options: PublicUrlOptions): Promise<string>;
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string>;
+    prepareUpload?(path: string, options: UploadRequestOptions): Promise<UploadRequest>;
     checksum(path: string, options: ChecksumOptions): Promise<string>;
     mimeType(path: string, options: MimeTypeOptions): Promise<string>;
     lastModified(path: string): Promise<number>;
@@ -121,6 +122,10 @@ export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
 };
 export type CreateDirectoryOptions = MiscellaneousOptions & Pick<VisibilityOptions, 'directoryVisibility'> & {};
 export type PublicUrlOptions = MiscellaneousOptions & {};
+export type UploadRequestOptions = MiscellaneousOptions & {
+    expiresAt: ExpiresAt,
+    headers?: UploadRequestHeaders,
+};
 export type CopyFileOptions = MiscellaneousOptions & VisibilityOptions & {
     retainVisibility?: boolean,
 };
@@ -145,6 +150,7 @@ export type ConfigurationOptions = {
     copies?: CopyFileOptions,
     publicUrls?: PublicUrlOptions,
     temporaryUrls?: TemporaryUrlOptions,
+    uploadRequest?: UploadRequestOptions,
     checksums?: ChecksumOptions,
     mimeTypes?: MimeTypeOptions,
 }
@@ -384,6 +390,24 @@ export class FileStorage {
         }
     }
 
+    public async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        if (typeof this.adapter.prepareUpload !== 'function') {
+            throw new Error('The used adapter does not support prepared uploads.');
+        }
+
+        try {
+            return await this.adapter.prepareUpload(
+                this.pathNormalizer.normalizePath(path),
+                {...this.options.uploadRequest, ...options},
+            );
+        } catch (error) {
+            throw errors.UnableToPrepareUploadRequest.because(
+                errors.errorToMessage(error),
+                {cause: error, context: {path, options}},
+            );
+        }
+    }
+
     public async checksum(path: string, options: ChecksumOptions = {}): Promise<string> {
         try {
             return await this.adapter.checksum(
@@ -515,5 +539,13 @@ function concatUint8Arrays(input: Uint8Array[]): Uint8Array {
     });
 
     return output;
+}
+
+export type UploadRequestHeaders = Record<string, string | ReadonlyArray<string>>;
+
+export type UploadRequest = {
+    url: string,
+    method: 'PUT' | 'POST'
+    headers: UploadRequestHeaders,
 }
 
