@@ -15,7 +15,7 @@ import {
     S3Client,
     S3ServiceException,
     CopyObjectRequest,
-    GetObjectCommandInput,
+    GetObjectCommandInput, PutObjectCommand,
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
@@ -28,8 +28,12 @@ import {
     normalizeExpiryToMilliseconds,
     PathPrefixer,
     PublicUrlOptions,
+    UploadRequestOptions,
+    UploadRequestHeaders,
+    UploadRequest,
     StatEntry,
-    StorageAdapter, TemporaryUrlOptions,
+    StorageAdapter,
+    TemporaryUrlOptions,
     Visibility,
     WriteOptions
 } from '@flystorage/file-storage';
@@ -51,6 +55,7 @@ export type AwsS3StorageAdapterOptions = Readonly<{
     prefix?: string,
     region?: string,
     publicUrlOptions?: PublicUrlOptions,
+    uploadRequestOptions?: UploadRequestOptions,
     putObjectOptions?: PutObjectOptions,
     uploadConfiguration?: Partial<Configuration>,
     defaultChecksumAlgo?: ChecksumAlgo,
@@ -143,6 +148,33 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         await this.copyFile(from, to, options);
         await this.deleteFile(from);
+    }
+
+    async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        const expiry = normalizeExpiryToMilliseconds(options.expiresAt);
+        const now = (this.timestampResolver)();
+
+        const putObjectParams: PutObjectCommandInput = {
+            Bucket: this.options.bucket,
+            Key: this.prefixer.prefixFilePath(path),
+        };
+
+        const headers: UploadRequestHeaders = {};
+
+        if (typeof options['Content-Type'] === 'string') {
+            putObjectParams.ContentType = options['Content-Type'];
+            headers['Content-Type'] = options['Content-Type'];
+        }
+
+        const url = await getSignedUrl(this.client, new PutObjectCommand(putObjectParams), {
+            expiresIn: Math.floor((expiry - now) / 1000),
+        });
+
+        return {
+            url,
+            method: 'PUT',
+            headers,
+        };
     }
 
     async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {

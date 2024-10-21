@@ -1,5 +1,5 @@
 import {S3Client} from '@aws-sdk/client-s3';
-import {FileStorage, readableToString, Visibility, closeReadable} from '@flystorage/file-storage';
+import {FileStorage, readableToString, Visibility, closeReadable, UploadRequestHeaders} from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as https from 'https';
 import {AwsS3StorageAdapter} from './aws-s3-storage-adapter.js';
@@ -41,6 +41,26 @@ describe('aws-s3 file storage', () => {
     afterAll(async () => {
         await truncate();
         client.destroy();
+    });
+
+    test('uploading using a prepared request', async () => {
+        const request = await storage.prepareUpload('prepared/request-file.txt', {
+            expiresAt: Date.now() + 60 * 1000,
+            headers: {
+                'Content-Type': 'text/plain',
+            }
+        });
+
+        await naivelyMakeRequestFile(
+            request.url,
+            request.headers,
+            request.method,
+            'this is the contents',
+        );
+
+        const contents = await storage.readToString('prepared/request-file.txt');
+
+        expect(contents).toEqual('this is the contents');
     });
 
     test('writing and reading a file', async () => {
@@ -328,6 +348,38 @@ function naivelyDownloadFile(url: string): Promise<string> {
                 resolve(await readableToString(res));
             }
         });
+    });
+}
+
+function naivelyMakeRequestFile(url: string, headers: UploadRequestHeaders, method: string, data: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const req = https.request(url, {
+            method: method,
+            headers: {
+                ...headers,
+                'Content-Length': new Blob([data]).size,
+            }
+        }, async res => {
+            let responseBody = '';
+            res.on('data', (chunk) => {
+                responseBody += chunk;
+            });
+            res.on('end', () => {
+                const statusCode = res.statusCode ?? 500;
+
+                if (statusCode <= 200 && statusCode >= 299) {
+                    reject(new Error(`Not able to download the file from ${url}, response status [${res.statusCode}]`));
+                } else {
+                    resolve();
+                }
+            });
+        });
+
+        req.on('error', (err) => {
+            reject(err);
+        });
+        req.write(data);
+        req.end();
     });
 }
 
