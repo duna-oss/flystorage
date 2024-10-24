@@ -124,6 +124,7 @@ export type CreateDirectoryOptions = MiscellaneousOptions & Pick<VisibilityOptio
 export type PublicUrlOptions = MiscellaneousOptions & {};
 export type UploadRequestOptions = MiscellaneousOptions & {
     expiresAt: ExpiresAt,
+    contentType?: string,
     headers?: UploadRequestHeaders,
 };
 export type CopyFileOptions = MiscellaneousOptions & VisibilityOptions & {
