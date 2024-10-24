@@ -1,9 +1,10 @@
 import {BlobServiceClient} from "@azure/storage-blob";
 import {AzureStorageBlobStorageAdapter} from "./azure-storage-blob.js";
 import {randomBytes} from "crypto";
-import {FileStorage, Visibility, readableToString} from "@flystorage/file-storage";
+import {FileStorage, UploadRequestHeaders, Visibility, readableToString} from "@flystorage/file-storage";
 import fetch from "node-fetch";
 import { Readable } from "node:stream";
+import https from 'https';
 
 const runSegment = process.env.AZURE_PREFIX ?? randomBytes(10).toString('hex');
 
@@ -198,6 +199,26 @@ describe('AzureStorageBlobStorageAdapter', () => {
         expect(contents).toEqual('something');
     });
 
+    test('uploading using a prepared request', async () => {
+        const request = await storage.prepareUpload('prepared/request-file.txt', {
+            expiresAt: Date.now() + 60 * 1000,
+            headers: {
+                'Content-Type': 'text/plain',
+            }
+        });
+
+        await naivelyMakeRequestFile(
+            request.url,
+            request.headers,
+            request.method,
+            'this is the contents',
+        );
+
+        const contents = await storage.readToString('prepared/request-file.txt');
+
+        expect(contents).toEqual('this is the contents');
+    });
+
     test('setting cache-control headers', async () => {
         await storage.write('cachecontrol.txt', 'something', { cacheControl: 'max-age=3200, public' });
         const url = await storage.publicUrl('cachecontrol.txt');
@@ -214,4 +235,36 @@ async function naivelyDownloadFile(url: string): Promise<string> {
     } else {
         return await readableToString(Readable.from(res.body));
     }
+}
+
+function naivelyMakeRequestFile(url: string, headers: UploadRequestHeaders, method: string, data: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const req = https.request(url, {
+            method: method,
+            headers: {
+                ...headers,
+                'Content-Length': new Blob([data]).size,
+            }
+        }, async res => {
+            let responseBody = '';
+            res.on('data', (chunk) => {
+                responseBody += chunk;
+            });
+            res.on('end', () => {
+                const statusCode = res.statusCode ?? 500;
+
+                if (statusCode <= 200 && statusCode >= 299) {
+                    reject(new Error(`Not able to download the file from ${url}, response status [${res.statusCode}]`));
+                } else {
+                    resolve();
+                }
+            });
+        });
+
+        req.on('error', (err) => {
+            reject(err);
+        });
+        req.write(data);
+        req.end();
+    });
 }

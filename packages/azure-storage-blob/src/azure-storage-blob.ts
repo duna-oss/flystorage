@@ -1,4 +1,4 @@
-import {Readable} from "stream";
+import {Readable} from 'stream';
 import {
     ChecksumIsNotAvailable,
     ChecksumOptions,
@@ -7,21 +7,25 @@ import {
     ListOptions,
     MimeTypeOptions,
     MoveFileOptions,
+    normalizeExpiryToDate,
     PathPrefixer,
     PublicUrlOptions,
     StatEntry,
     StorageAdapter,
     TemporaryUrlOptions,
+    UploadRequest,
+    UploadRequestHeaders,
+    UploadRequestOptions,
     WriteOptions,
-    normalizeExpiryToDate,
-} from "@flystorage/file-storage";
+} from '@flystorage/file-storage';
 import {
+    BlobGenerateSasUrlOptions,
     BlobGetPropertiesResponse,
     BlobProperties,
     BlobSASPermissions,
     ContainerClient,
 } from '@azure/storage-blob';
-import {resolveMimeType} from "@flystorage/stream-mime-type";
+import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {dirname} from 'node:path';
 
 
@@ -230,6 +234,28 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
             permissions: BlobSASPermissions.parse('r'),
             ...(this.options.temporaryUrlOptions ?? {}),
         });
+    }
+
+    async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        const headers: UploadRequestHeaders = {};
+        headers['x-ms-blob-type'] = options['x-ms-blob-type'] ?? 'BlockBlob';
+        const config: BlobGenerateSasUrlOptions = {
+            expiresOn: normalizeExpiryToDate(options.expiresAt),
+            permissions: BlobSASPermissions.parse('w'),
+            ...(this.options.temporaryUrlOptions ?? {}),
+        };
+
+
+        const contentType = options['Content-Type'] ?? options.contentType;
+
+        if (typeof contentType === 'string') {
+            config.contentType = contentType;
+            headers['Content-Type'] = contentType;
+        }
+
+        const url = await this.blockClient(path).generateSasUrl(config);
+
+        return {method: 'PUT', url, headers};
     }
 
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
