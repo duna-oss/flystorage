@@ -11,10 +11,13 @@ import {
     StatEntry,
     StorageAdapter,
     TemporaryUrlOptions,
+    UploadRequest,
+    UploadRequestHeaders,
+    UploadRequestOptions,
     WriteOptions,
 } from '@flystorage/file-storage';
 import {Readable} from 'stream';
-import {Bucket, GetFilesOptions, File} from '@google-cloud/storage';
+import {Bucket, GetFilesOptions, File, GetSignedUrlConfig} from '@google-cloud/storage';
 import {resolveMimeType, streamHead} from '@flystorage/stream-mime-type';
 import {pipeline} from 'node:stream/promises';
 import {
@@ -186,6 +189,29 @@ export class GoogleCloudStorageAdapter implements StorageAdapter {
         });
 
         return response;
+    }
+
+    async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        const headers: UploadRequestHeaders = {};
+        const config: GetSignedUrlConfig = {
+            action: 'write',
+            expires: options.expiresAt,
+        };
+
+        const contentType = options['Content-Type'] ?? options.contentType;
+
+        if (typeof contentType === 'string') {
+            config.contentType = contentType;
+            headers['Content-Type'] = contentType;
+        }
+
+        const [url] = await this.bucket.file(this.prefixer.prefixFilePath(path)).getSignedUrl(config);
+
+        return {
+            url,
+            headers,
+            method: 'PUT',
+        };
     }
 
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
