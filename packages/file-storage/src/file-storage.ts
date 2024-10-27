@@ -154,6 +154,7 @@ export type ConfigurationOptions = {
     uploadRequest?: UploadRequestOptions,
     checksums?: ChecksumOptions,
     mimeTypes?: MimeTypeOptions,
+    preparedUploadStrategy?: PreparedUploadStrategy
 }
 
 export function toReadable(contents: FileContents): Readable {
@@ -392,6 +393,17 @@ export class FileStorage {
     }
 
     public async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        if (this.options.preparedUploadStrategy !== undefined) {
+            try {
+                return this.options.preparedUploadStrategy.prepareUpload(path, options);
+            } catch (error) {
+                throw errors.UnableToPrepareUploadRequest.because(
+                    errors.errorToMessage(error),
+                    {cause: error, context: {path, options}},
+                );
+            }
+        }
+
         if (typeof this.adapter.prepareUpload !== 'function') {
             throw new Error('The used adapter does not support prepared uploads.');
         }
@@ -548,5 +560,15 @@ export type UploadRequest = {
     url: string,
     method: 'PUT' | 'POST'
     headers: UploadRequestHeaders,
+}
+
+export interface PreparedUploadStrategy {
+    prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest>;
+}
+
+export class PreparedUploadsAreNotSupported implements PreparedUploadStrategy {
+    prepareUpload(): Promise<UploadRequest> {
+        throw new Error('The used adapter does not support prepared uploads.');
+    }
 }
 

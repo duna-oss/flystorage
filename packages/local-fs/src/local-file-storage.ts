@@ -12,6 +12,8 @@ import {
     MoveFileOptions,
     VisibilityOptions,
     MimeTypeOptions,
+    UploadRequestOptions,
+    UploadRequest,
 } from '@flystorage/file-storage';
 import type {FileExtension} from 'file-type';
 import {lookup} from "mime-types";
@@ -22,6 +24,7 @@ import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
 import {dynamicallyImport} from '@flystorage/dynamic-import';
+import {PreparedUploadsAreNotSupported, PreparedUploadStrategy} from '@flystorage/file-storage';
 
 export type LocalStorageAdapterOptions = {
     rootDirectoryVisibility?: string,
@@ -80,6 +83,7 @@ export class LocalStorageAdapter implements StorageAdapter {
         private readonly visibilityConversion: UnixVisibilityConversion = new PortableUnixVisibilityConversion(),
         private readonly publicUrlGenerator: LocalPublicUrlGenerator = new BaseUrlLocalPublicUrlGenerator(),
         private readonly temporaryUrlGenerator: LocalTemporaryUrlGenerator = new FailingLocalTemporaryUrlGenerator(),
+        private readonly uploadPreparer: PreparedUploadStrategy = new PreparedUploadsAreNotSupported(),
     ) {
         this.rootDir = posix.join(this.rootDir, posix.sep);
         this.prefixer = new PathPrefixer(this.rootDir, posix.sep, posix.join);
@@ -100,6 +104,10 @@ export class LocalStorageAdapter implements StorageAdapter {
             this.prefixer.prefixFilePath(from),
             this.prefixer.prefixFilePath(to),
         );
+    }
+
+    prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        return this.uploadPreparer.prepareUpload(path, options);
     }
 
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
