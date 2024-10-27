@@ -698,4 +698,7 @@ export const writeOptionResolvers: ResolversForWriteOptions = {
     ExpectedBucketOwner: function (value: any): value is PutObjectOptions['ExpectedBucketOwner'] {
         return typeof value === 'string';
     },
+    IfNoneMatch: function (value: any): value is WriteOptionsForS3['IfNoneMatch'] {
+        return typeof value === 'string';
+    },
 };
