@@ -465,7 +465,7 @@ export function normalizeExpiryToMilliseconds(expiresAt: ExpiresAt): number {
 }
 
 export async function closeReadable(body: Readable) {
-    if (body.closed) {
+    if (body.closed || body.destroyed) {
         return;
     }
 
