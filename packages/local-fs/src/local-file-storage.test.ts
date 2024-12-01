@@ -2,6 +2,7 @@ import {
     FileInfo,
     FileStorage,
     normalizeExpiryToMilliseconds,
+    UploadRequest,
     Visibility
 } from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash} from 'crypto';
@@ -26,6 +27,47 @@ describe('LocalStorageAdapter', () => {
     );
     afterEach(() => {
         execSync(`rm -rf ${rootDirectory}/*`);
+    });
+
+    test('preparing uploads is not supported by default', async () => {
+        await expect(storage.prepareUpload('somewhere', {
+            expiresAt: Date.now() + 10000,
+        })).rejects.toThrowError();
+    });
+
+    test('you can use your own upload preparer to support preparing uploads', async () => {
+        const storage = new FileStorage(
+            new LocalStorageAdapter(
+                rootDirectory,
+                {
+                    publicUrlOptions: {
+                        baseUrl: 'https://default.com/',
+                    },
+                },
+                undefined,
+                undefined,
+                undefined,
+                {
+                    async prepareUpload(path) {
+                        return {
+                            method: 'PUT',
+                            url: `https://fixates.url.com/${path}`,
+                            headers: {},
+                        }
+                    },
+                },
+            ),
+        );
+
+        const request = await storage.prepareUpload('somewhere/here.txt', {
+            expiresAt: 0,
+        });
+
+        expect(request).toEqual({
+            method: 'PUT',
+            url: 'https://fixates.url.com/somewhere/here.txt',
+            headers: {},
+        } satisfies UploadRequest);
     });
 
     test('deleting a file', async () => {
