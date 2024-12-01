@@ -211,6 +211,7 @@ export class GoogleCloudStorageAdapter implements StorageAdapter {
             url,
             headers,
             method: 'PUT',
+            provider: 'google-cloud-storage',
         };
     }
 

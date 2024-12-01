@@ -175,6 +175,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         return {
             url,
             method: 'PUT',
+            provider: 'aws-s3',
             headers,
         };
     }
