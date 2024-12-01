@@ -1,5 +1,6 @@
 import {Readable} from "stream";
 import {
+    ChecksumIsNotAvailable,
     ChecksumOptions,
     CopyFileOptions,
     FileContents,
@@ -93,9 +94,11 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         const blob = this.blockClient(path);
         await blob.deleteIfExists();
     }
+
     async createDirectory(): Promise<void> {
         // no-op, directories do not exist.
     }
+
     async stat(path: string): Promise<StatEntry> {
         const blob = this.blockClient(path);
         const properties = await blob.getProperties();
@@ -228,9 +231,49 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
             ...(this.options.temporaryUrlOptions ?? {}),
         });
     }
-    async checksum(path: string, options: ChecksumOptions): Promise<string> {
-        throw new Error('Not implemented');
+<<<<<<< Updated upstream
+=======
+    async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        const headers: UploadRequestHeaders = {};
+        headers['x-ms-blob-type'] = options['x-ms-blob-type'] ?? 'BlockBlob';
+        const config: BlobGenerateSasUrlOptions = {
+            expiresOn: normalizeExpiryToDate(options.expiresAt),
+            permissions: BlobSASPermissions.parse('w'),
+            ...(this.options.temporaryUrlOptions ?? {}),
+        };
+
+
+        const contentType = options['Content-Type'] ?? options.contentType;
+
+        if (typeof contentType === 'string') {
+            config.contentType = contentType;
+            headers['Content-Type'] = contentType;
+        }
+
+        const url = await this.blockClient(path).generateSasUrl(config);
+
+        return {method: 'PUT', provider: 'azure-storage-blob', url, headers};
     }
+
+>>>>>>> Stashed changes
+    async checksum(path: string, options: ChecksumOptions): Promise<string> {
+        const algo = options.algo ?? 'etag';
+
+        if (algo !== 'etag') {
+            throw ChecksumIsNotAvailable.checksumNotSupported(algo);
+        }
+
+        const blob = this.blockClient(path);
+        const properties = await blob.getProperties();
+        const etag = properties.etag;
+
+        if (etag === undefined) {
+            throw new Error('Etag is not defined on blob properties.');
+        }
+
+        return etag;
+    }
+
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
         const stat = await this.stat(path);
 

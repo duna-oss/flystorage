@@ -1,7 +1,12 @@
 import {BlobServiceClient} from "@azure/storage-blob";
 import {AzureStorageBlobStorageAdapter} from "./azure-storage-blob.js";
+<<<<<<< Updated upstream
 import {randomBytes} from "crypto";
 import {FileStorage, Visibility, readableToString} from "@flystorage/file-storage";
+=======
+import {randomBytes} from 'crypto';
+import {FileStorage, UploadRequestHeaders, Visibility, readableToString} from "@flystorage/file-storage";
+>>>>>>> Stashed changes
 import fetch from "node-fetch";
 import { Readable } from "node:stream";
 
@@ -47,6 +52,18 @@ describe('AzureStorageBlobStorageAdapter', () => {
 
         expect(non_deep_listing).toHaveLength(4);
         expect(deep_listing).toHaveLength(6);
+    });
+
+    test('it can request a checksum', async () => {
+        const contents = 'this is for the checksum';
+        await storage.write('path.txt', contents);
+
+        const checksum = await storage.checksum('path.txt', {
+            algo: 'etag',
+        });
+
+        expect(typeof checksum).toEqual('string');
+        expect(checksum.length).toBeGreaterThan(5);
     });
 
     test('reading a file that was written', async () => {
