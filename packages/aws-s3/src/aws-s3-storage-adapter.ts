@@ -602,6 +602,12 @@ function isWriteOptionKey(key: string): key is string & keyof ResolversForWriteO
 }
 
 export const writeOptionResolvers: ResolversForWriteOptions = {
+    IfMatch: function (value: any): value is PutObjectOptions['IfMatch'] {
+        return typeof value === 'string';
+    },
+    WriteOffsetBytes: function (value: any): value is PutObjectOptions['WriteOffsetBytes'] {
+        return typeof value === 'string';
+    },
     ChecksumSHA1: function (value: any): value is PutObjectOptions['ChecksumSHA1'] {
         return typeof value === 'string';
     },
