@@ -231,31 +231,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
             ...(this.options.temporaryUrlOptions ?? {}),
         });
     }
-<<<<<<< Updated upstream
-=======
-    async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
-        const headers: UploadRequestHeaders = {};
-        headers['x-ms-blob-type'] = options['x-ms-blob-type'] ?? 'BlockBlob';
-        const config: BlobGenerateSasUrlOptions = {
-            expiresOn: normalizeExpiryToDate(options.expiresAt),
-            permissions: BlobSASPermissions.parse('w'),
-            ...(this.options.temporaryUrlOptions ?? {}),
-        };
 
-
-        const contentType = options['Content-Type'] ?? options.contentType;
-
-        if (typeof contentType === 'string') {
-            config.contentType = contentType;
-            headers['Content-Type'] = contentType;
-        }
-
-        const url = await this.blockClient(path).generateSasUrl(config);
-
-        return {method: 'PUT', provider: 'azure-storage-blob', url, headers};
-    }
-
->>>>>>> Stashed changes
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
         const algo = options.algo ?? 'etag';
 

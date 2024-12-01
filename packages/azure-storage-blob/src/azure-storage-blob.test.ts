@@ -1,12 +1,7 @@
 import {BlobServiceClient} from "@azure/storage-blob";
 import {AzureStorageBlobStorageAdapter} from "./azure-storage-blob.js";
-<<<<<<< Updated upstream
 import {randomBytes} from "crypto";
 import {FileStorage, Visibility, readableToString} from "@flystorage/file-storage";
-=======
-import {randomBytes} from 'crypto';
-import {FileStorage, UploadRequestHeaders, Visibility, readableToString} from "@flystorage/file-storage";
->>>>>>> Stashed changes
 import fetch from "node-fetch";
 import { Readable } from "node:stream";
 
