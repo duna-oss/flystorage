@@ -255,7 +255,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
 
         const url = await this.blockClient(path).generateSasUrl(config);
 
-        return {method: 'PUT', url, headers};
+        return {method: 'PUT', provider: 'azure-storage-blob', url, headers};
     }
 
     async checksum(path: string, options: ChecksumOptions): Promise<string> {

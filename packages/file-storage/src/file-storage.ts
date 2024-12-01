@@ -558,6 +558,7 @@ export type UploadRequestHeaders = Record<string, string | ReadonlyArray<string>
 
 export type UploadRequest = {
     url: string,
+    provider?: string,
     method: 'PUT' | 'POST'
     headers: UploadRequestHeaders,
 }
