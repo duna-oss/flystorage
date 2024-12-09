@@ -2,6 +2,7 @@ import {Readable} from 'node:stream';
 import {parse} from 'node:path';
 import {lookup as mimeTimeForExt} from 'mime-types';
 import {PassThrough} from 'node:stream';
+import {dynamicallyImport} from '@flystorage/dynamic-import';
 
 function concatUint8Arrays(input: Uint8Array[]): Uint8Array {
     const length = input.reduce((l, a) => l + a.byteLength, 0);
@@ -46,7 +47,8 @@ export async function streamHead(stream: Readable, size: number): Promise<[Uint8
     });
 }
 
-type FileTypePackage = typeof import('file-type');
+type FileTypePackage = typeof import('file-type', {with: {'resolution-mode': 'import'}});
+let fileTypeImport: Promise<FileTypePackage> | undefined;
 let fileTypes: FileTypePackage | undefined = undefined;
 
 export async function resolveMimeType(
@@ -56,9 +58,14 @@ export async function resolveMimeType(
 ): Promise<[string|undefined, Readable]> {
     const [head, readable] = await streamHead(stream, 4100);
 
-    if (fileTypes === undefined) {
-        fileTypes = await eval('import("file-type")') as typeof import('file-type');
+    if (fileTypeImport === undefined) {
+        fileTypeImport = dynamicallyImport<FileTypePackage>('file-type');
     }
+
+    if (fileTypes === undefined) {
+        fileTypes = await fileTypeImport;
+    }
+
 
     const {fileTypeFromBuffer} = fileTypes;
     const lookup = await fileTypeFromBuffer(head);

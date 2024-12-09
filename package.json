@@ -12,7 +12,7 @@
     "clean": "rm -rf ./packages/*/dist/",
     "ts": "node --import tsx/esm",
     "lint": "tsc --noEmit --incremental false",
-    "jest": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --detectOpenHandles",
+    "jest": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles",
     "test": "npm run lint && npm run jest",
     "test:related-to": "npm run lint && npm run jest -- --passWithNoTests --findRelatedTests"
   },

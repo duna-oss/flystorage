@@ -1,8 +1,9 @@
 {
   "name": "@flystorage/stream-mime-type",
   "type": "module",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "dependencies": {
+    "@flystorage/dynamic-import": "^0.1.0",
     "file-type": "^19.6.0",
     "mime-types": "^2.1.35"
   },

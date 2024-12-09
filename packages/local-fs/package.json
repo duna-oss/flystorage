@@ -1,8 +1,9 @@
 {
   "name": "@flystorage/local-fs",
   "type": "module",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "dependencies": {
+    "@flystorage/dynamic-import": "^0.1.0",
     "@flystorage/file-storage": "~0.1.1",
     "file-type": "^19.6.0"
   },

@@ -21,6 +21,7 @@ import {posix, extname} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
+import {dynamicallyImport} from '@flystorage/dynamic-import';
 
 export type LocalStorageAdapterOptions = {
     rootDirectoryVisibility?: string,
@@ -67,6 +68,7 @@ export class FailingLocalTemporaryUrlGenerator implements LocalTemporaryUrlGener
 }
 
 type FileTypePackage = typeof import('file-type');
+let fileTypeImport: Promise<FileTypePackage> | undefined;
 let fileTypes: FileTypePackage | undefined = undefined;
 
 export class LocalStorageAdapter implements StorageAdapter {
@@ -109,8 +111,12 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
+        if (fileTypeImport === undefined) {
+            fileTypeImport = dynamicallyImport<FileTypePackage>('file-type');
+        }
+
         if (fileTypes === undefined) {
-            fileTypes = await eval('import("file-type")') as typeof import('file-type');
+            fileTypes = await fileTypeImport;
         }
 
         const {fileTypeFromFile, supportedExtensions} = fileTypes;
