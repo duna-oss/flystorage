@@ -344,7 +344,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             Key: this.prefixer.prefixFilePath(path),
         }));
 
-        if (response.Body instanceof Readable) {
+        if (response.Body instanceof Readable || response.Body instanceof ReadableStream) {
             return response.Body;
         }
 
