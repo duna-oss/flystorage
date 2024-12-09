@@ -1,0 +1,29 @@
+{
+  "name": "@flystorage/dynamic-import",
+  "type": "commonjs",
+  "version": "0.1.0",
+  "description": "Utility to dynamically import ESM packages from CommonJS without tsc messing things up.",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
+    }
+  },
+  "scripts": {},
+  "author": "Frank de Jonge (https://frankdejonge.nl)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duna-oss/flystorage.git",
+    "directory": "packages/dynamic-import"
+  },
+  "keywords": [],
+  "license": "MIT"
+}
