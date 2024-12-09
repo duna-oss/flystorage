@@ -6,9 +6,9 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@flystorage/file-storage": "file:~/Sites/filestorage/packed/flystorage-file-storage-0.1.0.tgz",
-    "@flystorage/local-fs": "file:~/Sites/filestorage/packed/flystorage-local-fs-0.1.0.tgz",
-    "@flystorage/stream-mime-type": "file:~/Sites/filestorage/packed/flystorage-stream-mime-type-0.1.0.tgz"
+    "@flystorage/file-storage": "file:~/Sites/filestorage/packed/flystorage-file-storage-0.1.7.tgz",
+    "@flystorage/local-fs": "file:~/Sites/filestorage/packed/flystorage-local-fs-0.1.9.tgz",
+    "@flystorage/stream-mime-type": "file:~/Sites/filestorage/packed/flystorage-stream-mime-type-0.1.6.tgz"
   },
   "keywords": [],
   "author": "",
