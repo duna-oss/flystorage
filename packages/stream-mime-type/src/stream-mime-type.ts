@@ -47,7 +47,7 @@ export async function streamHead(stream: Readable, size: number): Promise<[Uint8
     });
 }
 
-type FileTypePackage = typeof import('file-type', {with: {'resolution-mode': 'import'}});
+type FileTypePackage = typeof import('file-type');
 let fileTypeImport: Promise<FileTypePackage> | undefined;
 let fileTypes: FileTypePackage | undefined = undefined;
 
