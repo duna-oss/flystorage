@@ -54,9 +54,7 @@ jobs:
           CONTENTS: "${{ secrets.GCS_KEY_CONTENTS }}"
       - name: Run build
         # if: steps.changes.outputs.source == 'true'
-        run: |
-          alias gsed=sed
-          npm run build
+        run: npm run build:only
       - name: Run relevant tests
         # if: steps.changes.outputs.source == 'true'
         run: "npm run test"

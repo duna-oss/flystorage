@@ -23,7 +23,8 @@
     }
   },
   "scripts": {
-    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json && gsed -i 's/dynamicallyImport(/import(/g' dist/esm/stream-mime-type.js",
+    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
+    "patch": "gsed -i 's/dynamicallyImport(/import(/g' dist/esm/stream-mime-type.js",
     "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
     "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
     "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
