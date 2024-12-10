@@ -15,7 +15,7 @@ import {
     S3Client,
     S3ServiceException,
     CopyObjectRequest,
-    GetObjectCommandInput,
+    GetObjectCommandInput, PutObjectCommand,
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
@@ -28,8 +28,12 @@ import {
     normalizeExpiryToMilliseconds,
     PathPrefixer,
     PublicUrlOptions,
+    UploadRequestOptions,
+    UploadRequestHeaders,
+    UploadRequest,
     StatEntry,
-    StorageAdapter, TemporaryUrlOptions,
+    StorageAdapter,
+    TemporaryUrlOptions,
     Visibility,
     WriteOptions
 } from '@flystorage/file-storage';
@@ -38,7 +42,8 @@ import {Readable} from 'stream';
 import {MimeTypeOptions, closeReadable, CopyFileOptions, MoveFileOptions} from "@flystorage/file-storage";
 import {lookup} from "mime-types";
 
-type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key'>;
+type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key' | 'Body'>;
+export type WriteOptionsForS3 = Omit<PutObjectOptions, 'ACL' | 'ContentLength'>;
 const possibleChecksumAlgos = ['SHA1', 'SHA256', 'CRC32', 'CRC32C', 'ETAG'] as const;
 type ChecksumAlgo = typeof possibleChecksumAlgos[number];
 
@@ -51,6 +56,7 @@ export type AwsS3StorageAdapterOptions = Readonly<{
     prefix?: string,
     region?: string,
     publicUrlOptions?: PublicUrlOptions,
+    uploadRequestOptions?: UploadRequestOptions,
     putObjectOptions?: PutObjectOptions,
     uploadConfiguration?: Partial<Configuration>,
     defaultChecksumAlgo?: ChecksumAlgo,
@@ -143,6 +149,35 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         await this.copyFile(from, to, options);
         await this.deleteFile(from);
+    }
+
+    async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        const expiry = normalizeExpiryToMilliseconds(options.expiresAt);
+        const now = (this.timestampResolver)();
+
+        const putObjectParams: PutObjectCommandInput = {
+            Bucket: this.options.bucket,
+            Key: this.prefixer.prefixFilePath(path),
+        };
+
+        const headers: UploadRequestHeaders = {};
+        const contentType = options['Content-Type'] ?? options.contentType;
+
+        if (typeof contentType === 'string') {
+            putObjectParams.ContentType = contentType;
+            headers['Content-Type'] = contentType;
+        }
+
+        const url = await getSignedUrl(this.client, new PutObjectCommand(putObjectParams), {
+            expiresIn: Math.floor((expiry - now) / 1000),
+        });
+
+        return {
+            url,
+            method: 'PUT',
+            provider: 'aws-s3',
+            headers,
+        };
     }
 
     async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
@@ -415,21 +450,36 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             [mimeType, contents] = await resolveMimeType(path, contents);
         }
 
-        await this.upload(this.prefixer.prefixFilePath(path), contents, {
+        const writeOptions: PutObjectOptions = {
             ACL: options.visibility ? this.visibilityToAcl(options.visibility) : undefined,
             ContentType: mimeType,
             ContentLength: options.size,
-            CacheControl: options.cacheControl
-        });
+            CacheControl: options.cacheControl,
+        }
+
+        for (const option in Object.keys(options)) {
+            if (isWriteOptionKey(option)) {
+                const resolver = (writeOptionResolvers as any)[option];
+                const value = options[option];
+
+                if (resolver(value)) {
+                    (writeOptions as any)[option] = value;
+                }
+            }
+        }
+
+        await this.upload(this.prefixer.prefixFilePath(path), contents, writeOptions);
     }
 
     private async upload(key: string, contents: Readable | '', options: PutObjectOptions) {
         const params: PutObjectCommandInput = {
             Bucket: this.options.bucket,
             Key: key,
+
             Body: contents,
             ...Object.assign({}, this.options.putObjectOptions, options),
         };
+
         const upload = new Upload({
             client: this.client,
             params,
@@ -543,3 +593,119 @@ export class AwsS3StorageAdapter implements StorageAdapter {
  * @deprecated
  */
 export class AwsS3FileStorage extends AwsS3StorageAdapter {}
+
+type ResolversForWriteOptions = {
+    [K in keyof WriteOptionsForS3]-?: (value: any) => value is WriteOptionsForS3[K]
+}
+
+function isWriteOptionKey(key: string): key is string & keyof ResolversForWriteOptions {
+    return Object.hasOwn(writeOptionResolvers, key);
+}
+
+export const writeOptionResolvers: ResolversForWriteOptions = {
+    IfMatch: function (value: any): value is PutObjectOptions['IfMatch'] {
+        return typeof value === 'string';
+    },
+    WriteOffsetBytes: function (value: any): value is PutObjectOptions['WriteOffsetBytes'] {
+        return typeof value === 'string';
+    },
+    ChecksumSHA1: function (value: any): value is PutObjectOptions['ChecksumSHA1'] {
+        return typeof value === 'string';
+    },
+    ChecksumSHA256: function (value: any): value is PutObjectOptions['ChecksumSHA256'] {
+        return typeof value === 'string';
+    },
+    ChecksumCRC32: function (value: any): value is PutObjectOptions['ChecksumCRC32'] {
+        return typeof value === 'string';
+    },
+    ChecksumCRC32C: function (value: any): value is PutObjectOptions['ChecksumCRC32C'] {
+        return typeof value === 'string';
+    },
+    CacheControl: function (value: any): value is PutObjectOptions['CacheControl'] {
+        return typeof value === 'string';
+    },
+    ContentDisposition: function (value: any): value is PutObjectOptions['ContentDisposition'] {
+        return typeof value === 'string';
+    },
+    ContentEncoding: function (value: any): value is PutObjectOptions['ContentEncoding'] {
+        return typeof value === 'string';
+    },
+    ContentLanguage: function (value: any): value is PutObjectOptions['ContentLanguage'] {
+        return typeof value === 'string';
+    },
+    ContentMD5: function (value: any): value is PutObjectOptions['ContentMD5'] {
+        return typeof value === 'string';
+    },
+    ContentType: function (value: any): value is PutObjectOptions['ContentType'] {
+        return typeof value === 'string';
+    },
+    ChecksumAlgorithm: function (value: any): value is PutObjectOptions['ChecksumAlgorithm'] {
+        return typeof value === 'string';
+    },
+    Expires: function (value: any): value is PutObjectOptions['Expires'] {
+        return value instanceof Date;
+    },
+    GrantFullControl: function (value: any): value is PutObjectOptions['GrantFullControl'] {
+        return typeof value === 'string';
+    },
+    GrantRead: function (value: any): value is PutObjectOptions['GrantRead'] {
+        return typeof value === 'string';
+    },
+    GrantReadACP: function (value: any): value is PutObjectOptions['GrantReadACP'] {
+        return typeof value === 'string';
+    },
+    GrantWriteACP: function (value: any): value is PutObjectOptions['GrantWriteACP'] {
+        return typeof value === 'string';
+    },
+    Metadata: function (value: any): value is PutObjectOptions['Metadata'] {
+        return typeof value === 'object';
+    },
+    ServerSideEncryption: function (value: any): value is PutObjectOptions['ServerSideEncryption'] {
+        return typeof value === 'string';
+    },
+    StorageClass: function (value: any): value is PutObjectOptions['StorageClass'] {
+        return typeof value === 'string';
+    },
+    WebsiteRedirectLocation: function (value: any): value is PutObjectOptions['WebsiteRedirectLocation'] {
+        return typeof value === 'string';
+    },
+    SSECustomerAlgorithm: function (value: any): value is PutObjectOptions['SSECustomerAlgorithm'] {
+        return typeof value === 'string';
+    },
+    SSECustomerKey: function (value: any): value is PutObjectOptions['SSECustomerKey'] {
+        return typeof value === 'string';
+    },
+    SSECustomerKeyMD5: function (value: any): value is PutObjectOptions['SSECustomerKeyMD5'] {
+        return typeof value === 'string';
+    },
+    SSEKMSKeyId: function (value: any): value is PutObjectOptions['SSEKMSKeyId'] {
+        return typeof value === 'string';
+    },
+    SSEKMSEncryptionContext: function (value: any): value is PutObjectOptions['SSEKMSEncryptionContext'] {
+        return typeof value === 'string';
+    },
+    BucketKeyEnabled: function (value: any): value is PutObjectOptions['BucketKeyEnabled'] {
+        return typeof value === 'string';
+    },
+    RequestPayer: function (value: any): value is PutObjectOptions['RequestPayer'] {
+        return typeof value === 'string';
+    },
+    Tagging: function (value: any): value is PutObjectOptions['Tagging'] {
+        return typeof value === 'string';
+    },
+    ObjectLockMode: function (value: any): value is PutObjectOptions['ObjectLockMode'] {
+        return typeof value === 'string';
+    },
+    ObjectLockRetainUntilDate: function (value: any): value is PutObjectOptions['ObjectLockRetainUntilDate'] {
+        return value instanceof Date;
+    },
+    ObjectLockLegalHoldStatus: function (value: any): value is PutObjectOptions['ObjectLockLegalHoldStatus'] {
+        return typeof value === 'string';
+    },
+    ExpectedBucketOwner: function (value: any): value is PutObjectOptions['ExpectedBucketOwner'] {
+        return typeof value === 'string';
+    },
+    IfNoneMatch: function (value: any): value is WriteOptionsForS3['IfNoneMatch'] {
+        return typeof value === 'string';
+    },
+};
