@@ -35,6 +35,7 @@
     "filesystem"
   ],
   "author": "Frank de Jonge (https://frankdejonge.nl)",
+  "homepage": "https://flystorage.dev/tools/chaos/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/duna-oss/flystorage.git",
