@@ -199,8 +199,8 @@ export class InMemoryStorageAdapter implements StorageAdapter {
         throw new Error("Method not implemented.");
     }
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
-        if (!(this.entries.get(path)?.type === 'file')) {
-            throw new Error(`File ${path} does not exists`);
+        if (this.entries.get(path)?.type !== 'file') {
+            // throw new Error(`File ${path} does not exists`);
         }
 
         throw ChecksumIsNotAvailable.checksumNotSupported(options.algo ?? 'unknown', {

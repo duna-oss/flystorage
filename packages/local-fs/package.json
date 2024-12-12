@@ -1,10 +1,10 @@
 {
   "name": "@flystorage/local-fs",
   "type": "module",
-  "version": "0.1.10",
+  "version": "1.0.0",
   "dependencies": {
-    "@flystorage/dynamic-import": "^0.1.0",
-    "@flystorage/file-storage": "~0.1.1",
+    "@flystorage/dynamic-import": "^1.0.0",
+    "@flystorage/file-storage": "^1.0.0",
     "file-type": "^19.6.0"
   },
   "description": "",
@@ -38,6 +38,7 @@
     "filesystem"
   ],
   "author": "Frank de Jonge (https://frankdejonge.nl)",
+  "homepage": "https://flystorage.dev/adapter/local-fs/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/duna-oss/flystorage.git",

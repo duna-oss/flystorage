@@ -15,7 +15,7 @@ Install all the required packages
 npm install --save @flystorage/dynamic-import
 ```
 
-## Setup
+## Usage
 
 ```typescript
 const {dynamicallyImport} = require('@flystorage/dynamic-import');
@@ -26,28 +26,3 @@ async function useFileType() {
 
 useFileType();
 ```
-
-> ⚠️ Always use the FileStorage, it is essential for security and a good developer
-> experience. Do not use the adapter directly.
- 
-## Usage
-
-```typescript
-
-import {TriggeredErrors} from '@flystorage/chaos';
-
-const strategy = new TriggeredErrors();
-
-// error on all write calls
-strategy.on('write', () => new Error());
-
-// error on first 2 stat calls
-strategy.on('stat', () => new Error(), {times: 2});
-
-// error after first 2 deleteFile calls
-strategy.on('deleteFile', () => new Error(), {after: 2});
-
-// error on 2nd and 3rd call to any method
-strategy.on('*', () => new Error(), {after: 1, times: 2});
-```
-

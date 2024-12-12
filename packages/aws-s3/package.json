@@ -1,13 +1,13 @@
 {
   "name": "@flystorage/aws-s3",
   "type": "module",
-  "version": "0.1.8",
+  "version": "1.0.0",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.701.0",
     "@aws-sdk/lib-storage": "^3.701.0",
     "@aws-sdk/s3-request-presigner": "^3.701.0",
-    "@flystorage/file-storage": "~0.1.5",
-    "@flystorage/stream-mime-type": "~0.1.0",
+    "@flystorage/file-storage": "^1.0.0",
+    "@flystorage/stream-mime-type": "^1.0.0",
     "file-type": "^19.6.0",
     "mime-types": "^2.1.35"
   },
@@ -41,6 +41,7 @@
     "filesystem"
   ],
   "author": "Frank de Jonge (https://frankdejonge.nl)",
+  "homepage": "https://flystorage.dev/adapter/aws-s3/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/duna-oss/flystorage.git",

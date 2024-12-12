@@ -48,6 +48,10 @@ export class ChecksumIsNotAvailable extends FlystorageError {
         {...context, algo},
         cause,
     );
+
+    static isErrorOfType(error: unknown): error is ChecksumIsNotAvailable {
+        return (typeof error === 'object' && (error as any).code === 'flystorage.checksum_not_supported');
+    }
 }
 
 export class UnableToGetChecksum extends FlystorageError {

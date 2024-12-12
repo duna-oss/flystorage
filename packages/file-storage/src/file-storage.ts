@@ -1,10 +1,32 @@
 import {BinaryToTextEncoding} from 'crypto';
 import {Readable} from 'stream';
 import {checksumFromStream} from './checksum-from-stream.js';
-import * as errors from './errors.js';
-import {ChecksumIsNotAvailable} from './errors.js';
 import {PathNormalizer, PathNormalizerV1} from './path-normalizer.js';
 import {TextEncoder} from "util";
+import {
+    ChecksumIsNotAvailable,
+    errorToMessage,
+    UnableToCheckDirectoryExistence,
+    UnableToCheckFileExistence,
+    UnableToCopyFile,
+    UnableToCreateDirectory,
+    UnableToDeleteDirectory,
+    UnableToDeleteFile,
+    UnableToGetChecksum,
+    UnableToGetFileSize,
+    UnableToGetLastModified,
+    UnableToGetMimeType,
+    UnableToGetPublicUrl,
+    UnableToGetStat,
+    UnableToGetTemporaryUrl,
+    UnableToGetVisibility,
+    UnableToListDirectory,
+    UnableToMoveFile,
+    UnableToPrepareUploadRequest,
+    UnableToReadFile,
+    UnableToSetVisibility,
+    UnableToWriteFile,
+} from './errors.js';
 
 export type CommonStatInfo = Readonly<{
     path: string,
@@ -91,8 +113,8 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
                 yield item;
             }
         } catch (error) {
-            throw errors.UnableToListDirectory.because(
-                errors.errorToMessage(error),
+            throw UnableToListDirectory.because(
+                errorToMessage(error),
                 {cause: error, context: {path: this.path, deep: this.deep}},
             )
         }
@@ -188,8 +210,8 @@ export class FileStorage {
             );
             await closeReadable(body);
         } catch (error) {
-            throw errors.UnableToWriteFile.because(
-                errors.errorToMessage(error),
+            throw UnableToWriteFile.because(
+                errorToMessage(error),
                 {cause: error, context: {path, options}},
             );
         }
@@ -197,10 +219,12 @@ export class FileStorage {
 
     public async read(path: string): Promise<Readable> {
         try {
-            return Readable.from(await this.adapter.read(this.pathNormalizer.normalizePath(path)));
+            return Readable.from(
+                await this.adapter.read(this.pathNormalizer.normalizePath(path)),
+            );
         } catch (error) {
-            throw errors.UnableToReadFile.because(
-                errors.errorToMessage(error),
+            throw UnableToReadFile.because(
+                errorToMessage(error),
                 {cause: error, context: {path}},
             );
         }
@@ -222,8 +246,8 @@ export class FileStorage {
         try {
             await this.adapter.deleteFile(this.pathNormalizer.normalizePath(path));
         } catch (error) {
-            throw errors.UnableToDeleteFile.because(
-                errors.errorToMessage(error),
+            throw UnableToDeleteFile.because(
+                errorToMessage(error),
                 {cause: error, context: {path}},
             );
         }
@@ -236,8 +260,8 @@ export class FileStorage {
                 {...this.options.visibility, ...options},
             );
         } catch (error) {
-            throw errors.UnableToCreateDirectory.because(
-                errors.errorToMessage(error),
+            throw UnableToCreateDirectory.because(
+                errorToMessage(error),
                 {cause: error, context: {path, options}},
             )
         }
@@ -247,8 +271,8 @@ export class FileStorage {
         try {
             return await this.adapter.deleteDirectory(this.pathNormalizer.normalizePath(path));
         } catch (error) {
-            throw errors.UnableToDeleteDirectory.because(
-                errors.errorToMessage(error),
+            throw UnableToDeleteDirectory.because(
+                errorToMessage(error),
                 {cause: error, context: {path}},
             );
         }
@@ -258,8 +282,8 @@ export class FileStorage {
         try {
             return await this.adapter.stat(this.pathNormalizer.normalizePath(path));
         } catch (error) {
-            throw errors.UnableToGetStat.because(
-                errors.errorToMessage(error),
+            throw UnableToGetStat.because(
+                errorToMessage(error),
                 {cause: error, context: {path}},
             )
         }
@@ -273,8 +297,8 @@ export class FileStorage {
                 {...this.options.visibility, ...this.options.moves, ...options},
             );
         } catch (error) {
-            throw errors.UnableToMoveFile.because(
-                errors.errorToMessage(error),
+            throw UnableToMoveFile.because(
+                errorToMessage(error),
                 {cause: error, context: {from, to}},
             )
         }
@@ -288,8 +312,8 @@ export class FileStorage {
                 {...this.options.visibility, ...this.options.copies, ...options},
             );
         } catch (error) {
-            throw errors.UnableToCopyFile.because(
-                errors.errorToMessage(error),
+            throw UnableToCopyFile.because(
+                errorToMessage(error),
                 {cause: error, context: {from, to}},
             )
         }
@@ -306,8 +330,8 @@ export class FileStorage {
         try {
             return await this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility);
         } catch (error) {
-            throw errors.UnableToSetVisibility.because(
-                errors.errorToMessage(error),
+            throw UnableToSetVisibility.because(
+                errorToMessage(error),
                 {cause: error, context: {path, visibility}},
             );
         }
@@ -317,8 +341,8 @@ export class FileStorage {
         try {
             return await this.adapter.visibility(this.pathNormalizer.normalizePath(path));
         } catch (error) {
-            throw errors.UnableToGetVisibility.because(
-                errors.errorToMessage(error),
+            throw UnableToGetVisibility.because(
+                errorToMessage(error),
                 {cause: error, context: {path}}
             )
         }
@@ -328,8 +352,8 @@ export class FileStorage {
         try {
             return await this.adapter.fileExists(this.pathNormalizer.normalizePath(path));
         } catch (error) {
-            throw errors.UnableToCheckFileExistence.because(
-                errors.errorToMessage(error),
+            throw UnableToCheckFileExistence.because(
+                errorToMessage(error),
                 {cause: error, context: {path}},
             )
         }
@@ -350,15 +374,15 @@ export class FileStorage {
             return stat;
         }
 
-        throw errors.UnableToGetStat.noFileStatResolved({context: {path}});
+        throw UnableToGetStat.noFileStatResolved({context: {path}});
     }
 
     public async directoryExists(path: string): Promise<boolean> {
         try {
             return await this.adapter.directoryExists(this.pathNormalizer.normalizePath(path));
         } catch (error) {
-            throw errors.UnableToCheckDirectoryExistence.because(
-                errors.errorToMessage(error),
+            throw UnableToCheckDirectoryExistence.because(
+                errorToMessage(error),
                 {cause: error, context: {path}},
             );
         }
@@ -371,8 +395,8 @@ export class FileStorage {
                 {...this.options.publicUrls, ...options},
             );
         } catch (error) {
-            throw errors.UnableToGetPublicUrl.because(
-                errors.errorToMessage(error),
+            throw UnableToGetPublicUrl.because(
+                errorToMessage(error),
                 {cause: error, context: {path, options}},
             );
         }
@@ -385,8 +409,8 @@ export class FileStorage {
                 {...this.options.temporaryUrls, ...options},
             );
         } catch (error) {
-            throw errors.UnableToGetTemporaryUrl.because(
-                errors.errorToMessage(error),
+            throw UnableToGetTemporaryUrl.because(
+                errorToMessage(error),
                 {cause: error, context: {path, options}},
             );
         }
@@ -397,8 +421,8 @@ export class FileStorage {
             try {
                 return this.options.preparedUploadStrategy.prepareUpload(path, options);
             } catch (error) {
-                throw errors.UnableToPrepareUploadRequest.because(
-                    errors.errorToMessage(error),
+                throw UnableToPrepareUploadRequest.because(
+                    errorToMessage(error),
                     {cause: error, context: {path, options}},
                 );
             }
@@ -414,8 +438,8 @@ export class FileStorage {
                 {...this.options.uploadRequest, ...options},
             );
         } catch (error) {
-            throw errors.UnableToPrepareUploadRequest.because(
-                errors.errorToMessage(error),
+            throw UnableToPrepareUploadRequest.because(
+                errorToMessage(error),
                 {cause: error, context: {path, options}},
             );
         }
@@ -428,12 +452,12 @@ export class FileStorage {
                 {...this.options.checksums, ...options},
             );
         } catch (error) {
-            if (error instanceof ChecksumIsNotAvailable) {
+            if (ChecksumIsNotAvailable.isErrorOfType(error)) {
                 return this.calculateChecksum(path, options);
             }
 
-            throw errors.UnableToGetChecksum.because(
-                errors.errorToMessage(error),
+            throw UnableToGetChecksum.because(
+                errorToMessage(error),
                 {cause: error, context: {path, options}},
             );
         }
@@ -446,8 +470,8 @@ export class FileStorage {
                 {...this.options.mimeTypes, ...options},
             );
         } catch (error) {
-            throw errors.UnableToGetMimeType.because(
-                errors.errorToMessage(error),
+            throw UnableToGetMimeType.because(
+                errorToMessage(error),
                 {cause: error, context: {path, options}},
             );
         }
@@ -459,8 +483,8 @@ export class FileStorage {
                 this.pathNormalizer.normalizePath(path),
             );
         } catch (error) {
-            throw errors.UnableToGetLastModified.because(
-                errors.errorToMessage(error),
+            throw UnableToGetLastModified.because(
+                errorToMessage(error),
                 {cause: error, context: {path}},
             );
         }
@@ -472,8 +496,8 @@ export class FileStorage {
                 this.pathNormalizer.normalizePath(path),
             );
         } catch (error) {
-            throw errors.UnableToGetFileSize.because(
-                errors.errorToMessage(error),
+            throw UnableToGetFileSize.because(
+                errorToMessage(error),
                 {cause: error, context: {path}},
             );
         }
@@ -483,8 +507,8 @@ export class FileStorage {
         try {
             return await checksumFromStream(await this.read(path), options);
         } catch (error) {
-            throw errors.UnableToGetChecksum.because(
-                errors.errorToMessage(error),
+            throw UnableToGetChecksum.because(
+                errorToMessage(error),
                 {cause: error, context: {path, options}},
             );
         }

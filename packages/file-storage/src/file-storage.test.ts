@@ -1,7 +1,22 @@
 import {FileStorage, UploadRequest, UploadRequestOptions} from './file-storage.js';
 import {InMemoryStorageAdapter} from '@flystorage/in-memory';
+import {createHash} from 'crypto';
 
 describe('FileStorage', () => {
+    test('calculating a checksum through a fallback', async () => {
+        const hash = createHash('md5');
+        hash.update('contents');
+        const expectedChecksum = hash.digest('hex');
+        hash.end();
+
+        const storage = new FileStorage(new InMemoryStorageAdapter());
+
+        await storage.write('something.txt', 'contents');
+
+        const checksum = await storage.checksum('something.txt', {algo: 'md5'});
+        expect(checksum).toEqual(expectedChecksum);
+    });
+
     test('supplying a prepared upload strategy', async () => {
         const storage = new FileStorage(
             new InMemoryStorageAdapter(),
