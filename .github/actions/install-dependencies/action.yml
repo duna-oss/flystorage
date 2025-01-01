@@ -31,6 +31,9 @@ runs:
       if: steps.npm-cache.outputs.cache-hit != 'true'
       run: npm ci --prefer-offline --no-audit
       shell: sh
+    - name: Rebuild dependencies
+      run: npm rebuild
+      shell: sh
     - name: Save NPM cache
       if: steps.npm-cache.outputs.cache-hit != 'true'
       uses: actions/cache/save@v3
