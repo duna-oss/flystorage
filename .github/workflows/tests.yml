@@ -15,29 +15,29 @@ permissions:
 
 jobs:
   run-tests:
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        platform: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest]
         node: [20, 21, 22]
         experimental: [false]
         include:
-          - platform: ubuntu-latest
+          - os: ubuntu-latest
             experimental: true
             node: 23
     name: Flystorage Tests
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
-      - name: Paths Changes Filter
-        id: changes
-        uses: dorny/paths-filter@v3.0.2
-        with:
-          list-files: shell
-          filters: |
-            source:
-              - 'packages/**/*.(ts|tsx|js|jsx)'
+#      - name: Paths Changes Filter
+#        id: changes
+#        uses: dorny/paths-filter@v3.0.2
+#        with:
+#          list-files: shell
+#          filters: |
+#            source:
+#              - 'packages/**/*.(ts|tsx|js|jsx)'
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
@@ -45,8 +45,10 @@ jobs:
       - uses: ./.github/actions/install-dependencies
         name: Install NPM dependencies
         with:
-          cache-key: npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
-          cache-restore-keys: npm-caches-${{ matrix.node }}
+          cache-key: npm-${{ matrix.os }}-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
+          cache-restore-keys: |
+            npm-${{ matrix.os }}-${{ matrix.node }}
+            npm-${{ matrix.os }}
       - name: Configure GCP access
         run: |
           echo $CONTENTS > google-cloud-service-account.json
@@ -55,6 +57,11 @@ jobs:
       - name: Run build
         # if: steps.changes.outputs.source == 'true'
         run: npm run build:only
+        shell: sh
+      - name: Write JSON Payload to File on Windows
+        shell: cmd
+        run: npm run windows:place-commonjs-package-json -ws --if-present
+        if: runner.os == 'Windows'
       - name: Run relevant tests
         # if: steps.changes.outputs.source == 'true'
         run: "npm run test"

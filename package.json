@@ -2,8 +2,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm run compile -ws --if-present && npm run patch -ws --if-present",
-    "build:only": "npm run compile -ws --if-present",
+    "build": "npm run build -ws --if-present && npm run patch -ws --if-present",
+    "build:only": "npm run build -ws --if-present",
     "clean:build": "npm run clean && npm run build",
     "watch": "concurrently npm:watch:*",
     "watch:file-storage": "npm run watch -w ./packages/file-storage",
