@@ -19,7 +19,7 @@ jobs:
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
-        platform: [ubuntu-latest]
+        platform: [ubuntu-latest, windows-latest, macos-latest]
         node: [20, 21, 22]
         experimental: [false]
         include:
@@ -30,14 +30,14 @@ jobs:
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
-      - name: Paths Changes Filter
-        id: changes
-        uses: dorny/paths-filter@v3.0.2
-        with:
-          list-files: shell
-          filters: |
-            source:
-              - 'packages/**/*.(ts|tsx|js|jsx)'
+#      - name: Paths Changes Filter
+#        id: changes
+#        uses: dorny/paths-filter@v3.0.2
+#        with:
+#          list-files: shell
+#          filters: |
+#            source:
+#              - 'packages/**/*.(ts|tsx|js|jsx)'
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:

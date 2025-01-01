@@ -1,11 +1,13 @@
 import {join} from 'node:path';
 
+export type PathJoiner = (...paths: string[]) => string;
+
 export class PathPrefixer {
     private readonly prefix: string = '';
     constructor(
         prefix: string = '',
         private readonly separator: string = '/',
-        private readonly joinFunc: typeof join = join,
+        private readonly joinFunc: PathJoiner = join,
     ) {
         if (prefix.length > 0) {
             this.prefix = this.joinFunc(prefix, this.separator);
@@ -17,7 +19,9 @@ export class PathPrefixer {
     }
 
     prefixDirectoryPath(path: string): string {
-        return this.prefix.length > 0 ? this.joinFunc(this.prefix, path, '/') : this.joinFunc(path, '/');
+        return this.prefix.length > 0
+            ? this.joinFunc(this.prefix, path, this.separator)
+            : this.joinFunc(path, this.separator);
     }
 
     stripFilePath(path: string): string {
