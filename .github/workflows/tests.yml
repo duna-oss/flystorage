@@ -23,7 +23,7 @@ jobs:
         node: [20, 21, 22]
         experimental: [false]
         include:
-          - platform: ubuntu-latest
+          - os: ubuntu-latest
             experimental: true
             node: 23
     name: Flystorage Tests
