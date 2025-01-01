@@ -58,6 +58,10 @@ jobs:
         # if: steps.changes.outputs.source == 'true'
         run: npm run build:only
         shell: sh
+      - name: Write JSON Payload to File on Windows
+        shell: shell
+        run: npm run windows:place-commonjs-package-json -ws --if-present
+        if: runner.os == 'Windows'
       - name: Run relevant tests
         # if: steps.changes.outputs.source == 'true'
         run: "npm run test"
