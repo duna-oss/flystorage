@@ -45,8 +45,10 @@ jobs:
       - uses: ./.github/actions/install-dependencies
         name: Install NPM dependencies
         with:
-          cache-key: npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
-          cache-restore-keys: npm-caches-${{ matrix.node }}
+          cache-key: npm-${{ matrix.os }}-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
+          cache-restore-keys: |
+            npm-${{ matrix.os }}-${{ matrix.node }}
+            npm-${{ matrix.os }}
       - name: Configure GCP access
         run: |
           echo $CONTENTS > google-cloud-service-account.json
