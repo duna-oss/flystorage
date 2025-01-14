@@ -457,7 +457,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             CacheControl: options.cacheControl,
         }
 
-        for (const option in Object.keys(options)) {
+        for (const option of Object.keys(options)) {
             if (isWriteOptionKey(option)) {
                 const resolver = (writeOptionResolvers as any)[option];
                 const value = options[option];

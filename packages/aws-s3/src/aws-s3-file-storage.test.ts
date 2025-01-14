@@ -313,7 +313,7 @@ describe('aws-s3 file storage', () => {
 
         expect(lastModified).toBeGreaterThan(Date.now() - 5000);
         expect(lastModified).toBeLessThan(Date.now() + 5000);
-    })
+    });
 
     test('it can request checksums', async () => {
         function hashString(input: string, algo: string, encoding: BinaryToTextEncoding = 'hex'): string {
@@ -326,6 +326,24 @@ describe('aws-s3 file storage', () => {
 
         const checksum = await storage.checksum('path.txt', {
             algo: 'etag',
+        });
+
+        expect(checksum).toEqual(expectedChecksum);
+    });
+
+    test('it can request sha256 checksums', async () => {
+        function hashString(input: string, algo: string, encoding: BinaryToTextEncoding = 'hex'): string {
+            return createHash(algo).update(input).digest(encoding);
+        }
+
+        const contents = 'this is for the checksum';
+        await storage.write('path.txt', contents, {
+            ChecksumAlgorithm: 'SHA256'
+        });
+        const expectedChecksum = hashString(contents, 'sha256', 'base64');
+
+        const checksum = await storage.checksum('path.txt', {
+            algo: 'sha256',
         });
 
         expect(checksum).toEqual(expectedChecksum);
