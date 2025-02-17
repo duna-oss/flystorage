@@ -45,6 +45,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "form-data": "^4.0.1"
+    "form-data": "^4.0.2"
   }
 }
