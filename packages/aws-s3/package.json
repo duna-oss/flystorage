@@ -27,7 +27,9 @@
     }
   },
   "scripts": {
-    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
+    "build": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
+    "windows:place-commonjs-package-json": "echo {\"type\": \"commonjs\"} > ./dist/cjs/package.json",
+    "compile": "rm -rf ./dist/ && concurrently npm:compile:*",
     "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
     "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
     "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",

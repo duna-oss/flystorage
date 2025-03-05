@@ -105,6 +105,37 @@ function encodePath(path: string): string {
     return path.split('/').map(encodeURIComponent).join('/');
 }
 
+export interface PathPrefixerProvider {
+    (options: AwsS3StorageAdapterOptions): PathPrefixer
+}
+
+export const defaultPathPrefixer = (options: AwsS3StorageAdapterOptions) => new PathPrefixer(options.prefix ?? '', '/', (...paths) => {
+    const path = join(...paths);
+
+    if (path === "." || path === "/") {
+        // 1) https://nodejs.org/api/path.html#pathjoinpaths
+        // Zero-length path segments are ignored. If the joined path string is a zero-length string then '.' will be
+        // returned, representing the current working directory.
+        // 2) In S3 we use delimiter:"/". In that case we need to remove the root-slash in order to list the
+        // root-directory contents.
+        return "";
+    } else {
+        return path;
+    }
+});
+
+export const windowsPathPrefixer = (options: AwsS3StorageAdapterOptions) => new PathPrefixer(options.prefix ?? '', '/', (...paths) => {
+    const path = paths.map(path => path.replace(/^\/|\/$/g, ''))
+        .filter(path => path !== '')
+        .join('/');
+
+    if (path === "." || path === "/") {
+        return "";
+    } else {
+        return path;
+    }
+});
+
 export class AwsS3StorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
 
@@ -113,21 +144,9 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         private readonly options: AwsS3StorageAdapterOptions,
         private readonly publicUrlGenerator: AwsPublicUrlGenerator = new DefaultAwsPublicUrlGenerator(),
         private readonly timestampResolver: TimestampResolver = () => Date.now(),
+        readonly prefixerProvider: PathPrefixerProvider = defaultPathPrefixer,
     ) {
-        this.prefixer = new PathPrefixer(options.prefix ?? '', '/', (...paths) => {
-            const path = join(...paths);
-
-            if (path === "." || path === "/") {
-                // 1) https://nodejs.org/api/path.html#pathjoinpaths
-                // Zero-length path segments are ignored. If the joined path string is a zero-length string then '.' will be
-                // returned, representing the current working directory.
-                // 2) In S3 we use delimiter:"/". In that case we need to remove the root-slash in order to list the
-                // root-directory contents.
-                return "";
-            } else {
-                return path;
-            }
-        });
+        this.prefixer = prefixerProvider(options);
     }
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
@@ -138,10 +157,11 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         }
 
         let acl: AclOptions = visibility ? {ACL: this.visibilityToAcl(visibility)} : {};
+        const copySource = `/${this.options.bucket}/${encodePath(this.prefixer.prefixFilePath(from)).replace(/^\//g, '')}`;
 
         await this.client.send(new CopyObjectCommand({
             Bucket: this.options.bucket,
-            CopySource: join('/', this.options.bucket, encodePath(this.prefixer.prefixFilePath(from))),
+            CopySource: copySource,
             Key: this.prefixer.prefixFilePath(to),
             ...acl,
         }));
