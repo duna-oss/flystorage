@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "dependencies": {
     "@flystorage/file-storage": "^1.0.0",
-    "file-type": "^19.6.0",
-    "mime-types": "^2.1.35"
+    "file-type": "^20.4.1",
+    "mime-types": "^3.0.1"
   },
   "description": "",
   "main": "./dist/cjs/index.js",
