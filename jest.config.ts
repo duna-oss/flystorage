@@ -2,6 +2,7 @@ import {Config} from 'jest';
 
 const config: Config = {
     automock: false,
+    testTimeout: 5000,
     testPathIgnorePatterns: ['/node_modules/', '/bin/'],
     resolver: 'ts-jest-resolver',
     setupFilesAfterEnv: ['dotenv/config'],

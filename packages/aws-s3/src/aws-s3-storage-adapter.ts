@@ -1,21 +1,23 @@
 import {
     _Object,
-    CommonPrefix, CopyObjectCommand,
+    CommonPrefix,
+    CopyObjectCommand,
+    CopyObjectRequest,
     DeleteObjectCommand,
     DeleteObjectsCommand,
     GetObjectAclCommand,
     GetObjectAclOutput,
     GetObjectCommand,
+    GetObjectCommandInput,
     HeadObjectCommand,
     ListObjectsV2Command,
     ListObjectsV2Output,
     ObjectCannedACL,
     PutObjectAclCommand,
+    PutObjectCommand,
     PutObjectCommandInput,
     S3Client,
     S3ServiceException,
-    CopyObjectRequest,
-    GetObjectCommandInput, PutObjectCommand,
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
@@ -23,24 +25,27 @@ import {join} from 'node:path';
 import {
     ChecksumIsNotAvailable,
     ChecksumOptions,
+    closeReadable,
+    CopyFileOptions,
     CreateDirectoryOptions,
     FileContents,
+    MimeTypeOptions,
+    MoveFileOptions,
     normalizeExpiryToMilliseconds,
     PathPrefixer,
     PublicUrlOptions,
-    UploadRequestOptions,
-    UploadRequestHeaders,
-    UploadRequest,
     StatEntry,
     StorageAdapter,
     TemporaryUrlOptions,
+    UploadRequest,
+    UploadRequestHeaders,
+    UploadRequestOptions,
     Visibility,
-    WriteOptions
+    WriteOptions,
 } from '@flystorage/file-storage';
 import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {Readable} from 'stream';
-import {MimeTypeOptions, closeReadable, CopyFileOptions, MoveFileOptions} from "@flystorage/file-storage";
-import {lookup} from "mime-types";
+import {lookup} from 'mime-types';
 
 type PutObjectOptions = Omit<PutObjectCommandInput, 'Bucket' | 'Key' | 'Body'>;
 export type WriteOptionsForS3 = Omit<PutObjectOptions, 'ACL' | 'ContentLength'>;
@@ -58,7 +63,7 @@ export type AwsS3StorageAdapterOptions = Readonly<{
     publicUrlOptions?: PublicUrlOptions,
     uploadRequestOptions?: UploadRequestOptions,
     putObjectOptions?: PutObjectOptions,
-    uploadConfiguration?: Partial<Configuration>,
+    uploadConfiguration?: Partial<Omit<Configuration, 'abortController'>>,
     defaultChecksumAlgo?: ChecksumAlgo,
 }>;
 
@@ -105,6 +110,12 @@ function encodePath(path: string): string {
     return path.split('/').map(encodeURIComponent).join('/');
 }
 
+function maybeAbort(signal?: AbortSignal) {
+    if (signal?.aborted) {
+        throw signal.reason;
+    }
+}
+
 export class AwsS3StorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
 
@@ -131,10 +142,12 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
+        maybeAbort(options?.abortSignal);
         let visibility = options.visibility;
 
         if (visibility === undefined && options.retainVisibility) {
             visibility = await this.visibility(from);
+            maybeAbort(options?.abortSignal);
         }
 
         let acl: AclOptions = visibility ? {ACL: this.visibilityToAcl(visibility)} : {};
@@ -144,7 +157,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             CopySource: join('/', this.options.bucket, encodePath(this.prefixer.prefixFilePath(from))),
             Key: this.prefixer.prefixFilePath(to),
             ...acl,
-        }));
+        }), {abortSignal: options.abortSignal});
     }
     async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         await this.copyFile(from, to, options);
@@ -404,8 +417,27 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
 
     async createDirectory(path: string, options: CreateDirectoryOptions): Promise<void> {
-        await this.upload(this.prefixer.prefixDirectoryPath(path), '', {
+        const key = this.prefixer.prefixDirectoryPath(path);
+        const abortSignal = options.abortSignal;
+        const abortController = new AbortController();
+
+        if (abortSignal) {
+            if (abortSignal.aborted) {
+                throw abortSignal.reason;
+            }
+
+            abortSignal.addEventListener('abort', () => {
+                abortController.abort(abortSignal.reason);
+            });
+        }
+        const params = this.createPutObjectParams(key, '', {
+            ContentLength: 0,
             ACL: options.directoryVisibility ? this.visibilityToAcl(options.directoryVisibility) : undefined,
+        });
+
+        maybeAbort(abortSignal);
+        await this.client.send(new PutObjectCommand(params), {
+            abortSignal,
         });
     }
 
@@ -468,25 +500,73 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             }
         }
 
-        await this.upload(this.prefixer.prefixFilePath(path), contents, writeOptions);
-    }
+        const abortController = new AbortController();
 
-    private async upload(key: string, contents: Readable | '', options: PutObjectOptions) {
-        const params: PutObjectCommandInput = {
-            Bucket: this.options.bucket,
-            Key: key,
+        if (options.abortSignal) {
+            const abortSignal = options.abortSignal;
+            if (abortSignal.aborted) {
+                throw abortSignal.reason;
+            }
 
-            Body: contents,
-            ...Object.assign({}, this.options.putObjectOptions, options),
-        };
+            abortSignal.addEventListener('abort', () => {
+                abortController.abort(abortSignal.reason);
+            });
+        }
 
         const upload = new Upload({
             client: this.client,
-            params,
+            params: this.createPutObjectParams(
+                this.prefixer.prefixFilePath(path),
+                contents,
+                writeOptions,
+            ),
+            abortController,
             ...this.options.uploadConfiguration,
         });
 
         await upload.done();
+    }
+
+    private async upload(
+        key: string,
+        contents: Readable | '',
+        options: PutObjectOptions,
+        abortSignal?: AbortSignal,
+    ) {
+        const abortController = new AbortController();
+
+        if (abortSignal) {
+            if (abortSignal.aborted) {
+                throw abortSignal.reason;
+            }
+
+            abortSignal.addEventListener('abort', () => {
+                abortController.abort(abortSignal.reason);
+            });
+        }
+
+        const params = this.createPutObjectParams(key, contents, options);
+        const upload = new Upload({
+            client: this.client,
+            params,
+            abortController,
+            ...this.options.uploadConfiguration,
+        });
+
+        await upload.done();
+    }
+
+    private createPutObjectParams(
+        key: string,
+        contents: Readable | '',
+        options: PutObjectOptions,
+    ): PutObjectCommandInput {
+        return  {
+            Bucket: this.options.bucket,
+            Key: key,
+            Body: contents,
+            ...Object.assign({}, this.options.putObjectOptions, options),
+        };
     }
 
     async deleteFile(path: string): Promise<void> {
