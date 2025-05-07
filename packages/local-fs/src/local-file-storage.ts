@@ -15,7 +15,6 @@ import {
     UploadRequestOptions,
     UploadRequest,
 } from '@flystorage/file-storage';
-import type {FileExtension} from 'file-type';
 import {lookup} from "mime-types";
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
 import {chmod, mkdir, opendir, rm, stat, rename, copyFile} from 'node:fs/promises';
@@ -134,9 +133,9 @@ export class LocalStorageAdapter implements StorageAdapter {
         }
 
         const {fileTypeFromFile, supportedExtensions} = fileTypes;
-        const extension = extname(path) as FileExtension;
+        const extension = extname(path);
 
-        if (!supportedExtensions.has(extension)) {
+        if (!supportedExtensions.has(extension as any)) {
             const mimetype = lookup(extension);
 
             if (mimetype === false) {
