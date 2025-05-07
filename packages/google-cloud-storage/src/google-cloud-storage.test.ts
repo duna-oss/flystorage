@@ -9,6 +9,7 @@ import {LegacyVisibilityHandling} from './visibility-handling.js';
 const testSegment = randomBytes(10).toString('hex');
 let adapter: GoogleCloudStorageAdapter;
 let storage: FileStorage;
+let cleanupStorage: FileStorage;
 
 describe('GoogleCloudStorageAdapter', () => {
     const googleStorage = new Storage({keyFilename: resolve(process.cwd(), 'google-cloud-service-account.json')});
@@ -19,12 +20,16 @@ describe('GoogleCloudStorageAdapter', () => {
         userProject: 'flysystem-testing',
     });
 
-    afterAll(async () => {
-        adapter = new GoogleCloudStorageAdapter(bucket, {
+    beforeAll(async () => {
+        const cleanupAdapter = new GoogleCloudStorageAdapter(bucket, {
             prefix: `flystorage`,
         });
-        storage = new FileStorage(adapter);
-        await storage.deleteDirectory(testSegment);
+        cleanupStorage = new FileStorage(cleanupAdapter);
+        await cleanupStorage.deleteDirectory('non-existing-directory');
+    })
+
+    afterAll(async () => {
+        await cleanupStorage.deleteDirectory(testSegment);
     });
 
     describe('base API', () => {

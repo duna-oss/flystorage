@@ -6,3 +6,4 @@ node_modules
 bin/*
 !bin/watch.ts
 fixtures/test-files/
+.node-version

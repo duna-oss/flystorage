@@ -1,6 +1,8 @@
 import {Config} from 'jest';
 
 const config: Config = {
+    detectOpenHandles: true,
+    testEnvironment: 'node',
     automock: false,
     testTimeout: 5000,
     testPathIgnorePatterns: ['/node_modules/', '/bin/'],
