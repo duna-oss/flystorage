@@ -74,6 +74,12 @@ type FileTypePackage = typeof import('file-type');
 let fileTypeImport: Promise<FileTypePackage> | undefined;
 let fileTypes: FileTypePackage | undefined = undefined;
 
+function maybeAbort(signal?: AbortSignal) {
+    if (signal?.aborted) {
+        throw signal.reason;
+    }
+}
+
 export class LocalStorageAdapter implements StorageAdapter {
     private prefixer: PathPrefixer;
 
@@ -200,8 +206,11 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     async write(path: string, contents: Readable, options: WriteOptions): Promise<void> {
+        maybeAbort(options?.abortSignal);
         await this.ensureRootDirectoryExists();
+        maybeAbort(options?.abortSignal);
         await this.ensureParentDirectoryExists(path, options);
+        maybeAbort(options?.abortSignal);
 
         const writeStream = createWriteStream(
             this.prefixer.prefixFilePath(path),
@@ -212,6 +221,15 @@ export class LocalStorageAdapter implements StorageAdapter {
                     : undefined,
             },
         );
+
+        if (options.abortSignal) {
+            const signal = options.abortSignal;
+
+            signal.addEventListener('abort', event => {
+                contents.destroy(signal.reason);
+                writeStream.destroy(signal.reason);
+            });
+        }
 
         await pipeline(contents, writeStream);
     }

@@ -1,5 +1,5 @@
 import {S3Client} from '@aws-sdk/client-s3';
-import {FileStorage, readableToString, Visibility, closeReadable, UploadRequestHeaders} from '@flystorage/file-storage';
+import {FileStorage, readableToString, Visibility, closeReadable, UploadRequestHeaders, UnableToWriteFile} from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as https from 'https';
 import {AwsS3StorageAdapter} from './aws-s3-storage-adapter.js';
@@ -348,6 +348,27 @@ describe('aws-s3 file storage', () => {
 
         expect(checksum).toEqual(expectedChecksum);
     });
+
+    test('uploads can be aborted', async () => {
+        const reason = new Error('Because I say so');
+        const controller = new AbortController();
+        const options = {
+            abortSignal: controller.signal,
+        } as const;
+
+        await expect(async () => {
+            const promise = storage.write('cache.txt', 'some content', {
+                abortSignal: controller.signal,
+            });
+
+            controller.abort(reason);
+
+            return promise;
+        }).rejects.toThrow(UnableToWriteFile.because(
+            'Because I say so',
+            {cause: reason, context: {path, options}},
+        ));
+    })
 
     test('it handles custom Cache-Control header', async() => {
         await storage.write('cache.txt', 'some content', {cacheControl: "max-age=7200, public", visibility: Visibility.PUBLIC});

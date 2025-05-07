@@ -125,6 +125,7 @@ export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableS
 
 export type MiscellaneousOptions = {
     [option: string]: any,
+    abortSignal?: AbortSignal,
 }
 
 export type MimeTypeOptions = MiscellaneousOptions & {
@@ -155,7 +156,7 @@ export type CopyFileOptions = MiscellaneousOptions & VisibilityOptions & {
 export type MoveFileOptions = MiscellaneousOptions & VisibilityOptions & {
     retainVisibility?: boolean,
 };
-export type ListOptions = {deep?: boolean};
+export type ListOptions = MiscellaneousOptions & {deep?: boolean};
 export type TemporaryUrlOptions = MiscellaneousOptions & {
     expiresAt: ExpiresAt,
     responseHeaders?: {[header: string]: string},

@@ -38,6 +38,12 @@ export type AzureStorageBlobStorageAdapterOptions = {
     temporaryUrlOptions?: TemporaryUrlOptions,
 }
 
+function maybeAbort(signal?: AbortSignal) {
+    if (signal?.aborted) {
+        throw signal.reason;
+    }
+}
+
 export class AzureStorageBlobStorageAdapter implements StorageAdapter {
     private readonly prefixer: PathPrefixer;
 
@@ -50,7 +56,8 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
         const fromUrl = this.blockClient(from).url;
-        await this.blockClient(to).syncCopyFromURL(fromUrl)
+        maybeAbort(options.abortSignal);
+        await this.blockClient(to).syncCopyFromURL(fromUrl, {abortSignal: options.abortSignal});
     }
     async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         await this.copyFile(from, to, options);
@@ -61,9 +68,13 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         let mimeType = options.mimeType;
         let stream = contents;
 
+        maybeAbort(options.abortSignal);
+
         if (mimeType === undefined) {
             [mimeType, stream] = await this.resolveMimetype(path, contents, options);
         }
+
+        maybeAbort(options.abortSignal);
 
         const blob = this.blockClient(path);
         await blob.uploadStream(
@@ -71,6 +82,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
             options.size,
             this.options.uploadMaxConcurrency,
             {
+                abortSignal: options.abortSignal,
                 blobHTTPHeaders: {
                     blobContentType: mimeType,
                     blobCacheControl: options.cacheControl
@@ -103,9 +115,13 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         // no-op, directories do not exist.
     }
 
-    async stat(path: string): Promise<StatEntry> {
+    async stat(path: string, options: {abortSignal?: AbortSignal} = {}): Promise<StatEntry> {
+        maybeAbort(options.abortSignal);
+
         const blob = this.blockClient(path);
-        const properties = await blob.getProperties();
+        const properties = await blob.getProperties({
+            abortSignal: options.abortSignal,
+        });
 
         return this.mapToStatEntry(path, properties);
     }
@@ -130,6 +146,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
     }
 
     async *listDeep(path: string, options?: ListOptions): AsyncGenerator<StatEntry> {
+        maybeAbort(options?.abortSignal);
         const directories = new Set<string>();
         const listing = this.container.listBlobsFlat({
             prefix: this.prefixer.prefixDirectoryPath(path),
@@ -137,6 +154,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         const listedPath = path;
 
         for await (const item of listing) {
+            maybeAbort(options?.abortSignal);
             const path = this.prefixer.stripFilePath(item.name);
             let parentDir = dirname(path);
 
@@ -161,11 +179,15 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
     }
 
     async *listShallow(path: string, options?: ListOptions): AsyncGenerator<StatEntry> {
+        maybeAbort(options?.abortSignal);
+
         const listing = this.container.listBlobsByHierarchy('/', {
             prefix: this.prefixer.prefixDirectoryPath(path),
         });
 
         for await (const item of listing) {
+            maybeAbort(options?.abortSignal);
+
             if (item.kind === 'blob') {
                 yield this.mapToStatEntry(
                     this.prefixer.stripFilePath(item.name),
@@ -259,6 +281,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
     }
 
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
+        maybeAbort(options?.abortSignal);
         const algo = options.algo ?? 'etag';
 
         if (algo !== 'etag') {
@@ -266,7 +289,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         }
 
         const blob = this.blockClient(path);
-        const properties = await blob.getProperties();
+        const properties = await blob.getProperties({abortSignal: options.abortSignal});
         const etag = properties.etag;
 
         if (etag === undefined) {
@@ -277,7 +300,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
     }
 
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
-        const stat = await this.stat(path);
+        const stat = await this.stat(path, options);
 
         if (stat.isDirectory) {
             throw new Error('Path is not a file. No mimetype available.');
