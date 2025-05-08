@@ -683,6 +683,9 @@ function isWriteOptionKey(key: string): key is string & keyof ResolversForWriteO
 }
 
 export const writeOptionResolvers: ResolversForWriteOptions = {
+    ChecksumCRC64NVME: function (value: any): value is PutObjectOptions['ChecksumCRC64NVME'] {
+        return typeof value === 'string';
+    },
     IfMatch: function (value: any): value is PutObjectOptions['IfMatch'] {
         return typeof value === 'string';
     },
