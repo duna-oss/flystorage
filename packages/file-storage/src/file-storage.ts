@@ -213,6 +213,10 @@ function instrumentAbortSignal<Options extends MiscellaneousOptions>(options: Op
         }
     }
 
+    if (abortSignal?.aborted) {
+        throw abortSignal.reason;
+    }
+
     return {...options, abortSignal};
 }
 
@@ -244,6 +248,8 @@ export class FileStorage {
     }
 
     public async read(path: string, options: MiscellaneousOptions = {}): Promise<Readable> {
+        options = instrumentAbortSignal(options);
+
         try {
             return Readable.from(
                 await this.adapter.read(this.pathNormalizer.normalizePath(path), options),
@@ -257,6 +263,8 @@ export class FileStorage {
     }
 
     public async readToString(path: string, options: MiscellaneousOptions = {}): Promise<string> {
+        options = instrumentAbortSignal(options);
+
         return await readableToString(await this.read(path, options));
     }
 
@@ -269,6 +277,8 @@ export class FileStorage {
     }
 
     public async deleteFile(path: string, options: MiscellaneousOptions = {}): Promise<void> {
+        options = instrumentAbortSignal(options);
+
         try {
             await this.adapter.deleteFile(
                 this.pathNormalizer.normalizePath(path),
@@ -299,6 +309,8 @@ export class FileStorage {
     }
 
     public async deleteDirectory(path: string, options: MiscellaneousOptions = {}): Promise<void> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.deleteDirectory(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
@@ -310,6 +322,8 @@ export class FileStorage {
     }
 
     public async stat(path: string, options: MiscellaneousOptions = {}): Promise<StatEntry> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.stat(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
@@ -355,6 +369,8 @@ export class FileStorage {
     }
 
     public async changeVisibility(path: string, visibility: string, options: MiscellaneousOptions = {}): Promise<void> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility, options);
         } catch (error) {
@@ -366,6 +382,8 @@ export class FileStorage {
     }
 
     public async visibility(path: string, options: MiscellaneousOptions = {}): Promise<string> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.visibility(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
@@ -377,6 +395,8 @@ export class FileStorage {
     }
 
     public async fileExists(path: string, options: MiscellaneousOptions = {}): Promise<boolean> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.fileExists(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
@@ -389,6 +409,7 @@ export class FileStorage {
 
     public list(path: string, options: ListOptions = {}): DirectoryListing {
         options = instrumentAbortSignal(options);
+
         const adapterOptions: AdapterListOptions = {
             ...options,
             deep: options.deep ?? false,
@@ -402,6 +423,7 @@ export class FileStorage {
     }
 
     public async statFile(path: string, options: MiscellaneousOptions = {}): Promise<FileInfo> {
+        options = instrumentAbortSignal(options);
         const stat = await this.stat(path, options);
 
         if (isFile(stat)) {
@@ -412,6 +434,8 @@ export class FileStorage {
     }
 
     public async directoryExists(path: string, options: MiscellaneousOptions = {}): Promise<boolean> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.directoryExists(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
@@ -423,6 +447,8 @@ export class FileStorage {
     }
 
     public async publicUrl(path: string, options: PublicUrlOptions = {}): Promise<string> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.publicUrl(
                 this.pathNormalizer.normalizePath(path),
@@ -437,6 +463,8 @@ export class FileStorage {
     }
 
     public async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.temporaryUrl(
                 this.pathNormalizer.normalizePath(path),
@@ -451,6 +479,8 @@ export class FileStorage {
     }
 
     public async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        options = instrumentAbortSignal(options);
+
         if (this.options.preparedUploadStrategy !== undefined) {
             try {
                 return this.options.preparedUploadStrategy.prepareUpload(path, options);
@@ -480,6 +510,8 @@ export class FileStorage {
     }
 
     public async checksum(path: string, options: ChecksumOptions = {}): Promise<string> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.checksum(
                 this.pathNormalizer.normalizePath(path),
@@ -512,6 +544,8 @@ export class FileStorage {
     }
 
     public async lastModified(path: string, options: MiscellaneousOptions = {}): Promise<number> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.lastModified(
                 this.pathNormalizer.normalizePath(path),
@@ -526,6 +560,8 @@ export class FileStorage {
     }
 
     public async fileSize(path: string, options: MiscellaneousOptions = {}): Promise<number> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.fileSize(
                 this.pathNormalizer.normalizePath(path),
@@ -567,6 +603,7 @@ export async function closeReadable(body: Readable) {
     }
 
     await new Promise<void>((resolve, reject) => {
+        body.on('error', reject);
         body.on('close', (err: any) => {
             err ? reject(err) : resolve();
         });
