@@ -85,16 +85,16 @@ export class ChaosStorageAdapterDecorator implements StorageAdapter {
         return this.storage.write(path, contents, options);
     }
 
-    read(path: string): Promise<FileContents> {
+    read(path: string, options: MiscellaneousOptions): Promise<FileContents> {
         this.chaos.maybeGoNuts('read');
 
-        return this.storage.read(path);
+        return this.storage.read(path, options);
     }
 
-    deleteFile(path: string): Promise<void> {
+    deleteFile(path: string, options: MiscellaneousOptions): Promise<void> {
         this.chaos.maybeGoNuts('deleteFile');
 
-        return this.storage.deleteFile(path);
+        return this.storage.deleteFile(path, options);
     }
 
     createDirectory(path: string, options: CreateDirectoryOptions): Promise<void> {
@@ -115,10 +115,10 @@ export class ChaosStorageAdapterDecorator implements StorageAdapter {
         return this.storage.moveFile(from, to, options);
     }
 
-    stat(path: string): Promise<StatEntry> {
+    stat(path: string, options: MiscellaneousOptions): Promise<StatEntry> {
         this.chaos.maybeGoNuts('stat');
 
-        return this.storage.stat(path);
+        return this.storage.stat(path, options);
     }
 
     list(path: string, options: { deep: boolean; }): AsyncGenerator<StatEntry, any, unknown> {
@@ -127,34 +127,34 @@ export class ChaosStorageAdapterDecorator implements StorageAdapter {
         return this.storage.list(path, options);
     }
 
-    changeVisibility(path: string, visibility: string): Promise<void> {
+    changeVisibility(path: string, visibility: string, options: MiscellaneousOptions): Promise<void> {
         this.chaos.maybeGoNuts('changeVisibility');
 
-        return this.storage.changeVisibility(path, visibility);
+        return this.storage.changeVisibility(path, visibility, options);
     }
 
-    visibility(path: string): Promise<string> {
+    visibility(path: string, options: MiscellaneousOptions): Promise<string> {
         this.chaos.maybeGoNuts('visibility');
 
-        return this.storage.visibility(path);
+        return this.storage.visibility(path, options);
     }
 
-    deleteDirectory(path: string): Promise<void> {
+    deleteDirectory(path: string, options: MiscellaneousOptions): Promise<void> {
         this.chaos.maybeGoNuts('deleteDirectory');
 
-        return this.storage.deleteDirectory(path);
+        return this.storage.deleteDirectory(path, options);
     }
 
-    fileExists(path: string): Promise<boolean> {
+    fileExists(path: string, options: MiscellaneousOptions): Promise<boolean> {
         this.chaos.maybeGoNuts('fileExists');
 
-        return this.storage.fileExists(path);
+        return this.storage.fileExists(path, options);
     }
 
-    directoryExists(path: string): Promise<boolean> {
+    directoryExists(path: string, options: MiscellaneousOptions): Promise<boolean> {
         this.chaos.maybeGoNuts('directoryExists');
 
-        return this.storage.directoryExists(path);
+        return this.storage.directoryExists(path, options);
     }
 
     publicUrl(path: string, options: MiscellaneousOptions): Promise<string> {
@@ -181,16 +181,16 @@ export class ChaosStorageAdapterDecorator implements StorageAdapter {
         return this.storage.mimeType(path, options);
     }
 
-    lastModified(path: string): Promise<number> {
+    lastModified(path: string, options: MiscellaneousOptions): Promise<number> {
         this.chaos.maybeGoNuts('lastModified');
 
-        return this.storage.lastModified(path);
+        return this.storage.lastModified(path, options);
     }
 
-    fileSize(path: string): Promise<number> {
+    fileSize(path: string, options: MiscellaneousOptions): Promise<number> {
         this.chaos.maybeGoNuts('fileSize');
 
-        return this.storage.fileSize(path);
+        return this.storage.fileSize(path, options);
     }
 
 }
