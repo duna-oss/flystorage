@@ -23,6 +23,7 @@ import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
 import {join} from 'node:path';
 import {
+    AdapterListOptions,
     ChecksumIsNotAvailable,
     ChecksumOptions,
     closeReadable,
@@ -30,6 +31,7 @@ import {
     CreateDirectoryOptions,
     FileContents,
     MimeTypeOptions,
+    MiscellaneousOptions,
     MoveFileOptions,
     normalizeExpiryToMilliseconds,
     PathPrefixer,
@@ -142,12 +144,12 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
-        maybeAbort(options?.abortSignal);
+        maybeAbort(options.abortSignal);
         let visibility = options.visibility;
 
         if (visibility === undefined && options.retainVisibility) {
-            visibility = await this.visibility(from);
-            maybeAbort(options?.abortSignal);
+            visibility = await this.visibility(from, options);
+            maybeAbort(options.abortSignal);
         }
 
         let acl: AclOptions = visibility ? {ACL: this.visibilityToAcl(visibility)} : {};
@@ -161,10 +163,11 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
     async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         await this.copyFile(from, to, options);
-        await this.deleteFile(from);
+        await this.deleteFile(from, options);
     }
 
     async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        maybeAbort(options.abortSignal);
         const expiry = normalizeExpiryToMilliseconds(options.expiresAt);
         const now = (this.timestampResolver)();
 
@@ -194,6 +197,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
 
     async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
         const expiry = normalizeExpiryToMilliseconds(options.expiresAt);
         const now = (this.timestampResolver)();
 
@@ -233,8 +237,8 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         });
     }
 
-    async lastModified(path: string): Promise<number> {
-        const stat = await this.stat(path);
+    async lastModified(path: string, options: MiscellaneousOptions): Promise<number> {
+        const stat = await this.stat(path, options);
 
         if (stat.lastModifiedMs === undefined) {
             throw new Error('Last modified is not available in stat');
@@ -243,8 +247,8 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         return stat.lastModifiedMs;
     }
 
-    async fileSize(path: string): Promise<number> {
-        const stat = await this.stat(path);
+    async fileSize(path: string, options: MiscellaneousOptions): Promise<number> {
+        const stat = await this.stat(path, options);
 
         if (stat.isFile === false) {
             throw new Error('Path is not a file');
@@ -258,7 +262,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
 
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
-        const response = await this.stat(path);
+        const response = await this.stat(path, options);
 
         if (!response.isFile) {
             throw new Error(`Path "${path} is not a file.`);
@@ -272,6 +276,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             throw new Error('Mime-type not available via HeadObject');
         }
 
+        maybeAbort(options.abortSignal);
         const method = options.fallbackMethod ?? 'path';
         const mimeType = method === 'path'
             ? lookup(path)
@@ -284,11 +289,14 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         return mimeType;
     }
 
-    async visibility(path: string): Promise<string> {
+    async visibility(path: string, options: MiscellaneousOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
         const response: GetObjectAclOutput = await this.client.send(new GetObjectAclCommand({
             Bucket: this.options.bucket,
             Key: this.prefixer.prefixFilePath(path),
-        }));
+        }), {
+            abortSignal: options.abortSignal,
+        });
 
         const publicRead = response.Grants?.some(grant =>
             grant.Grantee?.URI === 'http://acs.amazonaws.com/groups/global/AllUsers'
@@ -298,11 +306,12 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         return publicRead ? Visibility.PUBLIC : Visibility.PRIVATE;
     }
 
-    async* list(path: string, {deep}: {deep: boolean}): AsyncGenerator<StatEntry, any, unknown> {
+    async* list(path: string, options: AdapterListOptions): AsyncGenerator<StatEntry, any, unknown> {
         const listing = this.listObjects(path, {
-            deep,
+            deep: options.deep,
             includePrefixes: true,
             includeSelf: false,
+            abortSignal: options.abortSignal,
         });
 
         for await (const {type, item} of listing) {
@@ -344,14 +353,17 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             includePrefixes: boolean,
             includeSelf: boolean,
             maxKeys?: number,
+            abortSignal?: AbortSignal,
         },
     ): AsyncGenerator<{ type: 'prefix', item: CommonPrefix } | { type: 'object', item: _Object }, any, unknown> {
+        maybeAbort(options.abortSignal);
         const prefix = this.prefixer.prefixDirectoryPath(path);
         let collectedKeys = 0;
         let shouldContinue = true;
         let continuationToken: string | undefined = undefined;
 
         while (shouldContinue && (options.maxKeys === undefined || collectedKeys < options.maxKeys)) {
+            maybeAbort(options.abortSignal);
             const response: ListObjectsV2Output = await this.client.send(new ListObjectsV2Command({
                 Bucket: this.options.bucket,
                 Prefix: prefix,
@@ -386,11 +398,14 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         }
     }
 
-    async read(path: string): Promise<FileContents> {
+    async read(path: string, options: MiscellaneousOptions): Promise<FileContents> {
+        maybeAbort(options.abortSignal);
         const response = await this.client.send(new GetObjectCommand({
             Bucket: this.options.bucket,
             Key: this.prefixer.prefixFilePath(path),
-        }));
+        }), {
+            abortSignal: options.abortSignal,
+        });
 
         if (response.Body instanceof Readable || response.Body instanceof ReadableStream) {
             return response.Body;
@@ -399,11 +414,14 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         throw new Error('No response body was provided');
     }
 
-    async stat(path: string): Promise<StatEntry> {
+    async stat(path: string, options: MiscellaneousOptions): Promise<StatEntry> {
+        maybeAbort(options.abortSignal);
         const response = await this.client.send(new HeadObjectCommand({
             Bucket: this.options.bucket,
             Key: this.prefixer.prefixFilePath(path),
-        }));
+        }), {
+            abortSignal: options.abortSignal,
+        });
 
         return {
             path,
@@ -527,35 +545,6 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         await upload.done();
     }
 
-    private async upload(
-        key: string,
-        contents: Readable | '',
-        options: PutObjectOptions,
-        abortSignal?: AbortSignal,
-    ) {
-        const abortController = new AbortController();
-
-        if (abortSignal) {
-            if (abortSignal.aborted) {
-                throw abortSignal.reason;
-            }
-
-            abortSignal.addEventListener('abort', () => {
-                abortController.abort(abortSignal.reason);
-            });
-        }
-
-        const params = this.createPutObjectParams(key, contents, options);
-        const upload = new Upload({
-            client: this.client,
-            params,
-            abortController,
-            ...this.options.uploadConfiguration,
-        });
-
-        await upload.done();
-    }
-
     private createPutObjectParams(
         key: string,
         contents: Readable | '',
@@ -569,12 +558,15 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         };
     }
 
-    async deleteFile(path: string): Promise<void> {
+    async deleteFile(path: string, options: MiscellaneousOptions): Promise<void> {
+        maybeAbort(options.abortSignal);
         const key = this.prefixer.prefixFilePath(path);
         await this.client.send(new DeleteObjectCommand({
             Bucket: this.options.bucket,
             Key: key,
-        }));
+        }), {
+            abortSignal: options.abortSignal,
+        });
     }
 
     private visibilityToAcl(visibility: string): ObjectCannedACL {
@@ -587,20 +579,26 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         throw new Error(`Unrecognized visibility provided; ${visibility}`);
     }
 
-    async changeVisibility(path: string, visibility: string): Promise<void> {
+    async changeVisibility(path: string, visibility: string, options: MiscellaneousOptions): Promise<void> {
+        maybeAbort(options.abortSignal);
         await this.client.send(new PutObjectAclCommand({
             Bucket: this.options.bucket,
             Key: this.prefixer.prefixFilePath(path),
             ACL: this.visibilityToAcl(visibility),
-        }));
+        }), {
+            abortSignal: options.abortSignal,
+        });
     }
 
-    async fileExists(path: string): Promise<boolean> {
+    async fileExists(path: string, options: MiscellaneousOptions): Promise<boolean> {
+        maybeAbort(options.abortSignal);
         try {
             await this.client.send(new HeadObjectCommand({
                 Bucket: this.options.bucket,
                 Key: this.prefixer.prefixFilePath(path),
-            }));
+            }), {
+                abortSignal: options.abortSignal,
+            });
 
             return true;
         } catch (e) {
@@ -612,12 +610,13 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         }
     }
 
-    async directoryExists(path: string): Promise<boolean> {
+    async directoryExists(path: string, options: MiscellaneousOptions): Promise<boolean> {
         const listing = this.listObjects(path, {
             deep: true,
             includePrefixes: true,
             includeSelf: true,
             maxKeys: 1,
+            abortSignal: options.abortSignal,
         });
 
         for await (const _item of listing) {
@@ -628,6 +627,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
 
     async publicUrl(path: string, options: PublicUrlOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
         return this.publicUrlGenerator.publicUrl(this.prefixer.prefixFilePath(path), {
             bucket: this.options.bucket,
             ...options,
@@ -636,6 +636,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
 
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
         const algo = (options.algo || this.options.defaultChecksumAlgo || 'SHA256').toUpperCase();
 
         if (!isSupportedAlgo(algo)) {
@@ -648,7 +649,9 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             Bucket: this.options.bucket,
             Key: this.prefixer.prefixFilePath(path),
             ...algo === 'ETAG' ? {} : {ChecksumMode: 'ENABLED'},
-        }));
+        }), {
+            abortSignal: options.abortSignal,
+        });
 
         const checksum = response[responseKey];
 
@@ -660,7 +663,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
     }
 
     private async lookupMimeTypeFromStream(path: string, options: MimeTypeOptions) {
-        const [mimetype, stream] = await resolveMimeType(path, Readable.from(await this.read(path)));
+        const [mimetype, stream] = await resolveMimeType(path, Readable.from(await this.read(path, options)));
         await closeReadable(stream);
 
         return mimetype;

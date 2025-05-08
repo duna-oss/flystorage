@@ -6,6 +6,7 @@ import {
     FileContents,
     ListOptions,
     MimeTypeOptions,
+    MiscellaneousOptions,
     MoveFileOptions,
     normalizeExpiryToDate,
     PathPrefixer,
@@ -61,7 +62,7 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
     }
     async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
         await this.copyFile(from, to, options);
-        await this.deleteFile(from);
+        await this.deleteFile(from, options);
     }
 
     async write(path: string, contents: Readable, options: WriteOptions): Promise<void> {
@@ -95,9 +96,12 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         return this.container.getBlockBlobClient(this.prefixer.prefixFilePath(path));
     }
 
-    async read(path: string): Promise<FileContents> {
+    async read(path: string, options: MiscellaneousOptions): Promise<FileContents> {
+        maybeAbort(options.abortSignal);
         const blob = this.blockClient(path);
-        const response = await blob.download();
+        const response = await blob.download(undefined, undefined, {
+            abortSignal: options.abortSignal,
+        });
 
         if (!response.readableStreamBody) {
             throw new Error('No readable stream body in response.');
@@ -106,9 +110,12 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         return response.readableStreamBody;
     }
 
-    async deleteFile(path: string): Promise<void> {
+    async deleteFile(path: string, options: MiscellaneousOptions): Promise<void> {
         const blob = this.blockClient(path);
-        await blob.deleteIfExists();
+        maybeAbort(options.abortSignal);
+        await blob.deleteIfExists({
+            abortSignal: options.abortSignal,
+        });
     }
 
     async createDirectory(): Promise<void> {
@@ -145,11 +152,12 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
 
     }
 
-    async *listDeep(path: string, options?: ListOptions): AsyncGenerator<StatEntry> {
+    async *listDeep(path: string, options: ListOptions): AsyncGenerator<StatEntry> {
         maybeAbort(options?.abortSignal);
         const directories = new Set<string>();
         const listing = this.container.listBlobsFlat({
             prefix: this.prefixer.prefixDirectoryPath(path),
+            abortSignal: options.abortSignal,
         });
         const listedPath = path;
 
@@ -178,11 +186,12 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         }
     }
 
-    async *listShallow(path: string, options?: ListOptions): AsyncGenerator<StatEntry> {
+    async *listShallow(path: string, options: ListOptions): AsyncGenerator<StatEntry> {
         maybeAbort(options?.abortSignal);
 
         const listing = this.container.listBlobsByHierarchy('/', {
             prefix: this.prefixer.prefixDirectoryPath(path),
+            abortSignal: options.abortSignal,
         });
 
         for await (const item of listing) {
@@ -217,13 +226,13 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
         // default to indicating it ss public because we cannot know if the default is private
         return this.options.ignoredVisibilityResponse ?? 'public';
     }
-    async deleteDirectory(path: string): Promise<void> {
+    async deleteDirectory(path: string, options: MiscellaneousOptions): Promise<void> {
         let deletes: Promise<any>[] = [];
         const batchSize = this.options.deleteDirBatchSize ?? 10;
 
         for await (const item of this.list(path, {deep: true})) {
             if (item.isFile) {
-                deletes.push(this.deleteFile(item.path));
+                deletes.push(this.deleteFile(item.path, options));
             }
 
             if (deletes.length >= batchSize) {
@@ -235,12 +244,17 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
 
         await Promise.all(deletes);
     }
-    async fileExists(path: string): Promise<boolean> {
-        return await this.blockClient(path).exists()
+    async fileExists(path: string, options: MiscellaneousOptions): Promise<boolean> {
+        maybeAbort(options.abortSignal);
+        return await this.blockClient(path).exists({
+            abortSignal: options.abortSignal,
+        })
     }
-    async directoryExists(path: string): Promise<boolean> {
+    async directoryExists(path: string, options: MiscellaneousOptions): Promise<boolean> {
+        maybeAbort(options.abortSignal);
         const listing = this.container.listBlobsFlat({
             prefix: this.prefixer.prefixDirectoryPath(path),
+            abortSignal: options.abortSignal,
         }).byPage({
             maxPageSize: 1,
         });

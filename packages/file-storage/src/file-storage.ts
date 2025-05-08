@@ -58,27 +58,29 @@ export function isDirectory(stat: StatEntry): stat is DirectoryInfo {
 
 export type StatEntry = FileInfo | DirectoryInfo;
 
+export type AdapterListOptions = ListOptions & {deep: boolean};
+
 export interface StorageAdapter {
     write(path: string, contents: Readable, options: WriteOptions): Promise<void>;
-    read(path: string): Promise<FileContents>;
-    deleteFile(path: string): Promise<void>;
+    read(path: string, options: MiscellaneousOptions): Promise<FileContents>;
+    deleteFile(path: string, options: MiscellaneousOptions): Promise<void>;
     createDirectory(path: string, options: CreateDirectoryOptions): Promise<void>;
     copyFile(from: string, to: string, options: CopyFileOptions): Promise<void>;
     moveFile(from: string, to: string, options: MoveFileOptions): Promise<void>;
-    stat(path: string): Promise<StatEntry>;
-    list(path: string, options: {deep: boolean}): AsyncGenerator<StatEntry>;
-    changeVisibility(path: string, visibility: string): Promise<void>;
-    visibility(path: string): Promise<string>;
-    deleteDirectory(path: string): Promise<void>;
-    fileExists(path: string): Promise<boolean>;
-    directoryExists(path: string): Promise<boolean>;
+    stat(path: string, options: MiscellaneousOptions): Promise<StatEntry>;
+    list(path: string, options: AdapterListOptions): AsyncGenerator<StatEntry>;
+    changeVisibility(path: string, visibility: string, options: MiscellaneousOptions): Promise<void>;
+    visibility(path: string, options: MiscellaneousOptions): Promise<string>;
+    deleteDirectory(path: string, options: MiscellaneousOptions): Promise<void>;
+    fileExists(path: string, options: MiscellaneousOptions): Promise<boolean>;
+    directoryExists(path: string, options: MiscellaneousOptions): Promise<boolean>;
     publicUrl(path: string, options: PublicUrlOptions): Promise<string>;
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string>;
     prepareUpload?(path: string, options: UploadRequestOptions): Promise<UploadRequest>;
     checksum(path: string, options: ChecksumOptions): Promise<string>;
     mimeType(path: string, options: MimeTypeOptions): Promise<string>;
-    lastModified(path: string): Promise<number>;
-    fileSize(path: string): Promise<number>;
+    lastModified(path: string, options: MiscellaneousOptions): Promise<number>;
+    fileSize(path: string, options: MiscellaneousOptions): Promise<number>;
 }
 
 export class DirectoryListing implements AsyncIterable<StatEntry> {
@@ -126,6 +128,7 @@ export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableS
 export type MiscellaneousOptions = {
     [option: string]: any,
     abortSignal?: AbortSignal,
+    timout?: number,
 }
 
 export type MimeTypeOptions = MiscellaneousOptions & {
@@ -193,6 +196,26 @@ const naturalSorting = new Intl.Collator(undefined, {
     sensitivity: 'base'
 });
 
+function instrumentAbortSignal<Options extends MiscellaneousOptions>(options: Options): Options {
+    let abortSignal = options.abortSignal;
+
+    if (options.timout) {
+        const timeoutAbort = AbortSignal.timeout(options.timout);
+
+        if (options.abortSignal) {
+            const originalAbortSignal = options.abortSignal;
+            abortSignal = AbortSignal.any([
+                originalAbortSignal,
+                timeoutAbort,
+            ]);
+        } else {
+            abortSignal = timeoutAbort;
+        }
+    }
+
+    return {...options, abortSignal};
+}
+
 export class FileStorage {
     constructor(
         private readonly adapter: StorageAdapter,
@@ -202,6 +225,8 @@ export class FileStorage {
     }
 
     public async write(path: string, contents: FileContents, options: WriteOptions = {}): Promise<void> {
+        options = instrumentAbortSignal(options);
+
         try {
             const body = toReadable(contents);
             await this.adapter.write(
@@ -218,10 +243,10 @@ export class FileStorage {
         }
     }
 
-    public async read(path: string): Promise<Readable> {
+    public async read(path: string, options: MiscellaneousOptions = {}): Promise<Readable> {
         try {
             return Readable.from(
-                await this.adapter.read(this.pathNormalizer.normalizePath(path)),
+                await this.adapter.read(this.pathNormalizer.normalizePath(path), options),
             );
         } catch (error) {
             throw UnableToReadFile.because(
@@ -231,21 +256,24 @@ export class FileStorage {
         }
     }
 
-    public async readToString(path: string): Promise<string> {
-        return await readableToString(await this.read(path));
+    public async readToString(path: string, options: MiscellaneousOptions = {}): Promise<string> {
+        return await readableToString(await this.read(path, options));
     }
 
-    public async readToUint8Array(path: string): Promise<Uint8Array> {
-        return await readableToUint8Array(await this.read(path));
+    public async readToUint8Array(path: string, options: MiscellaneousOptions = {}): Promise<Uint8Array> {
+        return await readableToUint8Array(await this.read(path, options));
     }
 
-    public async readToBuffer(path: string): Promise<Buffer> {
-        return Buffer.from(await this.readToUint8Array(path));
+    public async readToBuffer(path: string, options: MiscellaneousOptions = {}): Promise<Buffer> {
+        return Buffer.from(await this.readToUint8Array(path, options));
     }
 
-    public async deleteFile(path: string): Promise<void> {
+    public async deleteFile(path: string, options: MiscellaneousOptions = {}): Promise<void> {
         try {
-            await this.adapter.deleteFile(this.pathNormalizer.normalizePath(path));
+            await this.adapter.deleteFile(
+                this.pathNormalizer.normalizePath(path),
+                options,
+            );
         } catch (error) {
             throw UnableToDeleteFile.because(
                 errorToMessage(error),
@@ -255,6 +283,8 @@ export class FileStorage {
     }
 
     public async createDirectory(path: string, options: CreateDirectoryOptions = {}): Promise<void> {
+        options = instrumentAbortSignal(options);
+
         try {
             return await this.adapter.createDirectory(
                 this.pathNormalizer.normalizePath(path),
@@ -268,9 +298,9 @@ export class FileStorage {
         }
     }
 
-    public async deleteDirectory(path: string): Promise<void> {
+    public async deleteDirectory(path: string, options: MiscellaneousOptions = {}): Promise<void> {
         try {
-            return await this.adapter.deleteDirectory(this.pathNormalizer.normalizePath(path));
+            return await this.adapter.deleteDirectory(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
             throw UnableToDeleteDirectory.because(
                 errorToMessage(error),
@@ -279,9 +309,9 @@ export class FileStorage {
         }
     }
 
-    public async stat(path: string): Promise<StatEntry> {
+    public async stat(path: string, options: MiscellaneousOptions = {}): Promise<StatEntry> {
         try {
-            return await this.adapter.stat(this.pathNormalizer.normalizePath(path));
+            return await this.adapter.stat(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
             throw UnableToGetStat.because(
                 errorToMessage(error),
@@ -291,6 +321,8 @@ export class FileStorage {
     }
 
     public async moveFile(from: string, to: string, options: MoveFileOptions = {}): Promise<void> {
+        options = instrumentAbortSignal(options);
+
         try {
             await this.adapter.moveFile(
                 this.pathNormalizer.normalizePath(from),
@@ -306,6 +338,8 @@ export class FileStorage {
     }
 
     public async copyFile(from: string, to: string, options: CopyFileOptions = {}): Promise<void> {
+        options = instrumentAbortSignal(options);
+
         try {
             await this.adapter.copyFile(
                 this.pathNormalizer.normalizePath(from),
@@ -320,16 +354,9 @@ export class FileStorage {
         }
     }
 
-    /**
-     * @deprecated use changeVisibility instead
-     */
-    public async setVisibility(path: string, visibility: string): Promise<void> {
-        return this.changeVisibility(path, visibility);
-    }
-
-    public async changeVisibility(path: string, visibility: string): Promise<void> {
+    public async changeVisibility(path: string, visibility: string, options: MiscellaneousOptions = {}): Promise<void> {
         try {
-            return await this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility);
+            return await this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility, options);
         } catch (error) {
             throw UnableToSetVisibility.because(
                 errorToMessage(error),
@@ -338,9 +365,9 @@ export class FileStorage {
         }
     }
 
-    public async visibility(path: string): Promise<string> {
+    public async visibility(path: string, options: MiscellaneousOptions = {}): Promise<string> {
         try {
-            return await this.adapter.visibility(this.pathNormalizer.normalizePath(path));
+            return await this.adapter.visibility(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
             throw UnableToGetVisibility.because(
                 errorToMessage(error),
@@ -349,9 +376,9 @@ export class FileStorage {
         }
     }
 
-    public async fileExists(path: string): Promise<boolean> {
+    public async fileExists(path: string, options: MiscellaneousOptions = {}): Promise<boolean> {
         try {
-            return await this.adapter.fileExists(this.pathNormalizer.normalizePath(path));
+            return await this.adapter.fileExists(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
             throw UnableToCheckFileExistence.because(
                 errorToMessage(error),
@@ -360,16 +387,22 @@ export class FileStorage {
         }
     }
 
-    public list(path: string, {deep = false}: ListOptions = {}): DirectoryListing {
+    public list(path: string, options: ListOptions = {}): DirectoryListing {
+        options = instrumentAbortSignal(options);
+        const adapterOptions: AdapterListOptions = {
+            ...options,
+            deep: options.deep ?? false,
+        };
+
         return new DirectoryListing(
-            this.adapter.list(this.pathNormalizer.normalizePath(path), {deep}),
+            this.adapter.list(this.pathNormalizer.normalizePath(path), adapterOptions),
             path,
-            deep
+            adapterOptions.deep,
         );
     }
 
-    public async statFile(path: string): Promise<FileInfo> {
-        const stat = await this.stat(path);
+    public async statFile(path: string, options: MiscellaneousOptions = {}): Promise<FileInfo> {
+        const stat = await this.stat(path, options);
 
         if (isFile(stat)) {
             return stat;
@@ -378,9 +411,9 @@ export class FileStorage {
         throw UnableToGetStat.noFileStatResolved({context: {path}});
     }
 
-    public async directoryExists(path: string): Promise<boolean> {
+    public async directoryExists(path: string, options: MiscellaneousOptions = {}): Promise<boolean> {
         try {
-            return await this.adapter.directoryExists(this.pathNormalizer.normalizePath(path));
+            return await this.adapter.directoryExists(this.pathNormalizer.normalizePath(path), options);
         } catch (error) {
             throw UnableToCheckDirectoryExistence.because(
                 errorToMessage(error),
@@ -478,10 +511,11 @@ export class FileStorage {
         }
     }
 
-    public async lastModified(path: string): Promise<number> {
+    public async lastModified(path: string, options: MiscellaneousOptions = {}): Promise<number> {
         try {
             return await this.adapter.lastModified(
                 this.pathNormalizer.normalizePath(path),
+                options,
             );
         } catch (error) {
             throw UnableToGetLastModified.because(
@@ -491,10 +525,11 @@ export class FileStorage {
         }
     }
 
-    public async fileSize(path: string): Promise<number> {
+    public async fileSize(path: string, options: MiscellaneousOptions = {}): Promise<number> {
         try {
             return await this.adapter.fileSize(
                 this.pathNormalizer.normalizePath(path),
+                options,
             );
         } catch (error) {
             throw UnableToGetFileSize.because(
@@ -506,7 +541,7 @@ export class FileStorage {
 
     private async calculateChecksum(path: string, options: ChecksumOptions): Promise<string> {
         try {
-            return await checksumFromStream(await this.read(path), options);
+            return await checksumFromStream(await this.read(path, options), options);
         } catch (error) {
             throw UnableToGetChecksum.because(
                 errorToMessage(error),

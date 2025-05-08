@@ -14,6 +14,7 @@ import {
     MimeTypeOptions,
     UploadRequestOptions,
     UploadRequest,
+    MiscellaneousOptions,
 } from '@flystorage/file-storage';
 import {lookup} from "mime-types";
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
@@ -95,16 +96,22 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
+        maybeAbort(options.abortSignal);
         await this.ensureRootDirectoryExists();
+        maybeAbort(options.abortSignal);
         await this.ensureParentDirectoryExists(to, options);
+        maybeAbort(options.abortSignal);
         await copyFile(
             this.prefixer.prefixFilePath(from),
             this.prefixer.prefixFilePath(to),
         );
     }
     async moveFile(from: string, to: string, options: MoveFileOptions): Promise<void> {
+        maybeAbort(options.abortSignal);
         await this.ensureRootDirectoryExists();
+        maybeAbort(options.abortSignal);
         await this.ensureParentDirectoryExists(to, options);
+        maybeAbort(options.abortSignal);
         await rename(
             this.prefixer.prefixFilePath(from),
             this.prefixer.prefixFilePath(to),
@@ -112,24 +119,29 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
+        maybeAbort(options.abortSignal);
         return this.uploadPreparer.prepareUpload(path, options);
     }
 
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
         return this.temporaryUrlGenerator.temporaryUrl(path, {...this.options.temporaryUrlOptions, ...options});
     }
 
     publicUrl(path: string, options: PublicUrlOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
         return this.publicUrlGenerator.publicUrl(path, {...this.options.publicUrlOptions, ...options});
     }
 
     async mimeType(path: string, options: MimeTypeOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
         if (fileTypeImport === undefined) {
             fileTypeImport = dynamicallyImport<FileTypePackage>('file-type');
         }
 
         if (fileTypes === undefined) {
             fileTypes = await fileTypeImport;
+            maybeAbort(options.abortSignal);
         }
 
         const {fileTypeFromFile, supportedExtensions} = fileTypes;
@@ -155,8 +167,9 @@ export class LocalStorageAdapter implements StorageAdapter {
         return result.mime;
     }
 
-    async fileSize(path: string): Promise<number> {
-        const stat = await this.stat(path);
+    async fileSize(path: string, options: MiscellaneousOptions): Promise<number> {
+        maybeAbort(options.abortSignal);
+        const stat = await this.doStat(path, 'file');
 
         if (!stat.isFile) {
             throw new Error(`Path ${path} is not a file.`);
@@ -169,8 +182,8 @@ export class LocalStorageAdapter implements StorageAdapter {
         return stat.size;
     }
 
-    async lastModified(path: string): Promise<number> {
-        const stat = await this.stat(path);
+    async lastModified(path: string, options: MiscellaneousOptions): Promise<number> {
+        const stat = await this.doStat(path, 'file');
 
         if (!stat.isFile) {
             throw new Error(`Path ${path} is not a file.`);
@@ -248,7 +261,13 @@ export class LocalStorageAdapter implements StorageAdapter {
         });
     }
 
-    async stat(path: string, type: 'file' | 'directory' = 'file'): Promise<StatEntry> {
+    async stat(path: string, options: MiscellaneousOptions): Promise<StatEntry> {
+        maybeAbort(options.abortSignal);
+
+        return this.doStat(path, 'file');
+    }
+
+    private async doStat(path: string, type: 'file' | 'directory' = 'file'): Promise<StatEntry> {
         return this.mapStatToEntry(
             await stat(type === 'file'
                 ? this.prefixer.prefixFilePath(path)
@@ -257,9 +276,11 @@ export class LocalStorageAdapter implements StorageAdapter {
         );
     }
 
-    async fileExists(path: string): Promise<boolean> {
+    async fileExists(path: string, options: MiscellaneousOptions): Promise<boolean> {
+        maybeAbort(options.abortSignal);
+
         try {
-            const stat = await this.stat(path);
+            const stat = await this.doStat(path, 'file');
 
             return stat.isFile;
         } catch (e) {
@@ -271,7 +292,9 @@ export class LocalStorageAdapter implements StorageAdapter {
         }
     }
 
-    async deleteDirectory(path: string): Promise<void> {
+    async deleteDirectory(path: string, options: MiscellaneousOptions): Promise<void> {
+        maybeAbort(options.abortSignal);
+
         await rm(this.prefixer.prefixDirectoryPath(path), {
             recursive: true,
             force: true,
@@ -303,15 +326,18 @@ export class LocalStorageAdapter implements StorageAdapter {
         };
     }
 
-    async changeVisibility(path: string, visibility: string): Promise<void> {
+    async changeVisibility(path: string, visibility: string, options: MiscellaneousOptions): Promise<void> {
+        maybeAbort(options.abortSignal);
+
         await chmod(
             this.prefixer.prefixFilePath(path),
             this.visibilityConversion.visibilityToFilePermissions(visibility),
         );
     }
 
-    async visibility(path: string): Promise<string> {
-        const stat = await this.stat(path);
+    async visibility(path: string, options: MiscellaneousOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
+        const stat = await this.doStat(path, 'file');
 
         if (!stat.visibility) {
             throw new Error('Unable to determine visibility');
@@ -320,9 +346,10 @@ export class LocalStorageAdapter implements StorageAdapter {
         return stat.visibility;
     }
 
-    async directoryExists(path: string): Promise<boolean> {
+    async directoryExists(path: string, options: MiscellaneousOptions): Promise<boolean> {
+        maybeAbort(options.abortSignal);
         try {
-            const stat = await this.stat(path, 'directory');
+            const stat = await this.doStat(path, 'directory');
 
             return stat.isDirectory;
         } catch (e) {
@@ -357,6 +384,8 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
+        maybeAbort(options.abortSignal);
+
         return checksumFromStream(await this.read(path), options);
     }
 }
