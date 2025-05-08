@@ -5,8 +5,8 @@
   "dependencies": {
     "@flystorage/dynamic-import": "^1.0.0",
     "@flystorage/file-storage": "^1.1.0",
-    "file-type": "^19.6.0",
-    "mime-types": "^2.1.35"
+    "file-type": "^20.5.0",
+    "mime-types": "^3.0.1"
   },
   "description": "",
   "main": "./dist/cjs/index.js",
