@@ -5,6 +5,7 @@ import * as https from 'https';
 import {AwsS3StorageAdapter} from './aws-s3-storage-adapter.js';
 import {createReadStream} from "node:fs";
 import * as path from "node:path";
+import 'dotenv/config';
 
 let client: S3Client;
 let storage: FileStorage;
@@ -12,12 +13,6 @@ let bucket = 'flysystem-check';
 const testSegment = randomBytes(10).toString('hex');
 
 describe('aws-s3 file storage', () => {
-    const truncate = async () =>
-        await new FileStorage(new AwsS3StorageAdapter(client, {
-            bucket: bucket,
-            prefix: 'storage',
-        })).deleteDirectory(testSegment);
-
     beforeAll(() => {
         const [major] = process.versions.node.split('.').map(Number);
         const versionToBucketMapping = [[20, 'a'], [21, 'b'], [22, 'c'], [23, 'd']] as [number, string][];
@@ -39,7 +34,10 @@ describe('aws-s3 file storage', () => {
     });
 
     afterAll(async () => {
-        await truncate();
+        await new FileStorage(new AwsS3StorageAdapter(client, {
+            bucket: bucket,
+            prefix: 'storage',
+        })).deleteDirectory(testSegment);
         client.destroy();
     });
 
@@ -136,11 +134,11 @@ describe('aws-s3 file storage', () => {
     });
 
     test('trying to copy a file that does not exist', async () => {
-        expect(storage.copyFile('404.txt', 'to.txt')).rejects.toThrow();
+        await expect(storage.copyFile('404.txt', 'to.txt')).rejects.toThrow();
     });
 
     test('trying to move a file that does not exist', async () => {
-        expect(storage.moveFile('404.txt', 'to.txt')).rejects.toThrow();
+        await expect(storage.moveFile('404.txt', 'to.txt')).rejects.toThrow();
     });
 
     test('you can download public files using a public URL', async () => {
@@ -366,7 +364,7 @@ describe('aws-s3 file storage', () => {
             return promise;
         }).rejects.toThrow(UnableToWriteFile.because(
             'Because I say so',
-            {cause: reason, context: {path, options}},
+            {cause: reason, context: {path: 'cache.txt', options}},
         ));
     })
 

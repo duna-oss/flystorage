@@ -5,6 +5,7 @@ import {FileStorage, UploadRequestHeaders, Visibility, readableToString} from "@
 import fetch from "node-fetch";
 import { Readable } from "node:stream";
 import https from 'https';
+import 'dotenv/config';
 
 const runSegment = process.env.AZURE_PREFIX ?? randomBytes(10).toString('hex');
 
@@ -17,7 +18,7 @@ describe('AzureStorageBlobStorageAdapter', () => {
 
     beforeAll(async () => {
         await container.createIfNotExists({ access: "container" });
-    })
+    });
 
     beforeEach(() => {
         const testSegment = randomBytes(10).toString('hex');

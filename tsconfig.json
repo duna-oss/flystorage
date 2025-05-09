@@ -13,7 +13,8 @@
     "allowSyntheticDefaultImports": true,
     "types": [
       "jest",
-      "node"
+      "node",
+      "vitest/globals"
     ]
   }
 }

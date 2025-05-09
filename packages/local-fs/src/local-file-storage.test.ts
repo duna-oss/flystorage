@@ -5,7 +5,7 @@ import {
     UploadRequest,
     Visibility
 } from '@flystorage/file-storage';
-import {BinaryToTextEncoding, createHash} from 'crypto';
+import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as path from 'node:path';
 import {LocalStorageAdapter, LocalTemporaryUrlGenerator, LocalTemporaryUrlOptions} from './local-file-storage.js';
 import {execSync} from 'child_process';
@@ -13,19 +13,23 @@ import {createReadStream} from 'node:fs';
 import {closeReadable} from "@flystorage/file-storage";
 
 const rootDirectory = path.resolve(process.cwd(), 'fixtures/test-files');
+let storage: FileStorage;
 
 describe('LocalStorageAdapter', () => {
-    const storage = new FileStorage(
-        new LocalStorageAdapter(
-            rootDirectory,
-            {
-                publicUrlOptions: {
-                    baseUrl: 'https://default.com/',
+    beforeEach(() => {
+        const testSegment = randomBytes(10).toString('hex');
+        storage = new FileStorage(
+            new LocalStorageAdapter(
+                path.join(rootDirectory, testSegment),
+                {
+                    publicUrlOptions: {
+                        baseUrl: 'https://default.com/',
+                    }
                 }
-            }
-        ),
-    );
-    afterEach(() => {
+            ),
+        );
+    })
+    beforeAll(() => {
         execSync(`rm -rf ${rootDirectory}/*`);
     });
 
@@ -243,12 +247,14 @@ describe('LocalStorageAdapter', () => {
     });
 
     test('moving a file', async () => {
-        await storage.write('from.txt', 'this');
+        await storage.write('move-from.txt', 'this');
 
-        await storage.moveFile('from.txt', 'to.txt');
+        expect(await storage.readToString('move-from.txt')).toEqual('this');
 
-        expect(await storage.fileExists('from.txt')).toEqual(false);
-        expect(await storage.readToString('to.txt')).toEqual('this');
+        await storage.moveFile('move-from.txt', 'move-to.txt');
+
+        expect(await storage.fileExists('move-from.txt')).toEqual(false);
+        expect(await storage.readToString('move-to.txt')).toEqual('this');
     });
 
     test('copying a file', async () => {
