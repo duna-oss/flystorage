@@ -1,0 +1,32 @@
+name: Compile libraries
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  run-tests:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+        node: [22] # latest LTS version
+    name: Compile libraries
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: ./.github/actions/install-dependencies
+        name: Install NPM dependencies
+        with:
+          cache-key: npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
+          cache-restore-keys: npm-caches-${{ matrix.node }}
+      - name: Run build
+        run: npm run build:only
