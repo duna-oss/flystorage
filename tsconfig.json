@@ -9,12 +9,24 @@
     "./**/*.ts"
   ],
   "compilerOptions": {
-    "esModuleInterop": false,
+    "target": "ES2020",
+    "module": "NodeNext",
+    "strict": true,
+    "moduleResolution": "NodeNext",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "types": [
       "jest",
       "node",
       "vitest/globals"
-    ]
-  }
+    ],
+    "paths": {
+      "@flystorage/*": ["./packages/*/src/index.ts"]
+    }
+  },
+
 }

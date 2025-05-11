@@ -44,6 +44,8 @@ jobs:
           echo $CONTENTS > google-cloud-service-account.json
         env:
           CONTENTS: "${{ secrets.GCS_KEY_CONTENTS }}"
+      - name: Run build
+        run: npm run build:only
       - name: Run relevant tests
         run: "npm run test"
         env:

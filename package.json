@@ -15,7 +15,7 @@
     "lint": "tsc --noEmit --incremental false",
     "jest": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --detectOpenHandles",
     "test": "npm run lint && npm run vitest",
-    "vitest": "vitest --globals run"
+    "vitest": "NODE_OPTIONS=\"--import tsx/esm\" vitest --globals run"
   },
   "workspaces": [
     "./packages/stream-mime-type",
@@ -41,6 +41,7 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
+    "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.1.3"
   },
   "dependencies": {
