@@ -4,6 +4,7 @@ import {
     ChecksumOptions,
     CopyFileOptions,
     FileContents,
+    FileWasNotFound,
     ListOptions,
     MimeTypeOptions,
     MiscellaneousOptions,
@@ -20,6 +21,7 @@ import {
     WriteOptions,
 } from '@flystorage/file-storage';
 import {
+    BlobDownloadResponseParsed,
     BlobGenerateSasUrlOptions,
     BlobGetPropertiesResponse,
     BlobProperties,
@@ -99,9 +101,22 @@ export class AzureStorageBlobStorageAdapter implements StorageAdapter {
     async read(path: string, options: MiscellaneousOptions): Promise<FileContents> {
         maybeAbort(options.abortSignal);
         const blob = this.blockClient(path);
-        const response = await blob.download(undefined, undefined, {
-            abortSignal: options.abortSignal,
-        });
+        let response: BlobDownloadResponseParsed;
+
+        try {
+            response = await blob.download(undefined, undefined, {
+                abortSignal: options.abortSignal,
+            });
+        } catch (err) {
+            if ((err as any).statusCode === 404) {
+                throw FileWasNotFound.atLocation(path, {
+                    context: {path, options},
+                    cause: err,
+                })
+            }
+
+            throw err;
+        }
 
         if (!response.readableStreamBody) {
             throw new Error('No readable stream body in response.');

@@ -1,7 +1,13 @@
 import {BlobServiceClient} from "@azure/storage-blob";
 import {AzureStorageBlobStorageAdapter} from "./azure-storage-blob.js";
 import {randomBytes} from "crypto";
-import {FileStorage, UploadRequestHeaders, Visibility, readableToString} from "@flystorage/file-storage";
+import {
+    FileStorage,
+    UploadRequestHeaders,
+    Visibility,
+    readableToString,
+    UnableToReadFile,
+} from '@flystorage/file-storage';
 import fetch from "node-fetch";
 import { Readable } from "node:stream";
 import https from 'https';
@@ -71,8 +77,19 @@ describe('AzureStorageBlobStorageAdapter', () => {
     });
 
     test('trying to read a file that does not exist', async () => {
-        await expect(storage.readToString('404.tx')).rejects.toThrow();
+        let was404 = false;
+
+        try {
+            await storage.read('404.txt');
+        } catch (err) {
+            if (err instanceof UnableToReadFile) {
+                was404 = err.wasFileNotFound;
+            }
+        }
+
+        expect(was404).toEqual(true);
     });
+
 
     test('trying to see if a non-existing file exists', async () => {
         expect(await storage.fileExists('404.txt')).toEqual(false);
