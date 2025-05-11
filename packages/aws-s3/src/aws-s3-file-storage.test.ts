@@ -1,5 +1,13 @@
 import {S3Client} from '@aws-sdk/client-s3';
-import {FileStorage, readableToString, Visibility, closeReadable, UploadRequestHeaders, UnableToWriteFile} from '@flystorage/file-storage';
+import {
+    FileStorage,
+    readableToString,
+    Visibility,
+    closeReadable,
+    UploadRequestHeaders,
+    UnableToWriteFile,
+    UnableToReadFile,
+} from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as https from 'https';
 import {AwsS3StorageAdapter} from './aws-s3-storage-adapter.js';
@@ -135,6 +143,20 @@ describe('aws-s3 file storage', () => {
 
     test('trying to copy a file that does not exist', async () => {
         await expect(storage.copyFile('404.txt', 'to.txt')).rejects.toThrow();
+    });
+
+    test('trying to read a file that does not exist', async () => {
+        let was404 = false;
+
+        try {
+            await storage.read('404.txt');
+        } catch (err) {
+            if (err instanceof UnableToReadFile) {
+                was404 = err.wasFileNotFound;
+            }
+        }
+
+        expect(was404).toEqual(true);
     });
 
     test('trying to move a file that does not exist', async () => {

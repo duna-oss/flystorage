@@ -122,14 +122,48 @@ export class UnableToWriteFile extends FlystorageError {
 export class UnableToReadFile extends FlystorageError {
     public readonly code = 'flystorage.unable_to_read_file';
 
+    constructor(
+        public readonly wasFileNotFound: boolean,
+        message: string,
+        public readonly context: ErrorContext = {},
+        cause: unknown = undefined,
+    ) {
+        super(message, context, cause);
+    }
+
     static because = (reason: string, {context = {}, cause = undefined}: {
         context?: ErrorContext,
         cause?: unknown
     }) => new UnableToReadFile(
+        false,
         `Unable to read the file. Reason: ${reason}`,
         context,
         cause,
     );
+
+    static becauseFileWasNotFound = (error: FileWasNotFound) => new UnableToReadFile(
+        true,
+        `Unable to read the file. Reason: ${error.message}`,
+        error.context,
+        error,
+    );
+}
+
+export class FileWasNotFound extends FlystorageError {
+    public readonly code = 'flystorage.file_was_not_found';
+
+    static atLocation = (location: string, {context = {}, cause = undefined}: {
+        context?: ErrorContext,
+        cause?: unknown
+    }) => new FileWasNotFound(
+        `File was not found at location: ${location}`,
+        context,
+        cause,
+    );
+}
+
+export function isFileWasNotFound(error: unknown): error is FileWasNotFound {
+    return (typeof error === 'object' && (error as any).code === 'flystorage.file_was_not_found');
 }
 
 export class UnableToSetVisibility extends FlystorageError {

@@ -9,6 +9,7 @@ import {
     GetObjectAclOutput,
     GetObjectCommand,
     GetObjectCommandInput,
+    GetObjectCommandOutput,
     HeadObjectCommand,
     ListObjectsV2Command,
     ListObjectsV2Output,
@@ -30,6 +31,7 @@ import {
     CopyFileOptions,
     CreateDirectoryOptions,
     FileContents,
+    FileWasNotFound,
     MimeTypeOptions,
     MiscellaneousOptions,
     MoveFileOptions,
@@ -400,12 +402,26 @@ export class AwsS3StorageAdapter implements StorageAdapter {
 
     async read(path: string, options: MiscellaneousOptions): Promise<FileContents> {
         maybeAbort(options.abortSignal);
-        const response = await this.client.send(new GetObjectCommand({
-            Bucket: this.options.bucket,
-            Key: this.prefixer.prefixFilePath(path),
-        }), {
-            abortSignal: options.abortSignal,
-        });
+
+        let response: GetObjectCommandOutput;
+
+        try {
+            response = await this.client.send(new GetObjectCommand({
+                Bucket: this.options.bucket,
+                Key: this.prefixer.prefixFilePath(path),
+            }), {
+                abortSignal: options.abortSignal,
+            });
+        } catch (err) {
+            if (err instanceof S3ServiceException && err.$metadata.httpStatusCode === 404) {
+                throw FileWasNotFound.atLocation(path, {
+                    context: {path, options},
+                    cause: err,
+                });
+            }
+
+            throw err;
+        }
 
         if (response.Body instanceof Readable || response.Body instanceof ReadableStream) {
             return response.Body;

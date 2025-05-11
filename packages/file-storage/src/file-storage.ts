@@ -5,7 +5,7 @@ import {PathNormalizer, PathNormalizerV1} from './path-normalizer.js';
 import {TextEncoder} from "util";
 import {
     ChecksumIsNotAvailable,
-    errorToMessage,
+    errorToMessage, isFileWasNotFound,
     UnableToCheckDirectoryExistence,
     UnableToCheckFileExistence,
     UnableToCopyFile,
@@ -255,6 +255,10 @@ export class FileStorage {
                 await this.adapter.read(this.pathNormalizer.normalizePath(path), options),
             );
         } catch (error) {
+            if (isFileWasNotFound(error)) {
+                throw UnableToReadFile.becauseFileWasNotFound(error);
+            }
+
             throw UnableToReadFile.because(
                 errorToMessage(error),
                 {cause: error, context: {path}},
