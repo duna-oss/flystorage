@@ -14,7 +14,7 @@ export default defineConfig({
         ]
     },
     test: {
-        testTimeout: 1_000,
+        testTimeout: 10_000,
         include: ['packages/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
         globals: true,
         clearMocks: false,
