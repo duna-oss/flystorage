@@ -4,7 +4,7 @@
 
 ### Changes
 
-- Use a 
+- Use a Buffer for internal storage
 
 ## 1.0.0
 

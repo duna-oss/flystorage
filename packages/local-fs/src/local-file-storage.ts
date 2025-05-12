@@ -14,7 +14,7 @@ import {
     MimeTypeOptions,
     UploadRequestOptions,
     UploadRequest,
-    MiscellaneousOptions,
+    MiscellaneousOptions, FileWasNotFound,
 } from '@flystorage/file-storage';
 import {lookup} from "mime-types";
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
@@ -25,6 +25,7 @@ import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
 import {dynamicallyImport} from '@flystorage/dynamic-import';
 import {PreparedUploadsAreNotSupported, PreparedUploadStrategy} from '@flystorage/file-storage';
+import {PassThrough} from 'node:stream';
 
 export type LocalStorageAdapterOptions = {
     rootDirectoryVisibility?: string,
@@ -213,8 +214,26 @@ export class LocalStorageAdapter implements StorageAdapter {
         }
     }
 
-    async read(path: string): Promise<Readable> {
-        return createReadStream(this.prefixer.prefixFilePath(path));
+    async read(path: string, options: MiscellaneousOptions): Promise<Readable> {
+        const readStream = createReadStream(this.prefixer.prefixFilePath(path));
+        const errorProxy = new PassThrough();
+
+        readStream.on('error', error => {
+            readStream.unpipe(errorProxy);
+
+            if ((error as any).message?.includes('ENOENT')) {
+                errorProxy.destroy(FileWasNotFound.atLocation(path, {
+                    cause: error,
+                    context: {path, options},
+                }));
+            } else {
+                errorProxy.destroy(error);
+            }
+        });
+
+        readStream.pipe(errorProxy);
+
+        return errorProxy;
     }
 
     async write(path: string, contents: Readable, options: WriteOptions): Promise<void> {
@@ -386,7 +405,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     async checksum(path: string, options: ChecksumOptions): Promise<string> {
         maybeAbort(options.abortSignal);
 
-        return checksumFromStream(await this.read(path), options);
+        return checksumFromStream(await this.read(path, options), options);
     }
 }
 

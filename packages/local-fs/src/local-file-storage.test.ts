@@ -1,9 +1,9 @@
 import {
     FileInfo,
     FileStorage,
-    normalizeExpiryToMilliseconds,
+    normalizeExpiryToMilliseconds, UnableToReadFile,
     UploadRequest,
-    Visibility
+    Visibility,
 } from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as path from 'node:path';
@@ -268,6 +268,20 @@ describe('LocalStorageAdapter', () => {
 
     test('trying to copy a file that does not exist', async () => {
         await expect(storage.copyFile('from.txt', 'to.txt')).rejects.toThrow();
+    });
+
+    test('trying to read a file that does not exist', async () => {
+        let was404 = false;
+
+        try {
+            await storage.readToString('404.txt');
+        } catch (err) {
+            if (err instanceof UnableToReadFile) {
+                was404 = err.wasFileNotFound;
+            }
+        }
+
+        expect(was404).toEqual(true);
     });
 
     test('trying to move a file that does not exist', async () => {
