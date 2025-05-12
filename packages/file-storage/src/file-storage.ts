@@ -150,10 +150,11 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
 
 export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable | string;
 
-export type MiscellaneousOptions = {
+export type TimeoutOptions = { timout?: number };
+
+export type MiscellaneousOptions = TimeoutOptions & {
     [option: string]: any,
     abortSignal?: AbortSignal,
-    timout?: number,
 }
 
 export type MimeTypeOptions = MiscellaneousOptions & {
@@ -205,7 +206,8 @@ export type ConfigurationOptions = {
     uploadRequest?: UploadRequestOptions,
     checksums?: ChecksumOptions,
     mimeTypes?: MimeTypeOptions,
-    preparedUploadStrategy?: PreparedUploadStrategy
+    preparedUploadStrategy?: PreparedUploadStrategy,
+    timeout?: TimeoutOptions,
 }
 
 export function toReadable(contents: FileContents): Readable {
@@ -254,14 +256,14 @@ export class FileStorage {
     }
 
     public async write(path: string, contents: FileContents, options: WriteOptions = {}): Promise<void> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.visibility, ...this.options.writes, ...options});
 
         try {
             const body = toReadable(contents);
             await this.adapter.write(
                 this.pathNormalizer.normalizePath(path),
                 body,
-                {...this.options.visibility, ...this.options.writes, ...options},
+                options,
             );
             await closeReadable(body);
         } catch (error) {
@@ -273,7 +275,7 @@ export class FileStorage {
     }
 
     public async read(path: string, options: MiscellaneousOptions = {}): Promise<Readable> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             const stream = Readable.from(
@@ -306,8 +308,6 @@ export class FileStorage {
     }
 
     public async readToString(path: string, options: MiscellaneousOptions = {}): Promise<string> {
-        options = instrumentAbortSignal(options);
-
         return await readableToString(await this.read(path, options));
     }
 
@@ -320,7 +320,7 @@ export class FileStorage {
     }
 
     public async deleteFile(path: string, options: MiscellaneousOptions = {}): Promise<void> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             await this.adapter.deleteFile(
@@ -336,12 +336,12 @@ export class FileStorage {
     }
 
     public async createDirectory(path: string, options: CreateDirectoryOptions = {}): Promise<void> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.visibility, ...options});
 
         try {
             return await this.adapter.createDirectory(
                 this.pathNormalizer.normalizePath(path),
-                {...this.options.visibility, ...options},
+                options,
             );
         } catch (error) {
             throw UnableToCreateDirectory.because(
@@ -352,7 +352,7 @@ export class FileStorage {
     }
 
     public async deleteDirectory(path: string, options: MiscellaneousOptions = {}): Promise<void> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             return await this.adapter.deleteDirectory(this.pathNormalizer.normalizePath(path), options);
@@ -365,7 +365,7 @@ export class FileStorage {
     }
 
     public async stat(path: string, options: MiscellaneousOptions = {}): Promise<StatEntry> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             return await this.adapter.stat(this.pathNormalizer.normalizePath(path), options);
@@ -378,13 +378,13 @@ export class FileStorage {
     }
 
     public async moveFile(from: string, to: string, options: MoveFileOptions = {}): Promise<void> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.visibility, ...this.options.moves, ...options});
 
         try {
             await this.adapter.moveFile(
                 this.pathNormalizer.normalizePath(from),
                 this.pathNormalizer.normalizePath(to),
-                {...this.options.visibility, ...this.options.moves, ...options},
+                options,
             );
         } catch (error) {
             throw UnableToMoveFile.because(
@@ -395,13 +395,13 @@ export class FileStorage {
     }
 
     public async copyFile(from: string, to: string, options: CopyFileOptions = {}): Promise<void> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.visibility, ...this.options.copies, ...options});
 
         try {
             await this.adapter.copyFile(
                 this.pathNormalizer.normalizePath(from),
                 this.pathNormalizer.normalizePath(to),
-                {...this.options.visibility, ...this.options.copies, ...options},
+                options,
             );
         } catch (error) {
             throw UnableToCopyFile.because(
@@ -412,7 +412,7 @@ export class FileStorage {
     }
 
     public async changeVisibility(path: string, visibility: string, options: MiscellaneousOptions = {}): Promise<void> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             return await this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility, options);
@@ -425,7 +425,7 @@ export class FileStorage {
     }
 
     public async visibility(path: string, options: MiscellaneousOptions = {}): Promise<string> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             return await this.adapter.visibility(this.pathNormalizer.normalizePath(path), options);
@@ -438,7 +438,7 @@ export class FileStorage {
     }
 
     public async fileExists(path: string, options: MiscellaneousOptions = {}): Promise<boolean> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             return await this.adapter.fileExists(this.pathNormalizer.normalizePath(path), options);
@@ -451,7 +451,7 @@ export class FileStorage {
     }
 
     public list(path: string, options: ListOptions = {}): DirectoryListing {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         const adapterOptions: AdapterListOptions = {
             ...options,
@@ -466,7 +466,7 @@ export class FileStorage {
     }
 
     public async statFile(path: string, options: MiscellaneousOptions = {}): Promise<FileInfo> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
         const stat = await this.stat(path, options);
 
         if (isFile(stat)) {
@@ -477,7 +477,7 @@ export class FileStorage {
     }
 
     public async directoryExists(path: string, options: MiscellaneousOptions = {}): Promise<boolean> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             return await this.adapter.directoryExists(this.pathNormalizer.normalizePath(path), options);
@@ -490,12 +490,12 @@ export class FileStorage {
     }
 
     public async publicUrl(path: string, options: PublicUrlOptions = {}): Promise<string> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.publicUrls, ...options});
 
         try {
             return await this.adapter.publicUrl(
                 this.pathNormalizer.normalizePath(path),
-                {...this.options.publicUrls, ...options},
+                options,
             );
         } catch (error) {
             throw UnableToGetPublicUrl.because(
@@ -506,12 +506,12 @@ export class FileStorage {
     }
 
     public async temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.temporaryUrls, ...options});
 
         try {
             return await this.adapter.temporaryUrl(
                 this.pathNormalizer.normalizePath(path),
-                {...this.options.temporaryUrls, ...options},
+                options,
             );
         } catch (error) {
             throw UnableToGetTemporaryUrl.because(
@@ -522,7 +522,7 @@ export class FileStorage {
     }
 
     public async prepareUpload(path: string, options: UploadRequestOptions): Promise<UploadRequest> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.uploadRequest, ...options});
 
         if (this.options.preparedUploadStrategy !== undefined) {
             try {
@@ -542,7 +542,7 @@ export class FileStorage {
         try {
             return await this.adapter.prepareUpload(
                 this.pathNormalizer.normalizePath(path),
-                {...this.options.uploadRequest, ...options},
+                options,
             );
         } catch (error) {
             throw UnableToPrepareUploadRequest.because(
@@ -553,12 +553,12 @@ export class FileStorage {
     }
 
     public async checksum(path: string, options: ChecksumOptions = {}): Promise<string> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.checksums, ...options});
 
         try {
             return await this.adapter.checksum(
                 this.pathNormalizer.normalizePath(path),
-                {...this.options.checksums, ...options},
+                options,
             );
         } catch (error) {
             if (ChecksumIsNotAvailable.isErrorOfType(error)) {
@@ -573,10 +573,12 @@ export class FileStorage {
     }
 
     public async mimeType(path: string, options: MimeTypeOptions = {}): Promise<string> {
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.mimeTypes, ...options});
+
         try {
             return await this.adapter.mimeType(
                 this.pathNormalizer.normalizePath(path),
-                {...this.options.mimeTypes, ...options},
+                options,
             );
         } catch (error) {
             throw UnableToGetMimeType.because(
@@ -587,7 +589,7 @@ export class FileStorage {
     }
 
     public async lastModified(path: string, options: MiscellaneousOptions = {}): Promise<number> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             return await this.adapter.lastModified(
@@ -603,7 +605,7 @@ export class FileStorage {
     }
 
     public async fileSize(path: string, options: MiscellaneousOptions = {}): Promise<number> {
-        options = instrumentAbortSignal(options);
+        options = instrumentAbortSignal({...this.options.timeout, ...options});
 
         try {
             return await this.adapter.fileSize(
