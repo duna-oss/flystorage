@@ -12,7 +12,8 @@ import {
     TemporaryUrlOptions,
     VisibilityOptions,
     WriteOptions,
-    readableToUint8Array, readableToString,
+    readableToBuffer,
+    readableToString,
 } from '@flystorage/file-storage';
 import {Readable} from "node:stream";
 import {dirname, parse} from 'node:path'
@@ -21,7 +22,7 @@ import {lookup as mimeTimeForExt} from "mime-types";
 type FileEntry = {
     type: 'file',
     path: string,
-    contents: string,
+    contents: Buffer,
     lastModifiedMs: number,
     visibility?: string,
 }
@@ -33,6 +34,13 @@ type DirectoryEntry = {
 }
 
 export type TimestampResolver = () => number;
+
+function cloneBuffer(input: Buffer): Buffer {
+    const output = Buffer.alloc(input.length);
+    input.copy(output);
+
+    return output;
+}
 
 export class InMemoryStorageAdapter implements StorageAdapter {
     private entries: Map<string, FileEntry | DirectoryEntry> = new Map;
@@ -52,7 +60,7 @@ export class InMemoryStorageAdapter implements StorageAdapter {
         this.entries.set(path, {
             type: 'file',
             path,
-            contents: await readableToString(contents),
+            contents: await readableToBuffer(contents),
             lastModifiedMs: this.timestampResolver(),
             visibility: options.visibility,
         })
@@ -79,11 +87,13 @@ export class InMemoryStorageAdapter implements StorageAdapter {
             throw new Error(`Path "${path}" is not a file`);
         }
 
-        return file.contents;
+        return Readable.from(cloneBuffer(file.contents));
     }
+
     async deleteFile(path: string): Promise<void> {
         this.entries.delete(path);
     }
+
     async createDirectory(path: string, options: CreateDirectoryOptions): Promise<void> {
         path = path.replace(/\/+$/g, '');
 
@@ -225,6 +235,7 @@ export class InMemoryStorageAdapter implements StorageAdapter {
 
         return entry.lastModifiedMs;
     }
+
     async fileSize(path: string): Promise<number> {
         const entry = this.entries.get(path);
 
@@ -232,7 +243,7 @@ export class InMemoryStorageAdapter implements StorageAdapter {
             throw new Error(`File ${path} does not exist`);
         }
 
-        return entry.contents.length;
+        return Buffer.byteLength(entry.contents);
     }
 }
 

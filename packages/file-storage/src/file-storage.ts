@@ -2,10 +2,11 @@ import {BinaryToTextEncoding} from 'crypto';
 import {Readable} from 'stream';
 import {checksumFromStream} from './checksum-from-stream.js';
 import {PathNormalizer, PathNormalizerV1} from './path-normalizer.js';
-import {TextEncoder} from "util";
+import {TextEncoder} from 'util';
 import {
     ChecksumIsNotAvailable,
-    errorToMessage, isFileWasNotFound,
+    errorToMessage,
+    isFileWasNotFound,
     UnableToCheckDirectoryExistence,
     UnableToCheckFileExistence,
     UnableToCopyFile,
@@ -59,28 +60,47 @@ export function isDirectory(stat: StatEntry): stat is DirectoryInfo {
 
 export type StatEntry = FileInfo | DirectoryInfo;
 
-export type AdapterListOptions = ListOptions & {deep: boolean};
+export type AdapterListOptions = ListOptions & { deep: boolean };
 
 export interface StorageAdapter {
     write(path: string, contents: Readable, options: WriteOptions): Promise<void>;
+
     read(path: string, options: MiscellaneousOptions): Promise<FileContents>;
+
     deleteFile(path: string, options: MiscellaneousOptions): Promise<void>;
+
     createDirectory(path: string, options: CreateDirectoryOptions): Promise<void>;
+
     copyFile(from: string, to: string, options: CopyFileOptions): Promise<void>;
+
     moveFile(from: string, to: string, options: MoveFileOptions): Promise<void>;
+
     stat(path: string, options: MiscellaneousOptions): Promise<StatEntry>;
+
     list(path: string, options: AdapterListOptions): AsyncGenerator<StatEntry>;
+
     changeVisibility(path: string, visibility: string, options: MiscellaneousOptions): Promise<void>;
+
     visibility(path: string, options: MiscellaneousOptions): Promise<string>;
+
     deleteDirectory(path: string, options: MiscellaneousOptions): Promise<void>;
+
     fileExists(path: string, options: MiscellaneousOptions): Promise<boolean>;
+
     directoryExists(path: string, options: MiscellaneousOptions): Promise<boolean>;
+
     publicUrl(path: string, options: PublicUrlOptions): Promise<string>;
+
     temporaryUrl(path: string, options: TemporaryUrlOptions): Promise<string>;
+
     prepareUpload?(path: string, options: UploadRequestOptions): Promise<UploadRequest>;
+
     checksum(path: string, options: ChecksumOptions): Promise<string>;
+
     mimeType(path: string, options: MimeTypeOptions): Promise<string>;
+
     lastModified(path: string, options: MiscellaneousOptions): Promise<number>;
+
     fileSize(path: string, options: MiscellaneousOptions): Promise<number>;
 }
 
@@ -89,7 +109,9 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
         private readonly listing: AsyncGenerator<StatEntry>,
         private readonly path: string,
         private readonly deep: boolean,
-    ) {}
+    ) {
+    }
+
     async toArray(sorted: boolean = true): Promise<StatEntry[]> {
         const items = [];
         for await (const item of this.listing) {
@@ -98,9 +120,10 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
 
         return sorted ? items.sort((a, b) => naturalSorting.compare(a.path, b.path)) : items;
     }
+
     filter(filter: (entry: StatEntry) => boolean): DirectoryListing {
         const listing = this.listing;
-        const filtered = (async function *() {
+        const filtered = (async function* () {
             for await (const entry of listing) {
                 if (filter(entry)) {
                     yield entry;
@@ -110,7 +133,8 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
 
         return new DirectoryListing(filtered, this.path, this.deep);
     }
-    async *[Symbol.asyncIterator]() {
+
+    async* [Symbol.asyncIterator]() {
         try {
             for await (const item of this.listing) {
                 yield item;
@@ -119,7 +143,7 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
             throw UnableToListDirectory.because(
                 errorToMessage(error),
                 {cause: error, context: {path: this.path, deep: this.deep}},
-            )
+            );
         }
     }
 }
@@ -160,10 +184,10 @@ export type CopyFileOptions = MiscellaneousOptions & VisibilityOptions & {
 export type MoveFileOptions = MiscellaneousOptions & VisibilityOptions & {
     retainVisibility?: boolean,
 };
-export type ListOptions = MiscellaneousOptions & {deep?: boolean};
+export type ListOptions = MiscellaneousOptions & { deep?: boolean };
 export type TemporaryUrlOptions = MiscellaneousOptions & {
     expiresAt: ExpiresAt,
-    responseHeaders?: {[header: string]: string},
+    responseHeaders?: { [header: string]: string },
 };
 
 export type ChecksumOptions = MiscellaneousOptions & {
@@ -194,7 +218,7 @@ export function toReadable(contents: FileContents): Readable {
 
 const naturalSorting = new Intl.Collator(undefined, {
     numeric: true,
-    sensitivity: 'base'
+    sensitivity: 'base',
 });
 
 function instrumentAbortSignal<Options extends MiscellaneousOptions>(options: Options): Options {
@@ -323,7 +347,7 @@ export class FileStorage {
             throw UnableToCreateDirectory.because(
                 errorToMessage(error),
                 {cause: error, context: {path, options}},
-            )
+            );
         }
     }
 
@@ -349,7 +373,7 @@ export class FileStorage {
             throw UnableToGetStat.because(
                 errorToMessage(error),
                 {cause: error, context: {path}},
-            )
+            );
         }
     }
 
@@ -366,7 +390,7 @@ export class FileStorage {
             throw UnableToMoveFile.because(
                 errorToMessage(error),
                 {cause: error, context: {from, to}},
-            )
+            );
         }
     }
 
@@ -383,7 +407,7 @@ export class FileStorage {
             throw UnableToCopyFile.because(
                 errorToMessage(error),
                 {cause: error, context: {from, to}},
-            )
+            );
         }
     }
 
@@ -408,8 +432,8 @@ export class FileStorage {
         } catch (error) {
             throw UnableToGetVisibility.because(
                 errorToMessage(error),
-                {cause: error, context: {path}}
-            )
+                {cause: error, context: {path}},
+            );
         }
     }
 
@@ -422,7 +446,7 @@ export class FileStorage {
             throw UnableToCheckFileExistence.because(
                 errorToMessage(error),
                 {cause: error, context: {path}},
-            )
+            );
         }
     }
 
@@ -612,6 +636,7 @@ export type ExpiresAt = Date | TimestampMs;
 export function normalizeExpiryToDate(expiresAt: ExpiresAt): Date {
     return expiresAt instanceof Date ? expiresAt : new Date(expiresAt);
 }
+
 export function normalizeExpiryToMilliseconds(expiresAt: ExpiresAt): number {
     return expiresAt instanceof Date ? expiresAt.getTime() : expiresAt;
 }
@@ -637,6 +662,16 @@ export async function readableToString(stream: Readable): Promise<string> {
     await closeReadable(stream);
 
     return contents;
+}
+
+export async function readableToBuffer(stream: Readable): Promise<Buffer> {
+    return new Promise<Buffer>((resolve, reject) => {
+        const buffers: Buffer[] = [];
+        stream.on('data', chunk => buffers.push(Buffer.from(chunk)));
+        stream.on('end', () => resolve(Buffer.concat(buffers)));
+        stream.on('finish', () => resolve(Buffer.concat(buffers)));
+        stream.on('error', err => reject(err));
+    });
 }
 
 const encoder = new TextEncoder();

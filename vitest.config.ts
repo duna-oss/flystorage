@@ -14,10 +14,26 @@ export default defineConfig({
         ]
     },
     test: {
-        testTimeout: 15_000,
+        testTimeout: 1_000,
         include: ['packages/**/*.{test,spec}.?(c|m)[jt]s?(x)'],
         globals: true,
         clearMocks: false,
         setupFiles: ['dotenv/config'],
+
+        // profiling
+        // pool: 'forks',
+        // poolOptions: {
+        //     forks: {
+        //         execArgv: [
+        //             '--cpu-prof',
+        //             '--cpu-prof-dir=test-runner-profile',
+        //             // '--heap-prof',
+        //             // '--heap-prof-dir=test-runner-profile'
+        //         ],
+        //
+        //         // To generate a single profile
+        //         singleFork: true,
+        //     },
+        // },
     },
 });
