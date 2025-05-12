@@ -14,6 +14,8 @@ import {AwsS3StorageAdapter} from './aws-s3-storage-adapter.js';
 import {createReadStream} from "node:fs";
 import * as path from "node:path";
 import 'dotenv/config';
+import {PassThrough, Writable} from 'node:stream';
+import {Readable} from 'stream';
 
 let client: S3Client;
 let storage: FileStorage;
@@ -144,6 +146,20 @@ describe('aws-s3 file storage', () => {
     test('trying to copy a file that does not exist', async () => {
         await expect(storage.copyFile('404.txt', 'to.txt')).rejects.toThrow();
     });
+
+    test('timing out when writing a file', async () => {
+        const writeStream = new PassThrough();
+        writeStream.write('something');
+
+        setTimeout(() => {
+            writeStream.end('this');
+        }, 150);
+
+        await expect(storage.write('somewhere.txt', writeStream, {
+            timeout: 10,
+        })).rejects.toThrow();
+
+    })
 
     test('trying to read a file that does not exist', async () => {
         let was404 = false;

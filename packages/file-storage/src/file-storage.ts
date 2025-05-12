@@ -226,8 +226,8 @@ const naturalSorting = new Intl.Collator(undefined, {
 function instrumentAbortSignal<Options extends MiscellaneousOptions>(options: Options): Options {
     let abortSignal = options.abortSignal;
 
-    if (options.timout) {
-        const timeoutAbort = AbortSignal.timeout(options.timout);
+    if (options.timeout !== undefined) {
+        const timeoutAbort = AbortSignal.timeout(options.timeout);
 
         if (options.abortSignal) {
             const originalAbortSignal = options.abortSignal;
