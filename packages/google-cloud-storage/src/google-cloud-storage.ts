@@ -4,6 +4,7 @@ import {
     CopyFileOptions,
     CreateDirectoryOptions,
     FileContents,
+    FileWasNotFound,
     MimeTypeOptions,
     MoveFileOptions,
     PathPrefixer,
@@ -17,13 +18,14 @@ import {
     WriteOptions,
 } from '@flystorage/file-storage';
 import {Readable} from 'stream';
-import {Bucket, GetFilesOptions, File, GetSignedUrlConfig} from '@google-cloud/storage';
+import {Bucket, GetFilesOptions, File, GetSignedUrlConfig, ApiError} from '@google-cloud/storage';
 import {resolveMimeType, streamHead} from '@flystorage/stream-mime-type';
 import {pipeline} from 'node:stream/promises';
 import {
     UniformBucketLevelAccessVisibilityHandling,
     VisibilityHandlingForGoogleCloudStorage,
 } from './visibility-handling.js';
+import {PassThrough} from 'node:stream';
 
 export type GoogleCloudStorageAdapterOptions = {
     prefix?: string,
@@ -60,12 +62,22 @@ export class GoogleCloudStorageAdapter implements StorageAdapter {
 
     async read(path: string): Promise<FileContents> {
         const readStream = this.bucket.file(this.prefixer.prefixFilePath(path)).createReadStream();
-        // force retrieval of the head to ensure the http call is made
-        // this ensures the error from the HTTP call is caught at the
-        // abstraction level
-        const [_, outStream] = await streamHead(readStream, 10);
 
-        return outStream;
+        readStream.on('error', err => {
+            readStream.unpipe(errorHandler);
+            if (err instanceof ApiError && err.code === 404) {
+                errorHandler.destroy(FileWasNotFound.atLocation(path, {
+                    context: {path},
+                    cause: err,
+                }))
+            } else {
+                errorHandler.destroy(err);
+            }
+        });
+        const errorHandler = new PassThrough();
+        readStream.pipe(errorHandler);
+
+        return errorHandler;
     }
 
     async deleteFile(path: string): Promise<void> {

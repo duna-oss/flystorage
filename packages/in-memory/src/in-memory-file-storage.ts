@@ -12,8 +12,8 @@ import {
     TemporaryUrlOptions,
     VisibilityOptions,
     WriteOptions,
-    readableToUint8Array,
-} from "@flystorage/file-storage";
+    readableToUint8Array, readableToString,
+} from '@flystorage/file-storage';
 import {Readable} from "node:stream";
 import {dirname, parse} from 'node:path'
 import {lookup as mimeTimeForExt} from "mime-types";
@@ -21,7 +21,7 @@ import {lookup as mimeTimeForExt} from "mime-types";
 type FileEntry = {
     type: 'file',
     path: string,
-    contents: Uint8Array,
+    contents: string,
     lastModifiedMs: number,
     visibility?: string,
 }
@@ -52,7 +52,7 @@ export class InMemoryStorageAdapter implements StorageAdapter {
         this.entries.set(path, {
             type: 'file',
             path,
-            contents: new Uint8Array(await readableToUint8Array(contents)),
+            contents: await readableToString(contents),
             lastModifiedMs: this.timestampResolver(),
             visibility: options.visibility,
         })
@@ -214,7 +214,7 @@ export class InMemoryStorageAdapter implements StorageAdapter {
             throw new Error(`File ${path} does not exist`);
         }
 
-        return await resolveMimeType(path, entry.contents);
+        return await resolveMimeType(path, Buffer.from(entry.contents));
     }
     async lastModified(path: string): Promise<number> {
         const entry = this.entries.get(path);
@@ -232,7 +232,7 @@ export class InMemoryStorageAdapter implements StorageAdapter {
             throw new Error(`File ${path} does not exist`);
         }
 
-        return entry.contents.byteLength;
+        return entry.contents.length;
     }
 }
 

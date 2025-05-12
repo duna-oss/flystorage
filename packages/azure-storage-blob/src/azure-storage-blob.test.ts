@@ -80,7 +80,7 @@ describe('AzureStorageBlobStorageAdapter', () => {
         let was404 = false;
 
         try {
-            await storage.read('404.txt');
+            await storage.readToString('404.txt');
         } catch (err) {
             if (err instanceof UnableToReadFile) {
                 was404 = err.wasFileNotFound;
@@ -89,7 +89,6 @@ describe('AzureStorageBlobStorageAdapter', () => {
 
         expect(was404).toEqual(true);
     });
-
 
     test('trying to see if a non-existing file exists', async () => {
         expect(await storage.fileExists('404.txt')).toEqual(false);

@@ -1,4 +1,4 @@
-import {Readable} from 'node:stream';
+import {Readable, pipeline} from 'node:stream';
 import {parse} from 'node:path';
 import {lookup as mimeTimeForExt} from 'mime-types';
 import {PassThrough} from 'node:stream';
@@ -17,7 +17,7 @@ function concatUint8Arrays(input: Uint8Array[]): Uint8Array {
 }
 
 export async function streamHead(stream: Readable, size: number): Promise<[Uint8Array, Readable]> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         const tunnel = new PassThrough();
         const outputStream = new PassThrough();
         let readBytes = 0;
@@ -43,6 +43,7 @@ export async function streamHead(stream: Readable, size: number): Promise<[Uint8
                 resolve([concatUint8Arrays(buffers), outputStream]);
             }
         });
+
         stream.pipe(tunnel).pipe(outputStream);
     });
 }

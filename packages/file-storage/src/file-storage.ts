@@ -27,6 +27,7 @@ import {
     UnableToSetVisibility,
     UnableToWriteFile,
 } from './errors.js';
+import {PassThrough} from 'node:stream';
 
 export type CommonStatInfo = Readonly<{
     path: string,
@@ -251,9 +252,23 @@ export class FileStorage {
         options = instrumentAbortSignal(options);
 
         try {
-            return Readable.from(
+            const stream = Readable.from(
                 await this.adapter.read(this.pathNormalizer.normalizePath(path), options),
             );
+
+            const streamOut = new PassThrough();
+            stream.on('error', (error) => {
+                stream.unpipe(streamOut);
+
+                streamOut.destroy(
+                    isFileWasNotFound(error)
+                        ? UnableToReadFile.becauseFileWasNotFound(error)
+                        : error,
+                );
+            });
+            stream.pipe(streamOut);
+
+            return streamOut;
         } catch (error) {
             if (isFileWasNotFound(error)) {
                 throw UnableToReadFile.becauseFileWasNotFound(error);
