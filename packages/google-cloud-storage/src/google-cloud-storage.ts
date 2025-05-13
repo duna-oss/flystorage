@@ -19,7 +19,7 @@ import {
 } from '@flystorage/file-storage';
 import {Readable} from 'stream';
 import {Bucket, GetFilesOptions, File, GetSignedUrlConfig, ApiError} from '@google-cloud/storage';
-import {resolveMimeType, streamHead} from '@flystorage/stream-mime-type';
+import {resolveMimeType} from '@flystorage/stream-mime-type';
 import {pipeline} from 'node:stream/promises';
 import {
     UniformBucketLevelAccessVisibilityHandling,
@@ -74,6 +74,7 @@ export class GoogleCloudStorageAdapter implements StorageAdapter {
                 errorHandler.destroy(err);
             }
         });
+
         const errorHandler = new PassThrough();
         readStream.pipe(errorHandler);
 
