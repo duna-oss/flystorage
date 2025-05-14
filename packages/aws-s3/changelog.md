@@ -1,5 +1,11 @@
 # `@flystorage/aws-s3`
 
+## 1.1.1
+
+## Changed
+
+- Do not send a body when creating a directory to prevent hanging requests.
+
 ## 1.1.0
 
 ## Added
