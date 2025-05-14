@@ -139,4 +139,11 @@ describe('InMemoryStorageAdapter', () => {
         expect(await storage.directoryExists('directory/c')).toEqual(true);
         expect(await storage.directoryExists('directory/a')).toEqual(false);
     });
+
+    test('getting a md5 checksum of a file', async () => {
+        await storage.write('this.txt', 'test');
+        const checksum = await storage.checksum('this.txt', {algo: 'md5'});
+
+        expect(checksum).toEqual('098f6bcd4621d373cade4e832627b4f6');
+    });
 });
