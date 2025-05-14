@@ -14,8 +14,7 @@ import {AwsS3StorageAdapter} from './aws-s3-storage-adapter.js';
 import {createReadStream} from "node:fs";
 import * as path from "node:path";
 import 'dotenv/config';
-import {PassThrough, Writable} from 'node:stream';
-import {Readable} from 'stream';
+import {PassThrough} from 'node:stream';
 
 let client: S3Client;
 let storage: FileStorage;

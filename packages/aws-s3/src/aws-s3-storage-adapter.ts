@@ -566,12 +566,17 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         contents: Readable | '',
         options: PutObjectOptions,
     ): PutObjectCommandInput {
-        return  {
+        const params: PutObjectCommandInput =  {
             Bucket: this.options.bucket,
             Key: key,
-            Body: contents,
             ...Object.assign({}, this.options.putObjectOptions, options),
         };
+
+        if (contents !== '') {
+            params.Body = contents;
+        }
+
+        return params;
     }
 
     async deleteFile(path: string, options: MiscellaneousOptions): Promise<void> {
