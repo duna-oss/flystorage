@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@flystorage/dynamic-import": "^1.0.0",
-    "file-type": "^20.5.0",
+    "file-type": "^21.0.0",
     "mime-types": "^3.0.1"
   },
   "description": "Get the mime-type of a readable stream, non-destructive",
