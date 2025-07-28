@@ -5,7 +5,7 @@
   "dependencies": {
     "@flystorage/file-storage": "^1.0.0",
     "@flystorage/stream-mime-type": "^1.0.0",
-    "multer": "^2.0.1"
+    "multer": "^2.0.2"
   },
   "description": "",
   "main": "./dist/cjs/index.js",
@@ -45,6 +45,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "form-data": "^4.0.3"
+    "form-data": "^4.0.4"
   }
 }
