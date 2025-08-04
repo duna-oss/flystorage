@@ -22,11 +22,11 @@
     "./packages/*"
   ],
   "devDependencies": {
-    "@swc/core": "^1.13.2",
+    "@swc/core": "^1.13.3",
     "@types/express": "^5.0.3",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.2.0",
     "@vitest/ui": "^3.2.4",
     "concurrently": "^9.2.0",
     "cross-env": "^10.0.0",
@@ -34,7 +34,7 @@
     "node-fetch": "^3.3.2",
     "rimraf": "^6.0.1",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.2",
     "vite": "^7.0.6",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.1.3"
