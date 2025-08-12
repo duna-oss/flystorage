@@ -3,9 +3,9 @@
   "type": "module",
   "version": "1.1.1",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.859.0",
-    "@aws-sdk/lib-storage": "^3.859.0",
-    "@aws-sdk/s3-request-presigner": "^3.859.0",
+    "@aws-sdk/client-s3": "^3.864.0",
+    "@aws-sdk/lib-storage": "^3.864.0",
+    "@aws-sdk/s3-request-presigner": "^3.864.0",
     "@flystorage/file-storage": "^1.1.0",
     "@flystorage/stream-mime-type": "^1.0.0",
     "file-type": "^21.0.0",
