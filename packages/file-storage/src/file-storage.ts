@@ -208,6 +208,7 @@ export type ConfigurationOptions = {
     mimeTypes?: MimeTypeOptions,
     preparedUploadStrategy?: PreparedUploadStrategy,
     timeout?: TimeoutOptions,
+    list?: ListOptions,
 }
 
 export function toReadable(contents: FileContents): Readable {
@@ -451,7 +452,7 @@ export class FileStorage {
     }
 
     public list(path: string, options: ListOptions = {}): DirectoryListing {
-        options = instrumentAbortSignal({...this.options.timeout, ...options});
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.list, ...options});
 
         const adapterOptions: AdapterListOptions = {
             ...options,
