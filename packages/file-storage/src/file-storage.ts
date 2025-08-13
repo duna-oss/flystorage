@@ -165,6 +165,7 @@ export type MimeTypeOptions = MiscellaneousOptions & {
 export type VisibilityOptions = {
     visibility?: string,
     directoryVisibility?: string,
+    retainVisibility?: boolean,
 
 }
 export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
