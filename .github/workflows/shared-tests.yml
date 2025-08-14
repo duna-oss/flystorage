@@ -24,7 +24,7 @@ on:
 
 jobs:
   run-tests:
-    runs-on: ${{ inputs.platform }}
+    runs-on: ${{ inputs.os }}
     continue-on-error: ${{ inputs.experimental }}
     strategy:
       matrix:
