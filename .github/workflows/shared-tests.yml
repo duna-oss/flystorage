@@ -2,6 +2,17 @@ name: Tests
 
 on:
   workflow_call:
+    secrets:
+      GCS_KEY_CONTENTS:
+        required: true
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      AWS_REGION:
+        required: true
+      AZURE_DSN:
+        required: true
     inputs:
       os:
         required: true
