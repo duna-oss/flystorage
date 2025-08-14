@@ -1,12 +1,21 @@
 name: Tests
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_call:
+    inputs:
+      os:
+        required: true
+        type: string
+      runtime:
+        required: true
+        type: string
+      versions:
+        required: true
+        type: string
+      experimental:
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   id-token: write # This is required for requesting the JWT
@@ -15,35 +24,34 @@ permissions:
 
 jobs:
   run-tests:
-    runs-on: ${{ matrix.platform }}
-    continue-on-error: ${{ matrix.experimental }}
+    runs-on: ${{ inputs.platform }}
+    continue-on-error: ${{ inputs.experimental }}
     strategy:
       matrix:
-        platform: [ubuntu-latest]
-        node: [20, 21, 22, 23]
-        experimental: [false]
-        include:
-          - platform: ubuntu-latest
-            experimental: true
-            node: 24
+        version: ${{ fromJSON(inputs.versions) }}
     name: Flystorage Tests
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
+
       - name: Install Node.js
+        if: inputs.runtime == 'node'
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: ${{ matrix.version }}
       - uses: ./.github/actions/install-dependencies
+        if: inputs.runtime == 'node'
         name: Install NPM dependencies
         with:
           cache-key: npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
           cache-restore-keys: npm-caches-${{ matrix.node }}
+
       - name: Configure GCP access
         run: |
           echo $CONTENTS > google-cloud-service-account.json
         env:
           CONTENTS: "${{ secrets.GCS_KEY_CONTENTS }}"
+
       - name: Run relevant tests
         run: "npm run test"
         env:
