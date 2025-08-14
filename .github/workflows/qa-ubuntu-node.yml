@@ -16,6 +16,7 @@ jobs:
   build:
     name: "Tests"
     uses: ./.github/workflows/shared-tests.yml
+    secrets: inherit
     with:
       os: ubuntu-latest
       runtime: node
