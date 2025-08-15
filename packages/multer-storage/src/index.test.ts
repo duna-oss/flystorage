@@ -4,8 +4,10 @@ import {LocalStorageAdapter} from "@flystorage/local-fs";
 import {FileStorage} from "@flystorage/file-storage";
 import {resolve} from "node:path";
 import FormData from "form-data";
+import bodyParser from "body-parser";
 import multer from 'multer';
 import fetch from 'node-fetch';
+import {IncomingMessage} from 'node:http';
 
 describe('FlystorageMulterStorageEngine', () => {
     test('it can process uploaded files', async () => {
@@ -21,6 +23,7 @@ describe('FlystorageMulterStorageEngine', () => {
         );
 
         const app = express();
+        app.use(bodyParser.urlencoded({ extended: false }));
         const storage = new FlystorageMulterStorageEngine(
             uploadStorage,
             async (action, _req: express.Request, file: Express.Multer.File) => {
@@ -47,13 +50,17 @@ describe('FlystorageMulterStorageEngine', () => {
             contentType: await fixtureStorage.mimeType('screenshot.png'),
             filename: 'screenshot-uploaded.png',
         });
-        const response = await fetch('http://localhost:5555/upload', {
-            method: 'POST',
-            body: formData,
-            headers: formData.getHeaders()
+        const response = await new Promise<IncomingMessage>((resolve, reject) => {
+            formData.submit('http://localhost:5555/upload', (error, response) => {
+                if (error) {
+                    reject(error);
+                } else {
+                    resolve(response);
+                }
+            })
         });
 
-        expect(response.status).toEqual(200);
+        expect(response.statusCode).toEqual(200);
         server.close();
 
         expect(await uploadStorage.fileExists('screenshot-uploaded.png')).toEqual(true);

@@ -7,7 +7,6 @@ describe('FileStorage', () => {
         const hash = createHash('md5');
         hash.update('contents');
         const expectedChecksum = hash.digest('hex');
-        hash.end();
 
         const storage = new FileStorage(new InMemoryStorageAdapter());
 

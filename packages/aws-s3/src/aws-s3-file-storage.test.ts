@@ -391,7 +391,7 @@ describe('aws-s3 file storage', () => {
             abortSignal: controller.signal,
         } as const;
 
-        await expect(async () => {
+        await expect((async () => {
             const promise = storage.write('cache.txt', 'some content', {
                 abortSignal: controller.signal,
             });
@@ -399,7 +399,7 @@ describe('aws-s3 file storage', () => {
             controller.abort(reason);
 
             return promise;
-        }).rejects.toThrow(UnableToWriteFile.because(
+        })()).rejects.toThrow(UnableToWriteFile.because(
             'Because I say so',
             {cause: reason, context: {path: 'cache.txt', options}},
         ));

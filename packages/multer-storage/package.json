@@ -45,6 +45,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "body-parser": "^2.2.0",
     "form-data": "^4.0.4"
   }
 }

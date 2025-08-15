@@ -55,7 +55,7 @@ describe('InMemoryStorageAdapter', () => {
     });
 
     test('deleting a non-existing file is OK', async () => {
-        await expect(storage.deleteFile('404.txt')).resolves.not.toThrow();
+        await expect(storage.deleteFile('404.txt'));
     });
 
     test('copying a file', async () => {

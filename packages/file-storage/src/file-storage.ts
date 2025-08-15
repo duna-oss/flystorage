@@ -166,8 +166,19 @@ export type VisibilityOptions = {
     visibility?: string,
     directoryVisibility?: string,
     retainVisibility?: boolean,
+} & ({
+    useVisibility: true,
+} | {
+    useVisibility: false,
+    visibilityFallback: {
+        strategy: 'ignore',
+        stagedVisibilityResponse?: string,
+    } | {
+        strategy: 'error',
+        errorMessage?: string,
+    }
+} | {});
 
-}
 export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
     mimeType?: string,
     size?: number,
