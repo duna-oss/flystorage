@@ -40,7 +40,7 @@ jobs:
     strategy:
       matrix:
         version: ${{ fromJSON(inputs.versions) }}
-    name: Flystorage Tests
+    name: Version ${{ matrix.version }}
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v4
@@ -56,6 +56,14 @@ jobs:
         with:
           cache-key: npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
           cache-restore-keys: npm-caches-${{ matrix.node }}
+
+      - uses: oven-sh/setup-bun@v2
+        if: inputs.runtime == 'bun'
+        with:
+          bun-version: ${{ inputs.version }}
+      - name: Install NPM dependencies using Bun
+        if: inputs.runtime == 'bun'
+        run: bun install
 
       - name: Configure GCP access
         run: |
