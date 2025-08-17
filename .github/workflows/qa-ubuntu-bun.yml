@@ -20,5 +20,5 @@ jobs:
       os: ubuntu-latest
       runtime: bun
       # as string for inputs workaround not accepting arrays
-      versions: '["1.1", "1.2"]'
+      versions: '["1.2"]'
       experimental: true
