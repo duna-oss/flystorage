@@ -1,0 +1,24 @@
+name: Ubuntu + Node
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-ubuntu-node
+  cancel-in-progress: true
+
+jobs:
+  build:
+    uses: ./.github/workflows/shared-tests.yml
+    secrets: inherit
+    with:
+      os: macos-latest
+      runtime: node
+      # as string for inputs workaround not accepting arrays
+      versions: '[20, 21, 22, 23, 24]'
+      experimental: true
