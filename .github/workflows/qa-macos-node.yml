@@ -9,7 +9,7 @@ on:
       - main
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-ubuntu-node
+  group: ${{ github.workflow }}-${{ github.ref }}-macos-node
   cancel-in-progress: true
 
 jobs:
