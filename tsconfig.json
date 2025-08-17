@@ -1,5 +1,4 @@
 {
-  "extends": "./tsconfig.build.json",
   "exclude": [
     "node_modules",
     "dist",
@@ -9,6 +8,10 @@
     "./**/*.ts"
   ],
   "compilerOptions": {
+    "declaration": true,
+    "skipLibCheck": true,
+    "lib": ["es2023"],
+    "forceConsistentCasingInFileNames": true,
     "target": "ES2020",
     "module": "NodeNext",
     "strict": true,
