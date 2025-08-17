@@ -80,7 +80,9 @@ jobs:
           AWS_REGION: "${{ secrets.AWS_REGION }}"
           AZURE_DSN: "${{ secrets.AZURE_DSN }}"
       - name: Run relevant tests using Bun
-        run: "bun test"
+        run: |
+          npm run build
+          bun test packages
         if: inputs.runtime == 'bun'
         env:
           AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
