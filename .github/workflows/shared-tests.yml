@@ -81,7 +81,7 @@ jobs:
           AZURE_DSN: "${{ secrets.AZURE_DSN }}"
       - name: Run relevant tests using Bun
         run: |
-          npm run build
+          npm run build:only
           bun test packages
         if: inputs.runtime == 'bun'
         env:
