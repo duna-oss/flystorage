@@ -21,3 +21,4 @@ jobs:
       runtime: bun
       # as string for inputs workaround not accepting arrays
       versions: '["1.1", "1.2"]'
+      experimental: true
