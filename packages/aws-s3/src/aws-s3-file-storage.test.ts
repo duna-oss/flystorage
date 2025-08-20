@@ -92,12 +92,11 @@ describe('aws-s3 file storage', () => {
 
     test('root listing should work without root-slash', async () => {
         const rootStorage = new FileStorage(new AwsS3StorageAdapter(client, {
-            bucket: bucket,
+            bucket: 'flystorage-root-check',
         }));
-        await rootStorage.deleteDirectory('');
 
-        await rootStorage.write('test-with-root-slash.txt', 'contents');
-        await rootStorage.createDirectory('test-with-root-slash');
+        await rootStorage.write('test-file.txt', 'contents');
+        await rootStorage.createDirectory('test-directory');
 
         const non_deep_listing = await rootStorage.list('', {deep: false}).toArray();
         const deep_listing = await rootStorage.list('', {deep: true}).toArray();
@@ -109,12 +108,11 @@ describe('aws-s3 file storage', () => {
 
     test('root listing should work with root-slash', async () => {
         const rootStorage = new FileStorage(new AwsS3StorageAdapter(client, {
-            bucket: bucket,
+            bucket: 'flystorage-root-check',
         }));
-        await rootStorage.deleteDirectory('/');
 
-        await rootStorage.write('test-without-root-slash.txt', 'contents');
-        await rootStorage.createDirectory('test-without-root-slash');
+        await rootStorage.write('test-file.txt', 'contents');
+        await rootStorage.createDirectory('test-directory');
 
         const non_deep_listing = await rootStorage.list('/', {deep: false}).toArray();
         const deep_listing = await rootStorage.list('/', {deep: true}).toArray();
