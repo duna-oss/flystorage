@@ -54,8 +54,8 @@ jobs:
         if: inputs.runtime == 'node'
         name: Install NPM dependencies
         with:
-          cache-key: npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
-          cache-restore-keys: npm-caches-${{ matrix.node }}
+          cache-key: ${{inputs.os}}-${{inputs.runtime}}-npm-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
+          cache-restore-keys: ${{inputs.os}}-${{inputs.runtime}}-npm-${{ matrix.node }}
 
       - uses: oven-sh/setup-bun@v2
         if: inputs.runtime == 'bun'
