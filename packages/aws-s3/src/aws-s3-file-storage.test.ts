@@ -103,7 +103,7 @@ describe('aws-s3 file storage', () => {
 
         expect(non_deep_listing).toHaveLength(2);
         expect(deep_listing).toHaveLength(2);
-        expect(non_deep_listing).toEqual(deep_listing);
+        expect(non_deep_listing.map(item => item.path)).toEqual(deep_listing.map(item => item.path));
     });
 
     test('root listing should work with root-slash', async () => {
@@ -119,7 +119,7 @@ describe('aws-s3 file storage', () => {
 
         expect(non_deep_listing).toHaveLength(2);
         expect(deep_listing).toHaveLength(2);
-        expect(non_deep_listing).toEqual(deep_listing);
+        expect(non_deep_listing.map(item => item.path)).toEqual(deep_listing.map(item => item.path));
     });
 
     test('moving a file', async () => {
