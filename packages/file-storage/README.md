@@ -20,35 +20,28 @@ to, simply because they cannot be abstracted over in a reasonable manner.
 
 ## Capabilities
 
-### Implemented
-- [x] Write files using string | buffer | readable/stream
-- [x] Read files as stream, string, or Uint8Array
-- [x] Set permissions using abstracted visibility
-- [x] List the contents of a directory/prefix, (shallow and deep).
-- [x] Delete files without failing when they don't exist.
-- [x] Delete directories (and any files it contains)
-- [x] Generate public URLs.
-- [x] Generate temporary (signed) URLs.
-- [x] Expose or calculate checksums for files.
-- [x] Mime-type resolving
-- [x] Last modified fetching
-- [x] File size
-- [x] Moving files
-- [x] Copying files
+- Write files using string | buffer | readable/stream
+- Read files as stream, string, or Uint8Array
+- List the contents of a directory/prefix, (shallow and deep).
+- Metadata, such as; mime-type, last modified timestamp, and file size.
+- Expose or calculate checksums for files.
+- Delete files without failing when they don't exist.
+- Set permissions using abstracted visibility
+- Delete directories (and any files it contains)
+- Generate public URLs.
+- Generate temporary (signed) URLs.
+- Secure direct uploads from the browser.
+- Moving files
+- Copying files
 
-## Implementations / Adapters
 
-### Implemented
-- [x] [Local Filesystem](https://www.npmjs.com/package/@flystorage/local-fs)
-- [x] [AWS S3 (using the V3 SDK)](https://www.npmjs.com/package/@flystorage/aws-s3)
-- [x] [Azure Blob Storage](https://www.npmjs.com/package/@flystorage/azure-storage-blob)
-- [x] [Test implementation (in-memory)](https://www.npmjs.com/package/@flystorage/in-memory)
-- [x] [Google Cloud Storage](https://www.npmjs.com/package/@flystorage/google-cloud-storage)
-- [x] [Chaos adapter decorator](https://www.npmjs.com/package/@flystorage/chaos)
-
-### Planned
-- [ ] FTP (using `basic-ftp`)
-- [ ] SFTP (?)
+## Adapters
+- [Local Filesystem](https://www.npmjs.com/package/@flystorage/local-fs)
+- [AWS S3 (using the V3 SDK)](https://www.npmjs.com/package/@flystorage/aws-s3)
+- [Azure Blob Storage](https://www.npmjs.com/package/@flystorage/azure-storage-blob)
+- [Test implementation (in-memory)](https://www.npmjs.com/package/@flystorage/in-memory)
+- [Google Cloud Storage](https://www.npmjs.com/package/@flystorage/google-cloud-storage)
+- [Chaos adapter decorator](https://www.npmjs.com/package/@flystorage/chaos)
 
 ## Usage
 Install the main package and any adapters you might need:
