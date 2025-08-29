@@ -162,7 +162,15 @@ export type MimeTypeOptions = MiscellaneousOptions & {
     fallbackMethod?: 'contents' | 'path',
 }
 
-export type VisibilityOptions = {
+export type VisibilityFallback = {
+    strategy: 'ignore',
+    stagedVisibilityResponse?: string,
+} | {
+    strategy: 'error',
+    errorMessage?: string,
+}
+
+export type VisibilityOptions = MiscellaneousOptions & {
     visibility?: string,
     directoryVisibility?: string,
     retainVisibility?: boolean,
@@ -170,13 +178,7 @@ export type VisibilityOptions = {
     useVisibility: true,
 } | {
     useVisibility: false,
-    visibilityFallback: {
-        strategy: 'ignore',
-        stagedVisibilityResponse?: string,
-    } | {
-        strategy: 'error',
-        errorMessage?: string,
-    }
+    visibilityFallback: VisibilityFallback,
 } | {});
 
 export type WriteOptions = VisibilityOptions & MiscellaneousOptions & {
@@ -424,8 +426,20 @@ export class FileStorage {
         }
     }
 
-    public async changeVisibility(path: string, visibility: string, options: MiscellaneousOptions = {}): Promise<void> {
+    public async changeVisibility(path: string, visibility: string, options: VisibilityOptions = {}): Promise<void> {
         options = instrumentAbortSignal({...this.options.timeout, ...options});
+
+        if (options.useVisibility === false) {
+            const fallback: VisibilityFallback = options.visibilityFallback;
+
+            if (fallback.strategy === 'ignore') {
+                return;
+            } else if (fallback.strategy === 'error') {
+                throw UnableToSetVisibility.because(fallback.errorMessage ?? 'Configured not to use visibility', {
+                    context: {path, visibility},
+                });
+            }
+        }
 
         try {
             return await this.adapter.changeVisibility(this.pathNormalizer.normalizePath(path), visibility, options);
@@ -437,8 +451,20 @@ export class FileStorage {
         }
     }
 
-    public async visibility(path: string, options: MiscellaneousOptions = {}): Promise<string> {
-        options = instrumentAbortSignal({...this.options.timeout, ...options});
+    public async visibility(path: string, options: VisibilityOptions = {}): Promise<string> {
+        options = instrumentAbortSignal({...this.options.timeout, ...this.options.visibility, ...options});
+
+        if (options.useVisibility === false) {
+            const fallback: VisibilityFallback = options.visibilityFallback;
+
+            if (fallback.strategy === 'ignore') {
+                return fallback.stagedVisibilityResponse ?? 'unknown';
+            } else if (fallback.strategy === 'error') {
+                throw UnableToGetVisibility.because(fallback.errorMessage ?? 'Configured not to use visibility', {
+                    context: {path},
+                });
+            }
+        }
 
         try {
             return await this.adapter.visibility(this.pathNormalizer.normalizePath(path), options);
