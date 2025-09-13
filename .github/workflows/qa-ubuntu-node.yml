@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  tests:
     uses: ./.github/workflows/shared-tests.yml
     secrets: inherit
     with:

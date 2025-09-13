@@ -40,7 +40,7 @@ jobs:
     strategy:
       matrix:
         version: ${{ fromJSON(inputs.versions) }}
-    name: Version ${{ matrix.version }}
+    name: ${{ inputs.os }} - ${{ inputs.runtime }} - ${{ matrix.version }}
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v5
