@@ -147,14 +147,16 @@ export class AwsS3StorageAdapter implements StorageAdapter {
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
         maybeAbort(options.abortSignal);
-        let visibility = options.visibility;
+        let visibility: string | undefined = options.visibility;
 
-        if (visibility === undefined && options.retainVisibility) {
+         if (visibility === undefined && options.retainVisibility) {
             visibility = await this.visibility(from, options);
             maybeAbort(options.abortSignal);
         }
 
-        let acl: AclOptions = visibility ? {ACL: this.visibilityToAcl(visibility)} : {};
+        let acl: AclOptions = (visibility !== undefined && options.useVisibility !== false)
+            ? {ACL: this.visibilityToAcl(visibility)}
+            : {};
 
         await this.client.send(new CopyObjectCommand({
             Bucket: this.options.bucket,

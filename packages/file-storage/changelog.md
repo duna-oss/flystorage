@@ -1,5 +1,12 @@
 # `@flystorage/file-storage`
 
+## 1.2.0
+
+## Added
+
+- Ability to ignore visibility using configuration
+- Support Bun runtime
+
 ## 1.1.0
 
 ## Added

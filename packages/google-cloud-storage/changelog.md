@@ -1,5 +1,12 @@
 # `@flystorage/google-cloud-storage`
 
+## 1.2.0
+
+### Changes
+
+- Upgraded dependencies
+- Remove not-used import
+
 ## 1.1.0
 
 ### Changes
