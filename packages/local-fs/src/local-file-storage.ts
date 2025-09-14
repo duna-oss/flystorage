@@ -19,7 +19,7 @@ import {
 import {lookup} from "mime-types";
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
 import {chmod, mkdir, opendir, rm, stat, rename, copyFile} from 'node:fs/promises';
-import {posix, extname} from 'node:path';
+import {posix, extname, dirname, sep} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -393,9 +393,9 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
 
     private async ensureParentDirectoryExists(path: string, options: VisibilityOptions) {
-        const directoryName = posix.dirname(path);
+        const directoryName = dirname(path);
 
-        if (directoryName !== '.' && directoryName !== '/') {
+        if (directoryName !== '.' && directoryName !== sep) {
             await this.createDirectory(directoryName, {
                 directoryVisibility: options.directoryVisibility,
             });
