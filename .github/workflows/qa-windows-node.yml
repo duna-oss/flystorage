@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/shared-tests.yml
     secrets: inherit
     with:
-      experimental: 'true'
+      experimental: true
       os: windows-latest
       runtime: node
       # as string for inputs workaround not accepting arrays
