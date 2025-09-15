@@ -22,7 +22,7 @@ import {
 } from '@aws-sdk/client-s3';
 import {Configuration, Upload} from '@aws-sdk/lib-storage';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
-import {join} from 'node:path';
+import {posix} from 'node:path';
 import {
     AdapterListOptions,
     ChecksumIsNotAvailable,
@@ -130,7 +130,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         private readonly timestampResolver: TimestampResolver = () => Date.now(),
     ) {
         this.prefixer = new PathPrefixer(options.prefix ?? '', '/', (...paths) => {
-            const path = join(...paths);
+            const path = posix.join(...paths);
 
             if (path === "." || path === "/") {
                 // 1) https://nodejs.org/api/path.html#pathjoinpaths
@@ -160,7 +160,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
 
         await this.client.send(new CopyObjectCommand({
             Bucket: this.options.bucket,
-            CopySource: join('/', this.options.bucket, encodePath(this.prefixer.prefixFilePath(from))),
+            CopySource: posix.join('/', this.options.bucket, encodePath(this.prefixer.prefixFilePath(from))),
             Key: this.prefixer.prefixFilePath(to),
             ...acl,
         }), {abortSignal: options.abortSignal});

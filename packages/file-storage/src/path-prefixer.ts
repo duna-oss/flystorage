@@ -1,11 +1,11 @@
-import {join} from 'node:path';
+import {type join, posix} from 'node:path';
 
 export class PathPrefixer {
     private readonly prefix: string = '';
     constructor(
         prefix: string = '',
         private readonly separator: string = '/',
-        private readonly joinFunc: typeof join = join,
+        private readonly joinFunc: typeof join = posix.join,
     ) {
         if (prefix.length > 0) {
             this.prefix = this.joinFunc(prefix, this.separator);

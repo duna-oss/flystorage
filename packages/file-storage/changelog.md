@@ -2,14 +2,14 @@
 
 ## 1.2.0
 
-## Added
+### Added
 
 - Ability to ignore visibility using configuration
 - Support Bun runtime
 
 ## 1.1.0
 
-## Added
+### Added
 
 - AbortSignal Support
 - Normalised over stream errors for reads
