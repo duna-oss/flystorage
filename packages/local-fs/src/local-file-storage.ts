@@ -19,7 +19,7 @@ import {
 import {lookup} from "mime-types";
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';
 import {chmod, mkdir, opendir, rm, stat, rename, copyFile} from 'node:fs/promises';
-import {posix, extname, dirname, sep} from 'node:path';
+import {join, extname, dirname, sep} from 'node:path';
 import {Readable} from 'stream';
 import {pipeline} from 'stream/promises';
 import {PortableUnixVisibilityConversion, UnixVisibilityConversion} from './unix-visibility.js';
@@ -49,8 +49,8 @@ export class BaseUrlLocalPublicUrlGenerator implements LocalPublicUrlGenerator {
 
         const base = options.baseUrl.endsWith('/') ? options.baseUrl : `${options.baseUrl}/`;
 
-        if (posix.sep === '\\' && path.includes(posix.sep)) {
-            path = path.replace(posix.sep, '/');
+        if (sep === '\\' && path.includes(sep)) {
+            path = path.replace(sep, '/');
         }
 
         return `${base}${path}`;
@@ -92,8 +92,8 @@ export class LocalStorageAdapter implements StorageAdapter {
         private readonly temporaryUrlGenerator: LocalTemporaryUrlGenerator = new FailingLocalTemporaryUrlGenerator(),
         private readonly uploadPreparer: PreparedUploadStrategy = new PreparedUploadsAreNotSupported(),
     ) {
-        this.rootDir = posix.join(this.rootDir, posix.sep);
-        this.prefixer = new PathPrefixer(this.rootDir, posix.sep, posix.join);
+        this.rootDir = join(this.rootDir, sep);
+        this.prefixer = new PathPrefixer(this.rootDir, sep, join);
     }
 
     async copyFile(from: string, to: string, options: CopyFileOptions): Promise<void> {
@@ -203,7 +203,7 @@ export class LocalStorageAdapter implements StorageAdapter {
         });
 
         for await (const item of entries) {
-            const itemPath = posix.join(item.parentPath, item.name);
+            const itemPath = join(item.parentPath, item.name);
 
             yield this.mapStatToEntry(
                 item,
