@@ -1,5 +1,5 @@
 import {BlobServiceClient} from "@azure/storage-blob";
-import {AzureStorageBlobStorageAdapter} from "./azure-storage-blob.js";
+import {AzureStorageBlobStorageAdapter} from "./index.js";
 import {randomBytes} from "crypto";
 import {
     FileStorage,
