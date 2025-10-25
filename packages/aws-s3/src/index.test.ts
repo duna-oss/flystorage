@@ -10,7 +10,7 @@ import {
 } from '@flystorage/file-storage';
 import {BinaryToTextEncoding, createHash, randomBytes} from 'crypto';
 import * as https from 'https';
-import {AwsS3StorageAdapter} from './aws-s3-storage-adapter.js';
+import {AwsS3StorageAdapter} from './index.js';
 import {createReadStream} from "node:fs";
 import * as path from "node:path";
 import 'dotenv/config';
