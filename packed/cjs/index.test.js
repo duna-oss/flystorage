@@ -14,5 +14,7 @@ describe('running inside jest', () => {
         const listing = await fs.list('jest').toArray();
 
         expect(listing.length).toBe(1);
+
+        expect(await fs.mimeType('jest/file.txt')).toEqual('text/plain');
     })
 })

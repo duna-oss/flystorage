@@ -2,19 +2,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm run compile -ws --if-present && npm run patch -ws --if-present",
-    "build:only": "npm run compile -ws --if-present",
-    "clean:build": "npm run clean && npm run build",
-    "watch": "concurrently npm:watch:*",
-    "watch:file-storage": "npm run watch -w ./packages/file-storage",
-    "watch:stream-mime-type": "npm run watch -w ./packages/stream-mime-type",
-    "watch:local": "npm run watch -w ./packages/local-fs",
-    "watch:aws-s3": "npm run watch -w ./packages/aws-s3",
+    "build": "tsdown && npm run patch -ws --if-present",
     "clean": "rm -rf ./packages/*/dist/",
     "ts": "node --import tsx/esm",
     "lint": "tsc --noEmit --incremental false",
     "test": "npm run lint && npm run vitest",
-    "vitest": "vitest run"
+    "vitest": "vitest run",
+    "pack": "npm pack -ws --pack-destination ./packed"
   },
   "workspaces": [
     "./packages/stream-mime-type",
@@ -33,6 +27,7 @@
     "express": "^5.1.0",
     "node-fetch": "^3.3.2",
     "rimraf": "^6.1.2",
+    "tsdown": "^0.15.9",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
