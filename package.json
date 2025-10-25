@@ -2,19 +2,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npm run compile -ws --if-present && npm run patch -ws --if-present",
-    "build:only": "npm run compile -ws --if-present",
-    "clean:build": "npm run clean && npm run build",
-    "watch": "concurrently npm:watch:*",
-    "watch:file-storage": "npm run watch -w ./packages/file-storage",
-    "watch:stream-mime-type": "npm run watch -w ./packages/stream-mime-type",
-    "watch:local": "npm run watch -w ./packages/local-fs",
-    "watch:aws-s3": "npm run watch -w ./packages/aws-s3",
+    "build": "tsdown && npm run patch -ws --if-present",
     "clean": "rm -rf ./packages/*/dist/",
     "ts": "node --import tsx/esm",
     "lint": "tsc --noEmit --incremental false",
     "test": "npm run lint && npm run vitest",
-    "vitest": "vitest run"
+    "vitest": "vitest run",
+    "pack": "npm pack -ws --pack-destination ./packed"
   },
   "workspaces": [
     "./packages/stream-mime-type",
@@ -22,24 +16,25 @@
     "./packages/*"
   ],
   "devDependencies": {
-    "@swc/core": "^1.15.18",
+    "@swc/core": "^1.15.33",
     "@types/express": "^5.0.6",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.1.0",
-    "@types/node": "^25.3.5",
-    "@vitest/ui": "^4.0.18",
+    "@types/node": "^25.7.0",
+    "@vitest/ui": "^4.1.6",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "express": "^5.2.1",
     "node-fetch": "^3.3.2",
     "rimraf": "^6.1.3",
+    "tsdown": "^0.22.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
-    "vite": "^7.3.1",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.12",
     "vite-tsconfig-paths": "^6.1.1",
-    "vitest": "^4.0.14"
+    "vitest": "^4.1.6"
   },
   "dependencies": {
-    "dotenv": "^17.3.1"
+    "dotenv": "^17.4.2"
   }
 }

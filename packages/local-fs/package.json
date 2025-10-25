@@ -9,27 +9,22 @@
     "mime-types": "^3.0.2"
   },
   "description": "",
-  "main": "./dist/cjs/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
       },
       "require": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/cjs/index.js"
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
       }
     }
   },
   "scripts": {
-    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
-    "patch": "gsed -i 's/dynamicallyImport(/import(/g' dist/esm/local-file-storage.js",
-    "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
-    "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
-    "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
-    "watch": "tsc --watch"
+    "patch": "gsed -i 's/dynamicallyImport(/import(/g' dist/local-file-storage.js"
   },
   "keywords": [
     "fs",
