@@ -22,22 +22,22 @@
     "./packages/*"
   ],
   "devDependencies": {
-    "@swc/core": "^1.13.5",
-    "@types/express": "^5.0.3",
+    "@swc/core": "^1.15.1",
+    "@types/express": "^5.0.5",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
-    "@types/node": "^24.9.0",
-    "@vitest/ui": "^3.2.4",
+    "@types/node": "^24.10.0",
+    "@vitest/ui": "^4.0.8",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "express": "^5.1.0",
     "node-fetch": "^3.3.2",
-    "rimraf": "^6.0.1",
+    "rimraf": "^6.1.0",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vite": "^7.1.11",
+    "vite": "^7.2.2",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.1.3"
+    "vitest": "^4.0.8"
   },
   "dependencies": {
     "dotenv": "^17.2.3"
