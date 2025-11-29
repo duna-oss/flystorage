@@ -1,5 +1,11 @@
 # `@flystorage/file-storage`
 
+## 1.2.1
+
+### Fixes
+
+- Prevent unprefixed root paths to become '/' for directory listings.
+
 ## 1.2.0
 
 ### Added
