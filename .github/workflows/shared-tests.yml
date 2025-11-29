@@ -43,7 +43,7 @@ jobs:
     name: ${{ inputs.os }} - ${{ inputs.runtime }} - ${{ matrix.version }}
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Node.js
         if: inputs.runtime == 'node'
