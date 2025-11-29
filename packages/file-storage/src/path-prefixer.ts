@@ -17,7 +17,15 @@ export class PathPrefixer {
     }
 
     prefixDirectoryPath(path: string): string {
-        return this.prefix.length > 0 ? this.joinFunc(this.prefix, path, '/') : this.joinFunc(path, '/');
+        let fullPath = this.prefix.length > 0
+            ? this.joinFunc(this.prefix, path)
+            : path;
+
+        if (fullPath.length > 0 && !fullPath.endsWith(this.separator)) {
+            fullPath = `${fullPath}${this.separator}`;
+        }
+
+        return fullPath;
     }
 
     stripFilePath(path: string): string {
