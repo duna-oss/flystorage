@@ -27,7 +27,7 @@
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.10.1",
-    "@vitest/ui": "^4.0.13",
+    "@vitest/ui": "^4.0.14",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "express": "^5.1.0",
@@ -37,7 +37,7 @@
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^4.0.8"
+    "vitest": "^4.0.14"
   },
   "dependencies": {
     "dotenv": "^17.2.3"
