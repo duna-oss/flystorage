@@ -7,3 +7,4 @@ bin/*
 !bin/watch.ts
 fixtures/test-files/
 .node-version
+.idea/
