@@ -1,6 +1,7 @@
 import {S3Client} from '@aws-sdk/client-s3';
 import {
     FileStorage,
+    FileWasNotFound,
     readableToString,
     Visibility,
     closeReadable,
@@ -174,6 +175,20 @@ describe('aws-s3 file storage', () => {
 
     test('trying to move a file that does not exist', async () => {
         await expect(storage.moveFile('404.txt', 'to.txt')).rejects.toThrow();
+    });
+
+    test('trying to download a file that does not exist', async () => {
+        let was404 = false;
+
+        try {
+            await storage.temporaryUrl(`/${new Date().getTime()}`, {expiresAt: 10 * 1000});
+        } catch (err) {
+            if (err instanceof FileWasNotFound) {
+                was404 = true;
+            }
+        }
+
+        expect(was404).toEqual(true);
     });
 
     test('you can download public files using a public URL', async () => {

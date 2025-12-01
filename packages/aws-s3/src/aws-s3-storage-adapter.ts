@@ -236,9 +236,20 @@ export class AwsS3StorageAdapter implements StorageAdapter {
             }
         }
 
-        return await getSignedUrl(this.client, new GetObjectCommand(getObjectParams), {
-            expiresIn: Math.floor((expiry - now) / 1000),
-        });
+        try {
+            return await getSignedUrl(this.client, new GetObjectCommand(getObjectParams), {
+                expiresIn: Math.floor((expiry - now) / 1000),
+            });
+        } catch (err) {
+            if (err instanceof S3ServiceException && err.$metadata.httpStatusCode === 404) {
+                throw FileWasNotFound.atLocation(path, {
+                    context: {path, options},
+                    cause: err,
+                });
+            }
+
+            throw err;
+        }
     }
 
     async lastModified(path: string, options: MiscellaneousOptions): Promise<number> {
