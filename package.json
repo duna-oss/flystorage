@@ -22,12 +22,12 @@
     "./packages/*"
   ],
   "devDependencies": {
-    "@swc/core": "^1.15.3",
+    "@swc/core": "^1.15.8",
     "@types/express": "^5.0.6",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
-    "@types/node": "^24.10.1",
-    "@vitest/ui": "^4.0.15",
+    "@types/node": "^25.0.6",
+    "@vitest/ui": "^4.0.17",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "express": "^5.2.1",
@@ -35,8 +35,8 @@
     "rimraf": "^6.1.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^7.2.7",
-    "vite-tsconfig-paths": "^5.1.4",
+    "vite": "^7.3.1",
+    "vite-tsconfig-paths": "^6.0.4",
     "vitest": "^4.0.14"
   },
   "dependencies": {
