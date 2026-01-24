@@ -199,6 +199,12 @@ describe('aws-s3 file storage', () => {
         )).resolves.toEqual('contents of the private file');
     });
 
+    test('getting a temporary url for a non-existing-file', async () => {
+        await expect(
+            storage.temporaryUrl('this-does-not-exist.txt', {expiresAt: Date.now() + 60 * 1000})
+        ).resolves.toContain('this-does-not-exist.txt');
+    });
+
     describe('response headers', () => {
         test('fetches file with Content-Disposition header when specified in the options', async () => {
             await storage.write('private+file.txt', 'contents of the private file', {
