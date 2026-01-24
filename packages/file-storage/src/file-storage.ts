@@ -150,7 +150,7 @@ export class DirectoryListing implements AsyncIterable<StatEntry> {
 
 export type FileContents = Iterable<any> | AsyncIterable<any> | NodeJS.ReadableStream | Readable | string;
 
-export type TimeoutOptions = { timout?: number };
+export type TimeoutOptions = { timeout?: number };
 
 export type MiscellaneousOptions = TimeoutOptions & {
     [option: string]: any,
