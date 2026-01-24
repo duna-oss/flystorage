@@ -1,7 +1,7 @@
 {
   "name": "@flystorage/file-storage",
   "type": "module",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "File-storage abstraction: multiple filesystems, one API.",
   "main": "./dist/cjs/index.js",
   "types": "./dist/types/index.d.ts",

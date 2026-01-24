@@ -1,5 +1,11 @@
 # `@flystorage/file-storage`
 
+## 1.2.2
+
+### Fixes
+
+- Fixed typo in timeout options name
+
 ## 1.2.1
 
 ### Fixes

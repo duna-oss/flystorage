@@ -1,10 +1,14 @@
 # `@flystorage/aws-s3`
 
+## 1.2.1
+
+- Upgraded dependencies
+
 ## 1.2.0
 
 ## Changes
 
-- 
+- Make tests run on Bun
 
 ## 1.1.1
 
