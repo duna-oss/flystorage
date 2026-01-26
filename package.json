@@ -26,8 +26,8 @@
     "@types/express": "^5.0.6",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
-    "@types/node": "^25.0.9",
-    "@vitest/ui": "^4.0.17",
+    "@types/node": "^25.0.10",
+    "@vitest/ui": "^4.0.18",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "express": "^5.2.1",
@@ -36,7 +36,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vite-tsconfig-paths": "^6.0.4",
+    "vite-tsconfig-paths": "^6.0.5",
     "vitest": "^4.0.14"
   },
   "dependencies": {
