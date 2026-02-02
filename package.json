@@ -22,11 +22,11 @@
     "./packages/*"
   ],
   "devDependencies": {
-    "@swc/core": "^1.15.10",
+    "@swc/core": "^1.15.11",
     "@types/express": "^5.0.6",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
-    "@types/node": "^25.0.10",
+    "@types/node": "^25.2.0",
     "@vitest/ui": "^4.0.18",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
