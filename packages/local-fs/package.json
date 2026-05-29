@@ -1,7 +1,7 @@
 {
   "name": "@flystorage/local-fs",
   "type": "module",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "dependencies": {
     "@flystorage/dynamic-import": "^1.0.0",
     "@flystorage/file-storage": "^1.1.0",
@@ -10,21 +10,22 @@
   },
   "description": "",
   "main": "./dist/index.cjs",
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       },
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "patch": "gsed -i 's/dynamicallyImport(/import(/g' dist/local-file-storage.js"
+    "patch": "gsed -i 's/dynamicallyImport(/import(/g' dist/index.mjs"
   },
   "keywords": [
     "fs",

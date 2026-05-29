@@ -2,7 +2,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsdown && npm run patch -ws --if-present",
+    "build": "node --run clean && tsdown && npm run patch -ws --if-present",
     "build:only": "tsdown",
     "clean": "rm -rf ./packages/*/dist/",
     "ts": "node --import tsx/esm",

@@ -129,7 +129,7 @@ export class AwsS3StorageAdapter implements StorageAdapter {
         private readonly publicUrlGenerator: AwsPublicUrlGenerator = new DefaultAwsPublicUrlGenerator(),
         private readonly timestampResolver: TimestampResolver = () => Date.now(),
     ) {
-        this.prefixer = new PathPrefixer(options.prefix ?? '', '/', (...paths) => {
+        this.prefixer = new PathPrefixer(options.prefix ?? '', '/', (...paths: string[]) => {
             const path = posix.join(...paths);
 
             if (path === "." || path === "/") {
@@ -815,6 +815,21 @@ export const writeOptionResolvers: ResolversForWriteOptions = {
         return typeof value === 'string';
     },
     IfNoneMatch: function (value: any): value is WriteOptionsForS3['IfNoneMatch'] {
+        return typeof value === 'string';
+    },
+    ChecksumSHA512: function (value: any): value is WriteOptionsForS3['ChecksumSHA512'] {
+        return typeof value === 'string';
+    },
+    ChecksumMD5: function (value: any): value is WriteOptionsForS3['ChecksumMD5'] {
+        return typeof value === 'string';
+    },
+    ChecksumXXHASH64: function (value: any): value is WriteOptionsForS3['ChecksumXXHASH64'] {
+        return typeof value === 'string';
+    },
+    ChecksumXXHASH3: function (value: any): value is WriteOptionsForS3['ChecksumXXHASH3'] {
+        return typeof value === 'string';
+    },
+    ChecksumXXHASH128: function (value: any): value is WriteOptionsForS3['ChecksumXXHASH128'] {
         return typeof value === 'string';
     },
 };

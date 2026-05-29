@@ -5,6 +5,8 @@
   "description": "Utility to dynamically import ESM packages from CommonJS without tsc messing things up.",
   "main": "./index.js",
   "types": "./index.d.ts",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
       "import": {

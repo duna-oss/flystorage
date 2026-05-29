@@ -14,7 +14,8 @@ import {
     MimeTypeOptions,
     UploadRequestOptions,
     UploadRequest,
-    MiscellaneousOptions, FileWasNotFound,
+    MiscellaneousOptions,
+    FileWasNotFound,
 } from '@flystorage/file-storage';
 import {lookup} from "mime-types";
 import {createReadStream, createWriteStream, Dirent, Stats} from 'node:fs';

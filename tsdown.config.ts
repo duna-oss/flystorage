@@ -18,7 +18,12 @@ await Promise.all(packageDirectories.map(async name => {
     const sourceFiles: string[] = [];
 
     for (const key in exportDeclarations) {
-        const sourceFile = exportDeclarations[key]['import']['default'].replace('dist', 'src').replace('.js', '.ts');
+        if (key === './package.json') {
+            continue;
+        }
+
+        console.log(exportDeclarations[key]);
+        const sourceFile = exportDeclarations[key]['import']['default'].replace('dist', 'src').replace('.mjs', '.ts');
         sourceFiles.push(sourceFile);
         const destination = resolve(import.meta.dirname, 'packages', name, sourceFile);
 
@@ -32,18 +37,20 @@ await Promise.all(packageDirectories.map(async name => {
     sources[name] = sourceFiles.map(file => `packages/${name}/${file}`);
 }));
 
-export default [
-    ...packageDirectories.map(dirname => {
-        return defineConfig({
+export default defineConfig(
+    packageDirectories.map(dirname => {
+        return {
             dts: true,
-            format: ['esm', 'cjs'],
-            external: [/^@flystorage\//],
+            format: ['esm', 'cjs'] as any,
             alias: aliases,
-            skipNodeModulesBundle: true,
+            deps: {
+                skipNodeModulesBundle: true,
+                neverBundle: /^@flystorage\//,
+            },
             entry: sources[dirname] ?? [],
             outDir: resolve(import.meta.dirname, `packages/${dirname}/dist`),
             platform: 'node',
-            unbundle: true,
-        });
+            unbundle: false,
+        } as const;
     }),
-];
+);
