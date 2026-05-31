@@ -7,9 +7,18 @@ export interface PathNormalizer {
 const funkyWhiteSpaceRegex = new RegExp('\\p{C}+', 'u');
 
 export class PathNormalizerV1 implements PathNormalizer {
+    constructor(
+        private readonly rejectRelativePathsWithinRoot: boolean = false,
+    ) {
+    }
+
     normalizePath(path: string): string {
         if (funkyWhiteSpaceRegex.test(path)) {
             throw CorruptedPathDetected.unexpectedWhitespace(path);
+        }
+
+        if (this.rejectRelativePathsWithinRoot && path.indexOf('../') !== -1) {
+            throw PathTraversalDetected.forPath(path);
         }
 
         const normalized = join(...(path.split('/')));

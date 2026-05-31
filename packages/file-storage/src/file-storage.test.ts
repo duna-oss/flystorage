@@ -16,6 +16,32 @@ describe('FileStorage', () => {
         expect(checksum).toEqual(expectedChecksum);
     });
 
+    test('rejecting all relative paths', async () => {
+        const storage = new FileStorage(
+            new InMemoryStorageAdapter(),
+            undefined,
+            {
+                rejectRelativePathsWithinRoot: true,
+            }
+        );
+
+        await expect(storage.write('lol/../text.txt', 'contents')).rejects.toThrow();
+    });
+
+    test('writing to a relative path within the root', async () => {
+        const storage = new FileStorage(new InMemoryStorageAdapter());
+
+        await storage.write('lol/../text.txt', 'contents');
+
+        expect(await storage.fileExists('text.txt')).toEqual(true);
+    });
+
+    test('trying to write outside of the root is never allowed', async () => {
+        const storage = new FileStorage(new InMemoryStorageAdapter());
+
+        await expect(storage.write('lol/../../text.txt', 'contents')).rejects.toThrow();
+    });
+
     test('supplying a prepared upload strategy', async () => {
         const storage = new FileStorage(
             new InMemoryStorageAdapter(),

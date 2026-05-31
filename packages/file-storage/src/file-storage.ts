@@ -211,6 +211,7 @@ export type ChecksumOptions = MiscellaneousOptions & {
 }
 
 export type ConfigurationOptions = {
+    rejectRelativePathsWithinRoot?: true,
     visibility?: VisibilityOptions,
     writes?: WriteOptions,
     moves?: MoveFileOptions,
@@ -263,11 +264,16 @@ function instrumentAbortSignal<Options extends MiscellaneousOptions>(options: Op
 }
 
 export class FileStorage {
+    private readonly pathNormalizer: PathNormalizer;
+
     constructor(
         private readonly adapter: StorageAdapter,
-        private readonly pathNormalizer: PathNormalizer = new PathNormalizerV1(),
+        pathNormalizer: PathNormalizer | undefined = undefined,
         private readonly options: ConfigurationOptions = {},
     ) {
+        this.pathNormalizer = pathNormalizer ?? new PathNormalizerV1(
+            options.rejectRelativePathsWithinRoot ?? false,
+        );
     }
 
     public async write(path: string, contents: FileContents, options: WriteOptions = {}): Promise<void> {
