@@ -20,4 +20,4 @@ jobs:
       os: ubuntu-latest
       runtime: node
       # as string for inputs workaround not accepting arrays
-      versions: '[22, 23, 24, 25, 26]'
+      versions: '[22, 24, 26]'
