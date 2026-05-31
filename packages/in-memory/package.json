@@ -1,33 +1,27 @@
 {
   "name": "@flystorage/in-memory",
   "type": "module",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "dependencies": {
     "@flystorage/file-storage": "^1.1.0",
     "file-type": "^21.3.1",
     "mime-types": "^3.0.2"
   },
   "description": "",
-  "main": "./dist/cjs/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/cjs/index.js"
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
       }
-    }
-  },
-  "scripts": {
-    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
-    "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
-    "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
-    "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
-    "watch": "tsc --watch"
+    },
+    "./package.json": "./package.json"
   },
   "keywords": [
     "test double",

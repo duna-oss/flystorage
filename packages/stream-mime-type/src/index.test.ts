@@ -2,7 +2,7 @@ import * as fs from 'node:fs';
 import path from 'node:path';
 
 import {Readable} from 'stream';
-import {resolveMimeType} from './stream-mime-type.js';
+import {resolveMimeType} from './index.js';
 
 describe('resolveMimeType', () => {
     let stream: Readable;

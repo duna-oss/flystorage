@@ -1,32 +1,33 @@
 {
   "name": "@flystorage/multer-storage",
   "type": "module",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "dependencies": {
     "@flystorage/file-storage": "^1.0.0",
     "@flystorage/stream-mime-type": "^1.0.0",
     "multer": "^2.1.1"
   },
   "description": "",
-  "main": "./dist/cjs/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.cts",
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/esm/index.js"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       },
       "require": {
-        "types": "./dist/types/index.d.ts",
-        "default": "./dist/cjs/index.js"
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
-    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/cjs/package.json",
+    "compile": "rm -rf ./dist/ && concurrently npm:compile:* && echo '{\"type\": \"commonjs\"}' > ./dist/package.cjson",
     "compile:esm": "tsc --outDir ./dist/esm/ --declaration false",
     "compile:cjs": "tsc --outDir ./dist/cjs/ --declaration false --module commonjs --moduleResolution node",
-    "compile:types": "tsc --outDir ./dist/types/ --declaration --emitDeclarationOnly",
+    "compile:types": "tsc --outDir ./dist/ --declaration --emitDeclarationOnly",
     "watch": "tsc --watch"
   },
   "keywords": [
